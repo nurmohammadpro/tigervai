@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
 import StepBasicInfo from "@/components/ui/custom/admin/create-edit-product/create-product/StepBasicInfo";
 import StepPricing from "@/components/ui/custom/admin/create-edit-product/create-product/StepPricing";
-import StepVariants from "@/components/ui/custom/admin/create-edit-product/create-product/StepVariants";
+import StepVariants from "@/components/ui/custom/admin/create-edit-product/create-product/StepVariantsImproved";
 import StepMedia from "@/components/ui/custom/admin/create-edit-product/create-product/StepMedia";
 import StepShipping from "@/components/ui/custom/admin/create-edit-product/create-product/StepShipping";
 import StepAdditionalInfo from "@/components/ui/custom/admin/create-edit-product/create-product/StepAdditionalInfo";
