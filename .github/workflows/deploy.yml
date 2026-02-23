@@ -1,0 +1,16 @@
+name: Deploy to EasyPanel
+
+on:
+  push:
+    branches: [ main, dev ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger EasyPanel Deployment
+        run: |
+          curl -X POST "http://72.60.222.185:3000/api/deploy/7ea64ad8f3090bc9120d6b0fad679241c2821489cf14363f" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
