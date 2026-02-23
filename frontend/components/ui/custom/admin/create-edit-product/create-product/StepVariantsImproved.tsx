@@ -153,15 +153,15 @@ export default function StepVariantsImproved() {
         className="p-4 rounded-lg border"
         style={{
           borderColor: "var(--palette-accent-3)",
-          backgroundColor: "rgba(59, 130, 246, 0.05)",
+          backgroundColor: "rgba(238, 74, 35, 0.05)",
           borderStyle: "dashed",
         }}
       >
         <h3
           className="font-semibold mb-4 flex items-center gap-2"
-          style={{ color: "var(--palette-accent-1)" }}
+          style={{ color: "var(--palette-text)" }}
         >
-          <Sparkles size={20} className="text-blue-400" />
+          <Sparkles size={20} style={{ color: "var(--palette-btn)" }} />
           Quick Variant Generator (All Sizes × All Colors)
         </h3>
 
@@ -260,7 +260,7 @@ export default function StepVariantsImproved() {
         <Button
           onClick={handleGenerateVariants}
           className="flex items-center gap-2 text-white w-full"
-          style={{ backgroundColor: "#3b82f6" }}
+          style={{ backgroundColor: "var(--palette-btn)" }}
         >
           <Sparkles size={18} />
           Generate All Combinations
@@ -579,16 +579,20 @@ export default function StepVariantsImproved() {
                     handleRemoveVariant(index);
                   }}
                   className="p-2 hover:bg-blue-500/20 rounded transition"
+                  style={{ color: "var(--palette-accent-2)" }}
                   title="Edit variant (loads into form)"
                 >
-                  <Pen size={18} className="text-blue-400" />
+                  <Pen size={18} />
                 </button>
                 <button
                   onClick={() => handleRemoveVariant(index)}
-                  className="p-2 hover:bg-red-500/20 rounded transition"
+                  className="p-2 rounded transition"
+                  style={{ color: "#ef4444" }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)"}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                   title="Delete variant"
                 >
-                  <Trash2 size={18} className="text-red-400" />
+                  <Trash2 size={18} />
                 </button>
               </div>
             ))}
