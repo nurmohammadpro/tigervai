@@ -1,7 +1,11 @@
 "use client";
-import { useScrollRestorer } from "next-scroll-restorer";
+import { useEffect } from "react";
+
 const ClientSideScrollRestorer = () => {
-  useScrollRestorer();
+  useEffect(() => {
+    // Simple scroll to top on route change
+    window.scrollTo(0, 0);
+  }, []);
   return <></>;
 };
 export default ClientSideScrollRestorer;

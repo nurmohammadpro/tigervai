@@ -209,15 +209,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <GoogleTagManager gtmId="GTM-53K4CD6D" />
-
-      <Suspense>
-        <WhatsAppSupport />
-      </Suspense>
-
       <body
         className={`${kumbhSans.variable} antialiased bg-palette-bg h-full`}
       >
+        {/* Google Tag Manager (head part) can stay in the body for GTM */}
+        <GoogleTagManager gtmId="GTM-53K4CD6D" />
+
+        {/* WhatsApp Support - now properly inside <body> */}
+        <Suspense>
+          <WhatsAppSupport />
+        </Suspense>
+
+        {/* Your noscript iframe for GTM */}
         <Script id="text">
           <noscript>
             <iframe
@@ -228,77 +231,19 @@ export default function RootLayout({
             ></iframe>
           </noscript>
         </Script>
+
+        {/* Rest of your components - PageViewTracker, Scripts, QueryProvider, etc. */}
         <Suspense>
           <PageViewTracker />
         </Suspense>
-        <Script
-          id="jsonld-main"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "Tiger vai",
-              alternateName: "Tiger vai Bangladesh",
-              url: "https://yourdomain.com",
-              logo: "https://yourdomain.com/logo.png",
-              description:
-                "Bangladesh's leading multi-vendor online marketplace",
-              sameAs: [
-                "https://www.facebook.com/Tiger vai",
-                "https://twitter.com/Tiger vai",
-                "https://www.instagram.com/Tiger vai",
-                "https://www.youtube.com/Tiger vai",
-                "https://www.linkedin.com/company/Tiger vai",
-              ],
-              contactPoint: {
-                "@type": "ContactPoint",
-                telephone: "+880-1234-567890",
-                contactType: "customer service",
-                areaServed: "BD",
-                availableLanguage: ["English", "Bengali"],
-              },
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: "Your Street Address",
-                addressLocality: "Dhaka",
-                addressRegion: "Dhaka",
-                postalCode: "1000",
-                addressCountry: "BD",
-              },
-            }),
-          }}
-        />
 
-        {/* ✅ JSON-LD for WebSite with SearchAction */}
-        <Script
-          id="jsonld"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: "YourStore",
-              url: "https://yourdomain.com",
-              potentialAction: {
-                "@type": "SearchAction",
-                target: {
-                  "@type": "EntryPoint",
-                  urlTemplate:
-                    "https://yourdomain.com/search?q={search_term_string}",
-                },
-                "query-input": "required name=search_term_string",
-              },
-            }),
-          }}
-        />
         <Suspense>
           <ClientSideScrollRestorer />
         </Suspense>
+
         <QueryProvider>
           <NuqsAdapter>
             <Navbar />
-
             {children}
             <Footer />
             <Toaster />

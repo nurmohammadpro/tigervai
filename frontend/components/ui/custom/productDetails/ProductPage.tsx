@@ -48,6 +48,7 @@ import { Separator } from "../../separator";
 import ShortDescription from "./ShortDiscription";
 import pb from "@/lib/poacktbase";
 import { Spinner } from "../../spinner";
+import VariantSelector from "./VariantSelector";
 
 interface ProductVariantCardsProps {
   product: Product;
@@ -614,6 +615,13 @@ const ProductPage = ({ params }: { params: Product }) => {
   const [getUser, setGetUser] = useState<BasicUser | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<typeof params.variants[0] | undefined>(
+    params.variants?.[0]
+  );
+  const [quantity, setQuantity] = useState(1);
+  const [isChatPending, setChatPending] = useState(false);
+  const { addToCart, updateQuantity } = useCartStore();
+  const router = useRouter();
   // Lift variantQuantities state to page level
   const [variantQuantities, setVariantQuantities] = useState<VariantQuantity>(
     {}
@@ -632,6 +640,51 @@ const ProductPage = ({ params }: { params: Product }) => {
       setGetUser(user);
     });
   }, []);
+
+  const handleChatWithSeller = async (
+    vendorId: string,
+    shopName: string | undefined,
+    isAdminCreated: boolean
+  ) => {
+    setChatPending(true);
+    const shop = isAdminCreated
+      ? "tiger bhai shop"
+      : shopName
+      ? shopName
+      : "unknown shop";
+
+    const roomId = `${getUser?.id}-${vendorId}`;
+
+    try {
+      const existing = await pb
+        .collection("chat_room")
+        .getFirstListItem(`room_id = "${roomId}"`);
+
+      router.push(`/user/chat?conversationId=${roomId}&receiverId=${vendorId}`);
+      setChatPending(false);
+      return;
+    } catch (err: any) {
+      if (err?.status !== 404) {
+        console.error("Error checking chat_room:", err);
+        setChatPending(false);
+        return;
+      }
+    }
+
+    const createRoom = await pb.collection("chat_room").create({
+      buyer_name: getUser?.name,
+      buyer_id: getUser?.id,
+      seller_name: shop,
+      seller_id: vendorId,
+      room_id: roomId,
+      last_message_send: new Date().toISOString(),
+      is_buyer_seen: true,
+      is_seller_seen: true,
+    });
+
+    router.push(`/user/chat?conversationId=${roomId}&receiverId=${vendorId}`);
+    setChatPending(false);
+  };
 
   // Calculate cart summary at page level with detailed items
   // Calculate cart summary at page level with detailed items
@@ -905,15 +958,138 @@ const ProductPage = ({ params }: { params: Product }) => {
               )}
             </div>
 
-            {/* Variant Cards with Updated Button Layout */}
+            {/* Variant Selector with New Compact Design */}
             {params?.variants && params.variants.length > 0 && (
-              <div className="">
-                <ProductVariantCards
-                  product={params}
-                  user={getUser}
-                  variantQuantities={variantQuantities}
-                  setVariantQuantities={setVariantQuantities}
+              <div className="space-y-4">
+                <VariantSelector
+                  variants={params.variants}
+                  onVariantSelect={setSelectedVariant}
+                  selectedVariant={selectedVariant}
                 />
+
+                {/* Quantity Selector and Action Buttons */}
+                <div className="space-y-3 pt-2">
+                  {/* Quantity Selector */}
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-semibold">Quantity:</span>
+                    <div className="flex items-center gap-2 border rounded-full px-3 py-2">
+                      <button
+                        type="button"
+                        disabled={quantity <= 1}
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full disabled:opacity-50"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-16 text-center border-none outline-none font-semibold"
+                        min={1}
+                        max={selectedVariant?.stock || 1}
+                      />
+                      <button
+                        type="button"
+                        disabled={quantity >= (selectedVariant?.stock || 1)}
+                        onClick={() => setQuantity(Math.min(selectedVariant?.stock || 1, quantity + 1))}
+                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full disabled:opacity-50"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      Stock: {selectedVariant?.stock || 0}
+                    </span>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => {
+                        if (selectedVariant && quantity > 0) {
+                          const cartItemId = `${params._id}|${selectedVariant.size}|${selectedVariant.color}`;
+                          const cartItem: Omit<CartItem, "quantity"> = {
+                            _id: cartItemId,
+                            productId: params._id,
+                            name: params.name ?? "Product",
+                            thumbnail: params.thumbnail?.url ?? "",
+                            brandName: params.brand?.name ?? "Unknown Brand",
+                            slug: params.slug ?? "",
+                            variant: {
+                              size: selectedVariant.size,
+                              color: selectedVariant.color,
+                              price: selectedVariant.price,
+                              discountPrice: selectedVariant.discountPrice,
+                            },
+                            unitPrice: selectedVariant.discountPrice ?? selectedVariant.price,
+                            variantStock: selectedVariant.stock ?? 0,
+                          };
+                          addToCart(cartItem);
+                          // Update quantity to match selected quantity
+                          updateQuantity(cartItemId, quantity);
+                          toast.success(`Added ${quantity} item(s) to cart!`);
+                        }
+                      }}
+                      disabled={!selectedVariant || quantity <= 0}
+                      className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-r from-[#ffbd05] to-[#ffbd05] text-gray-800 disabled:opacity-50"
+                    >
+                      Add To Cart
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (selectedVariant && quantity > 0) {
+                          const cartItemId = `${params._id}|${selectedVariant.size}|${selectedVariant.color}`;
+                          const cartItem: Omit<CartItem, "quantity"> = {
+                            _id: cartItemId,
+                            productId: params._id,
+                            name: params.name ?? "Product",
+                            thumbnail: params.thumbnail?.url ?? "",
+                            brandName: params.brand?.name ?? "Unknown Brand",
+                            slug: params.slug ?? "",
+                            variant: {
+                              size: selectedVariant.size,
+                              color: selectedVariant.color,
+                              price: selectedVariant.price,
+                              discountPrice: selectedVariant.discountPrice,
+                            },
+                            unitPrice: selectedVariant.discountPrice ?? selectedVariant.price,
+                            variantStock: selectedVariant.stock ?? 0,
+                          };
+                          addToCart(cartItem);
+                          // Update quantity to match selected quantity
+                          updateQuantity(cartItemId, quantity);
+                          router.push("/cart/shipment");
+                        }
+                      }}
+                      disabled={!selectedVariant || quantity <= 0}
+                      className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50"
+                    >
+                      Order Now <span className="text-sm">(অর্ডার করুন)</span>
+                    </button>
+                  </div>
+
+                  {/* Chat Button */}
+                  <button
+                    onClick={() =>
+                      handleChatWithSeller(
+                        params?.createdBy?._id || "",
+                        params?.createdBy?.shopName,
+                        params?.isAdminCreated || false
+                      )
+                    }
+                    disabled={isChatPending}
+                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#2E83F2] hover:bg-[#1976D2] text-white flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isChatPending ? (
+                      <Spinner className="w-5 h-5" />
+                    ) : (
+                      <MessageCircle className="w-5 h-5" />
+                    )}
+                    Chat with Seller
+                  </button>
+                </div>
               </div>
             )}
 
