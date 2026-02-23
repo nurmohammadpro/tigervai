@@ -1,0 +1,1 @@
+- have to move the userInfo in the local storage rather then in the cookie calling it over again and again that way it will be less call it internal api and will be smooth,

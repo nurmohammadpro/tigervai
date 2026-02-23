@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: DOCKERFILE
+      target: production
+    container_name: tiger-vai-backend
+    restart: unless-stopped
+    ports:
+      - "4000:80"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URL=mongodb://mongodb:27017/tiger-vai
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-admin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-admin12345}
+      - ACCESS_TOKEN=${ACCESS_TOKEN}
+      - REFRESH_TOKEN=${REFRESH_TOKEN}
+      - MELISEACH_URL=http://meilisearch:7700
+      - MELISEACH_TOKEN=${MELISEACH_TOKEN:-admin}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+    depends_on:
+      - mongodb
+      - meilisearch
+      - minio
+    networks:
+      - tiger-vai-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: DOCKERFILE
+      target: runner
+    container_name: tiger-vai-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+      - BASE_URL=http://backend:80
+      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN}
+      - META_PIXEL_ID=${META_PIXEL_ID}
+      - NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID}
+    depends_on:
+      - backend
+    networks:
+      - tiger-vai-network
+
+  # MongoDB
+  mongodb:
+    image: mongo:8
+    container_name: tiger-vai-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - tiger-vai-network
+
+  # Meilisearch
+  meilisearch:
+    image: getmeili/meilisearch:v1.5
+    container_name: tiger-vai-meilisearch
+    restart: unless-stopped
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_ENV=production
+      - MEILI_MASTER_KEY=${MELISEACH_TOKEN:-admin}
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - tiger-vai-network
+
+  # MinIO (S3-compatible storage)
+  minio:
+    image: minio/minio:latest
+    container_name: tiger-vai-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-admin}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:-admin12345}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - tiger-vai-network
+
+volumes:
+  mongodb_data:
+  meilisearch_data:
+  minio_data:
+
+networks:
+  tiger-vai-network:
+    driver: bridge
