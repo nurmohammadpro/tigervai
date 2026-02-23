@@ -23,7 +23,7 @@ export interface BrandInfo {
 
 export interface ProductVariant {
   size: string;
-  color: string;
+  color?: string;
   price: number;
   stock?: number;
   discountPrice?: number;
@@ -87,21 +87,22 @@ export interface CreateProduct {
   slug?: string;
   company_details?: string;
 
+  productType?: "tyre" | "clothing" | "electronics" | "accessories";
 }
 
 export interface Product extends CreateProduct {
   _id: string;
   createdAt: Date;
   updatedAt: Date;
-  createdBy:{
-    _id:string;
-    name:string;
-    shopName?:string
-  }
+  createdBy: {
+    _id: string;
+    name: string;
+    shopName?: string;
+  };
 }
 export interface ReviewStats {
-  _id: string;            // or Types.ObjectId if you're using mongoose ObjectId
-  productId: string;      // same here, can be Types.ObjectId
+  _id: string; // or Types.ObjectId if you're using mongoose ObjectId
+  productId: string; // same here, can be Types.ObjectId
   averageRating: number;
   totalReviews: number;
   count5: number;
@@ -109,7 +110,7 @@ export interface ReviewStats {
   count3: number;
   count2: number;
   count1: number;
-  createdAt: string;      // ISO date string
-  updatedAt: string;      // ISO date string
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
   __v: number;
 }

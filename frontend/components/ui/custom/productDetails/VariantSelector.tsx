@@ -6,7 +6,7 @@ import { useAddProductStore } from "@/zustan-hook/addProductStore";
 
 interface Variant {
   size: string;
-  color: string;
+  color?: string;
   price: number;
   stock: number;
   discountPrice?: number;
@@ -22,6 +22,7 @@ interface VariantSelectorProps {
   variants: Variant[];
   onVariantSelect: (variant: Variant) => void;
   selectedVariant?: Variant;
+  productType?: "tyre" | "clothing";
 }
 
 // Color mapping for visual swatches
@@ -47,16 +48,19 @@ export default function VariantSelector({
   variants,
   onVariantSelect,
   selectedVariant,
+  productType = "clothing",
 }: VariantSelectorProps) {
   // Extract unique sizes and colors
   const sizes = Array.from(new Set(variants.map((v) => v.size)));
-  const colors = Array.from(new Set(variants.map((v) => v.color)));
+  const colors = Array.from(
+    new Set(variants.map((v) => v.color).filter(Boolean)),
+  );
 
   const [selectedSize, setSelectedSize] = useState<string>(
-    selectedVariant?.size || ""
+    selectedVariant?.size || "",
   );
   const [selectedColor, setSelectedColor] = useState<string>(
-    selectedVariant?.color || ""
+    selectedVariant?.color || "",
   );
 
   // Filter available colors based on selected size
@@ -64,29 +68,34 @@ export default function VariantSelector({
     ? Array.from(
         new Set(
           variants
-            .filter((v) => v.size === selectedSize)
-            .map((v) => v.color)
-        )
+            .filter((v) => v.size === selectedSize && v.color !== undefined)
+            .map((v) => v.color),
+        ),
       )
     : colors;
 
   // Filter available sizes based on selected color
-  const availableSizes = selectedColor
-    ? Array.from(
-        new Set(
-          variants
-            .filter((v) => v.color === selectedColor)
-            .map((v) => v.size)
+  const availableSizes =
+    selectedColor && productType === "clothing"
+      ? Array.from(
+          new Set(
+            variants
+              .filter((v) => v.color === selectedColor)
+              .map((v) => v.size),
+          ),
         )
-      )
-    : sizes;
+      : sizes;
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
-    // Find first available variant with this size
-    const variant = variants.find(
-      (v) => v.size === size && (v.color === selectedColor || !selectedColor)
-    );
+    // For tyres, select first available variant with this size
+    // For clothing, try to match with selected color first
+    const variant =
+      productType === "tyre"
+        ? variants.find((v) => v.size === size)
+        : variants.find((v) => v.size === size && v.color === selectedColor) ||
+          variants.find((v) => v.size === size);
+
     if (variant) {
       onVariantSelect(variant);
     }
@@ -94,12 +103,14 @@ export default function VariantSelector({
 
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
-    // Find first available variant with this color
-    const variant = variants.find(
-      (v) => v.color === color && (v.size === selectedSize || !selectedSize)
-    );
-    if (variant) {
-      onVariantSelect(variant);
+    // Only allow color selection for clothing products
+    if (productType === "clothing") {
+      const variant = variants.find(
+        (v) => v.color === color && v.size === selectedSize,
+      );
+      if (variant) {
+        onVariantSelect(variant);
+      }
     }
   };
 
@@ -108,20 +119,24 @@ export default function VariantSelector({
   };
 
   const isColorAvailable = (color: string) => {
+    if (productType === "tyre") return false; // Hide color options for tyres
     return selectedSize
       ? variants.some((v) => v.size === selectedSize && v.color === color)
       : true;
   };
 
   const isSizeAvailable = (size: string) => {
-    return selectedColor
+    return productType === "clothing" && selectedColor
       ? variants.some((v) => v.color === selectedColor && v.size === size)
       : true;
   };
 
+  // Check if color selector should be shown
+  const showColorSelector = productType === "clothing" && colors.length > 0;
+
   return (
     <div className="space-y-4">
-      {/* Compact Layout: Sizes on Top, Colors on Bottom */}
+      {/* Compact Layout: Sizes on Top, Colors on Bottom (if applicable) */}
       <div
         className="p-4 rounded-xl border-2"
         style={{
@@ -181,67 +196,69 @@ export default function VariantSelector({
           </div>
         </div>
 
-        {/* Bottom Row: Color Selector */}
-        <div>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h4
-              className="text-sm font-bold uppercase tracking-wider"
-              style={{ color: "var(--palette-text)" }}
-            >
-              Color
-            </h4>
-            <span
-              className="text-xs font-semibold uppercase tracking-wide opacity-70"
-              style={{ color: "var(--palette-text)" }}
-            >
-              {selectedColor ? "Selected" : "Select"}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {colors.map((color) => {
-              const isAvailable = isColorAvailable(color);
-              const isSelected = selectedColor === color;
-              const swatchColor = getColorSwatch(color);
+        {/* Bottom Row: Color Selector - Only for clothing */}
+        {showColorSelector && (
+          <div>
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h4
+                className="text-sm font-bold uppercase tracking-wider"
+                style={{ color: "var(--palette-text)" }}
+              >
+                Color
+              </h4>
+              <span
+                className="text-xs font-semibold uppercase tracking-wide opacity-70"
+                style={{ color: "var(--palette-text)" }}
+              >
+                {selectedColor ? "Selected" : "Select"}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {colors.map((color) => {
+                const isAvailable = isColorAvailable(color);
+                const isSelected = selectedColor === color;
+                const swatchColor = getColorSwatch(color);
 
-              return (
-                <button
-                  key={color}
-                  onClick={() => isAvailable && handleColorSelect(color)}
-                  disabled={!isAvailable}
-                  className={`
-                    relative w-10 h-10 rounded-full border-2 transition-all duration-200
-                    ${
-                      !isAvailable
-                        ? "opacity-20 cursor-not-allowed grayscale"
-                        : "cursor-pointer hover:scale-110 active:scale-90"
-                    }
-                  `}
-                  style={{
-                    backgroundColor: swatchColor,
-                    borderColor: isSelected
-                      ? "var(--palette-btn)"
-                      : "transparent",
-                    boxShadow: isSelected
-                      ? `0 0 0 2px #fff, 0 0 0 4px var(--palette-btn)`
-                      : "0 1px 3px rgba(0,0,0,0.1)",
-                  }}
-                  title={color}
-                >
-                  {isSelected && (
-                    <div
-                      className="absolute inset-0 flex items-center justify-center animate-in zoom-in duration-200"
-                      style={{
-                        color: swatchColor === "#ffffff" ? "#000" : "#fff",
-                      }}
-                    >
-                      <Check size={16} strokeWidth={4} />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={color}
+                    onClick={() => isAvailable && handleColorSelect(color)}
+                    disabled={!isAvailable}
+                    className={`
+                      relative w-10 h-10 rounded-full border-2 transition-all duration-200
+                      ${
+                        !isAvailable
+                          ? "opacity-20 cursor-not-allowed grayscale"
+                          : "cursor-pointer hover:scale-110 active:scale-90"
+                      }
+                    `}
+                    style={{
+                      backgroundColor: swatchColor,
+                      borderColor: isSelected
+                        ? "var(--palette-btn)"
+                        : "transparent",
+                      boxShadow: isSelected
+                        ? `0 0 0 2px #fff, 0 0 0 4px var(--palette-btn)`
+                        : "0 1px 3px rgba(0,0,0,0.1)",
+                    }}
+                    title={color}
+                  >
+                    {isSelected && (
+                      <div
+                        className="absolute inset-0 flex items-center justify-center animate-in zoom-in duration-200"
+                        style={{
+                          color: swatchColor === "#ffffff" ? "#000" : "#fff",
+                        }}
+                      >
+                        <Check size={16} strokeWidth={4} />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Selected Variant Info - Compact Smart Stock Badge */}
@@ -258,7 +275,9 @@ export default function VariantSelector({
         >
           <div className="flex flex-col gap-0.5">
             <p className="text-xs font-bold uppercase tracking-wide opacity-60">
-              {selectedVariant.size} / {selectedVariant.color}
+              {selectedVariant.size}
+              {selectedVariant.color && ` / ${selectedVariant.color}`}
+              {productType === "tyre" && " Tyre"}
             </p>
             <div className="flex items-center gap-2">
               <span

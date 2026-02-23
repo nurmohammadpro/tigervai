@@ -171,7 +171,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
 
         // Ensure we find the exact variant match
         const variant = product.variants?.find(
-          (v) => v.size === size && v.color === color
+          (v) => v.size === size && v.color === color,
         );
 
         if (variant && (variant.stock || 0) >= quantity) {
@@ -247,7 +247,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
         const { size, color } = parsed;
 
         const variant = product.variants?.find(
-          (v) => v.size === size && v.color === color
+          (v) => v.size === size && v.color === color,
         );
 
         if (variant && (variant.stock || 0) >= quantity) {
@@ -307,14 +307,14 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
   const handleChatWithSeller = async (
     vendorId: string,
     shopName: string | undefined,
-    isAdminCreated: boolean
+    isAdminCreated: boolean,
   ) => {
     setChatPending(true);
     const shop = isAdminCreated
       ? "tiger bhai shop"
       : shopName
-      ? shopName
-      : "unknown shop";
+        ? shopName
+        : "unknown shop";
 
     const roomId = `${user?.id}-${vendorId}`; // first user id then vendor id
 
@@ -395,7 +395,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
             handleChatWithSeller(
               product?.createdBy?._id,
               product?.createdBy?.shopName,
-              product?.isAdminCreated
+              product?.isAdminCreated,
             )
           }
           disabled={isChatPending}
@@ -615,16 +615,16 @@ const ProductPage = ({ params }: { params: Product }) => {
   const [getUser, setGetUser] = useState<BasicUser | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState<typeof params.variants[0] | undefined>(
-    params.variants?.[0]
-  );
+  const [selectedVariant, setSelectedVariant] = useState<
+    (typeof params.variants)[0] | undefined
+  >(params.variants?.[0]);
   const [quantity, setQuantity] = useState(1);
   const [isChatPending, setChatPending] = useState(false);
   const { addToCart, updateQuantity } = useCartStore();
   const router = useRouter();
   // Lift variantQuantities state to page level
   const [variantQuantities, setVariantQuantities] = useState<VariantQuantity>(
-    {}
+    {},
   );
   useEffect(() => {
     setIsMounted(true);
@@ -632,7 +632,7 @@ const ProductPage = ({ params }: { params: Product }) => {
   const { data, isPending } = useQueryWrapper<Reviews>(
     ["get-review-of-product", params._id, page],
     `/product/get-all-reviews-for-products?id=${params._id}&page=${page}`,
-    { enabled: activeTab === "reviews" }
+    { enabled: activeTab === "reviews" },
   );
 
   useEffect(() => {
@@ -644,14 +644,14 @@ const ProductPage = ({ params }: { params: Product }) => {
   const handleChatWithSeller = async (
     vendorId: string,
     shopName: string | undefined,
-    isAdminCreated: boolean
+    isAdminCreated: boolean,
   ) => {
     setChatPending(true);
     const shop = isAdminCreated
       ? "tiger bhai shop"
       : shopName
-      ? shopName
-      : "unknown shop";
+        ? shopName
+        : "unknown shop";
 
     const roomId = `${getUser?.id}-${vendorId}`;
 
@@ -707,7 +707,7 @@ const ProductPage = ({ params }: { params: Product }) => {
 
         const { size, color } = parsed;
         const variant = params.variants?.find(
-          (v) => v.size === size && v.color === color
+          (v) => v.size === size && v.color === color,
         );
 
         if (variant) {
@@ -735,7 +735,7 @@ const ProductPage = ({ params }: { params: Product }) => {
     }
 
     const prices = params.variants.map((v) =>
-      v.discountPrice ? v.discountPrice : v.price
+      v.discountPrice ? v.discountPrice : v.price,
     );
     const originalPrices = params.variants.map((v) => v.price);
 
@@ -907,7 +907,7 @@ const ProductPage = ({ params }: { params: Product }) => {
 
               {renderRating(
                 params?.stats?.averageRating ?? 0,
-                params?.stats?.totalReviews ?? 0
+                params?.stats?.totalReviews ?? 0,
               )}
             </div>
 
@@ -965,6 +965,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                   variants={params.variants}
                   onVariantSelect={setSelectedVariant}
                   selectedVariant={selectedVariant}
+                  productType={params.productType || "clothing"}
                 />
 
                 {/* Quantity Selector and Action Buttons */}
@@ -984,7 +985,11 @@ const ProductPage = ({ params }: { params: Product }) => {
                       <input
                         type="number"
                         value={quantity}
-                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                        onChange={(e) =>
+                          setQuantity(
+                            Math.max(1, parseInt(e.target.value) || 1),
+                          )
+                        }
                         className="w-16 text-center border-none outline-none font-semibold"
                         min={1}
                         max={selectedVariant?.stock || 1}
@@ -992,7 +997,11 @@ const ProductPage = ({ params }: { params: Product }) => {
                       <button
                         type="button"
                         disabled={quantity >= (selectedVariant?.stock || 1)}
-                        onClick={() => setQuantity(Math.min(selectedVariant?.stock || 1, quantity + 1))}
+                        onClick={() =>
+                          setQuantity(
+                            Math.min(selectedVariant?.stock || 1, quantity + 1),
+                          )
+                        }
                         className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full disabled:opacity-50"
                       >
                         <Plus size={16} />
@@ -1022,7 +1031,9 @@ const ProductPage = ({ params }: { params: Product }) => {
                               price: selectedVariant.price,
                               discountPrice: selectedVariant.discountPrice,
                             },
-                            unitPrice: selectedVariant.discountPrice ?? selectedVariant.price,
+                            unitPrice:
+                              selectedVariant.discountPrice ??
+                              selectedVariant.price,
                             variantStock: selectedVariant.stock ?? 0,
                           };
                           addToCart(cartItem);
@@ -1054,7 +1065,9 @@ const ProductPage = ({ params }: { params: Product }) => {
                               price: selectedVariant.price,
                               discountPrice: selectedVariant.discountPrice,
                             },
-                            unitPrice: selectedVariant.discountPrice ?? selectedVariant.price,
+                            unitPrice:
+                              selectedVariant.discountPrice ??
+                              selectedVariant.price,
                             variantStock: selectedVariant.stock ?? 0,
                           };
                           addToCart(cartItem);
@@ -1076,7 +1089,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                       handleChatWithSeller(
                         params?.createdBy?._id || "",
                         params?.createdBy?.shopName,
-                        params?.isAdminCreated || false
+                        params?.isAdminCreated || false,
                       )
                     }
                     disabled={isChatPending}

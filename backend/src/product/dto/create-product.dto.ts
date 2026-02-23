@@ -45,8 +45,6 @@ class ProductCategoryDto {
   category: string;
 }
 
-
-
 class FeatureDto {
   @ApiProperty()
   @IsString()
@@ -75,9 +73,13 @@ class ProductVariantDto {
   @IsString()
   size: string;
 
-  @ApiProperty({ description: 'Variant color' })
+  @ApiProperty({
+    description: 'Variant color (optional for tyres)',
+    required: false,
+  })
+  @IsOptional()
   @IsString()
-  color: string;
+  color?: string;
 
   @ApiProperty({ description: 'Variant specific price' })
   @Transform(({ value }) => Number(value))
@@ -128,25 +130,31 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ description: 'Average price (auto-calculated from variants if provided)' })
+  @ApiProperty({
+    description: 'Average price (auto-calculated from variants if provided)',
+  })
   @Transform(({ value }) => Number(value))
   @IsNumber()
   price: number;
 
-  @ApiProperty({ description: 'Total stock (auto-calculated from variants if provided)' })
+  @ApiProperty({
+    description: 'Total stock (auto-calculated from variants if provided)',
+  })
   @Transform(({ value }) => Number(value))
   @IsNumber()
   stock: number;
 
   // ✅ NEW VARIANTS ARRAY
-  @ApiProperty({ type: [ProductVariantDto], required: false, description: 'Product variants (size, color, price)' })
+  @ApiProperty({
+    type: [ProductVariantDto],
+    required: false,
+    description: 'Product variants (size, color, price)',
+  })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProductVariantDto)
   variants?: ProductVariantDto[];
-
-  
 
   @ApiProperty({ type: [FeatureDto] })
   @IsArray()
@@ -227,7 +235,7 @@ export class CreateProductDto {
   @IsArray()
   colors?: string[];
 
-/*   @ApiProperty({ required: false })
+  /*   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   metaTitle?: string;
@@ -257,7 +265,11 @@ export class CreateProductDto {
   @IsBoolean()
   hasOffer?: boolean;
 
-  @ApiProperty({ description: 'Average offer price (auto-calculated from variants if provided)', required: false })
+  @ApiProperty({
+    description:
+      'Average offer price (auto-calculated from variants if provided)',
+    required: false,
+  })
   @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsNumber()
@@ -283,7 +295,7 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   special_offer?: string;
-  
+
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -310,28 +322,33 @@ export class CreateProductDto {
   @IsOptional()
   @IsBoolean()
   isAdminCreated: boolean;
+
+  @ApiProperty({
+    enum: ['tyre', 'clothing', 'electronics', 'accessories'],
+    default: 'clothing',
+    description: 'Product type for variant selection behavior',
+  })
+  @IsString()
+  productType: string = 'clothing';
 }
 
-
-export class GetProductDTo{
+export class GetProductDTo {
   @ApiProperty({ required: false })
- 
   @IsString()
-  slug: string
+  slug: string;
 }
 
-export class getProductCsv{
+export class getProductCsv {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
-  main:string
+  main: string;
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
-  subMain:string
+  subMain: string;
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
-  category:string
-
+  category: string;
 }

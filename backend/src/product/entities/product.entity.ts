@@ -1,6 +1,6 @@
 // src/product/schemas/product.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as MongooseSchema,Types } from 'mongoose';
+import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
 
 export type ProductDocument = HydratedDocument<Product>;
 export type ProductStatsDocument = HydratedDocument<ProductStats>;
@@ -74,8 +74,8 @@ class ProductVariant {
   @Prop({ required: true })
   size: string;
 
-  @Prop({ required: true })
-  color: string;
+  @Prop()
+  color?: string;
 
   @Prop({ required: true })
   price: number;
@@ -211,6 +211,13 @@ export class Product {
   special_offer: string;
   @Prop()
   company_details: string;
+
+  @Prop({
+    type: String,
+    enum: ['tyre', 'clothing', 'electronics', 'accessories'],
+    default: 'clothing',
+  })
+  productType: string;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
