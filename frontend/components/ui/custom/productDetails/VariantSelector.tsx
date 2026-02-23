@@ -123,20 +123,26 @@ export default function VariantSelector({
     <div className="space-y-4">
       {/* Compact Layout: Sizes on Top, Colors on Bottom */}
       <div
-        className="p-4 rounded-lg border"
+        className="p-4 rounded-xl border-2"
         style={{
-          backgroundColor: "rgba(238, 74, 35, 0.02)",
+          backgroundColor: "rgba(238, 74, 35, 0.04)",
           borderColor: "var(--palette-accent-3)",
         }}
       >
         {/* Top Row: Size Selector */}
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-semibold" style={{ color: "var(--palette-text)" }}>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h4
+              className="text-sm font-bold uppercase tracking-wider"
+              style={{ color: "var(--palette-text)" }}
+            >
               Size
             </h4>
-            <span className="text-xs" style={{ color: "var(--palette-accent-3)" }}>
-              {selectedSize || "Select"}
+            <span
+              className="text-xs font-semibold uppercase tracking-wide opacity-70"
+              style={{ color: "var(--palette-text)" }}
+            >
+              {selectedSize ? "Selected" : "Select"}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -150,14 +156,22 @@ export default function VariantSelector({
                   onClick={() => isAvailable && handleSizeSelect(size)}
                   disabled={!isAvailable}
                   className={`
-                    relative px-4 py-2 rounded-md border-2 font-medium text-sm transition-all
-                    ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
+                    relative h-10 px-4 rounded-lg border-2 font-bold text-sm transition-all duration-200
+                    ${
+                      !isAvailable
+                        ? "opacity-20 cursor-not-allowed grayscale"
+                        : "cursor-pointer hover:scale-105 active:scale-95"
+                    }
                   `}
                   style={{
-                    borderColor: isSelected ? "var(--palette-btn)" : "var(--palette-accent-3)",
-                    backgroundColor: isSelected ? "var(--palette-btn)" : "transparent",
+                    borderColor: isSelected
+                      ? "var(--palette-btn)"
+                      : "var(--palette-accent-3)",
+                    backgroundColor: isSelected
+                      ? "var(--palette-btn)"
+                      : "#ffffff",
                     color: isSelected ? "#ffffff" : "var(--palette-text)",
-                    minWidth: "60px",
+                    minWidth: "50px",
                   }}
                 >
                   {size}
@@ -169,15 +183,21 @@ export default function VariantSelector({
 
         {/* Bottom Row: Color Selector */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-semibold" style={{ color: "var(--palette-text)" }}>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h4
+              className="text-sm font-bold uppercase tracking-wider"
+              style={{ color: "var(--palette-text)" }}
+            >
               Color
             </h4>
-            <span className="text-xs" style={{ color: "var(--palette-accent-3)" }}>
-              {selectedColor || "Select"}
+            <span
+              className="text-xs font-semibold uppercase tracking-wide opacity-70"
+              style={{ color: "var(--palette-text)" }}
+            >
+              {selectedColor ? "Selected" : "Select"}
             </span>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {colors.map((color) => {
               const isAvailable = isColorAvailable(color);
               const isSelected = selectedColor === color;
@@ -189,22 +209,32 @@ export default function VariantSelector({
                   onClick={() => isAvailable && handleColorSelect(color)}
                   disabled={!isAvailable}
                   className={`
-                    relative w-10 h-10 rounded-full border-3 transition-all
-                    ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:scale-110"}
+                    relative w-10 h-10 rounded-full border-2 transition-all duration-200
+                    ${
+                      !isAvailable
+                        ? "opacity-20 cursor-not-allowed grayscale"
+                        : "cursor-pointer hover:scale-110 active:scale-90"
+                    }
                   `}
                   style={{
                     backgroundColor: swatchColor,
-                    borderColor: isSelected ? "var(--palette-btn)" : "#e5e7eb",
-                    boxShadow: isSelected ? `0 0 0 2px var(--palette-btn)` : "none",
+                    borderColor: isSelected
+                      ? "var(--palette-btn)"
+                      : "transparent",
+                    boxShadow: isSelected
+                      ? `0 0 0 2px #fff, 0 0 0 4px var(--palette-btn)`
+                      : "0 1px 3px rgba(0,0,0,0.1)",
                   }}
                   title={color}
                 >
                   {isSelected && (
                     <div
-                      className="absolute inset-0 flex items-center justify-center"
-                      style={{ color: swatchColor === "#ffffff" ? "#000" : "#fff" }}
+                      className="absolute inset-0 flex items-center justify-center animate-in zoom-in duration-200"
+                      style={{
+                        color: swatchColor === "#ffffff" ? "#000" : "#fff",
+                      }}
                     >
-                      <Check size={14} strokeWidth={3} />
+                      <Check size={16} strokeWidth={4} />
                     </div>
                   )}
                 </button>
@@ -214,21 +244,34 @@ export default function VariantSelector({
         </div>
       </div>
 
-      {/* Selected Variant Info - Compact */}
+      {/* Selected Variant Info - Compact Smart Stock Badge */}
       {selectedVariant && (
-        <div className="flex items-center justify-between px-4 py-2 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <span style={{ color: "var(--palette-accent-3)" }}>
-                {selectedVariant.size} / {selectedVariant.color}
-              </span>
+        <div
+          className="flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
+          style={{
+            borderColor: selectedVariant.stock > 0 ? "#22c55e" : "#ef4444",
+            backgroundColor:
+              selectedVariant.stock > 0
+                ? "rgba(34, 197, 94, 0.05)"
+                : "rgba(239, 68, 68, 0.05)",
+          }}
+        >
+          <div className="flex flex-col gap-0.5">
+            <p className="text-xs font-bold uppercase tracking-wide opacity-60">
+              {selectedVariant.size} / {selectedVariant.color}
+            </p>
+            <div className="flex items-center gap-2">
               <span
-                className="text-xs px-2 py-1 rounded-full"
+                className={`w-2 h-2 rounded-full animate-pulse`}
                 style={{
-                  backgroundColor: selectedVariant.stock > 0
-                    ? "rgba(34, 197, 94, 0.1)"
-                    : "rgba(239, 68, 68, 0.1)",
-                  color: selectedVariant.stock > 0 ? "#22c55e" : "#ef4444",
+                  backgroundColor:
+                    selectedVariant.stock > 0 ? "#22c55e" : "#ef4444",
+                }}
+              />
+              <span
+                className="text-sm font-bold"
+                style={{
+                  color: selectedVariant.stock > 0 ? "#15803d" : "#b91c1c",
                 }}
               >
                 {selectedVariant.stock > 0
@@ -238,14 +281,14 @@ export default function VariantSelector({
             </div>
           </div>
           <div className="text-right">
-            <p className="text-base font-bold" style={{ color: "var(--palette-btn)" }}>
+            <p
+              className="text-xl font-black"
+              style={{ color: "var(--palette-text)" }}
+            >
               ৳{selectedVariant.discountPrice || selectedVariant.price}
             </p>
             {selectedVariant.discountPrice && (
-              <p
-                className="text-xs line-through"
-                style={{ color: "var(--palette-accent-3)" }}
-              >
+              <p className="text-xs line-through opacity-50 font-bold">
                 ৳{selectedVariant.price}
               </p>
             )}
