@@ -1,7 +1,7 @@
 // app/dashboard/products/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -175,17 +175,26 @@ export default function ProductManagementPage() {
     setIsViewModalOpen(true);
   };
   const queryClient = useQueryClient();
+
+  const handleDeleteSuccess = useCallback((data: any) => {
+    queryClient.invalidateQueries({
+      queryKey: ["products"],
+      exact: false,
+    });
+    setIsDeleteModalOpen(false);
+  }, [queryClient]);
+
+  const handleDeleteError = useCallback((error: Error) => {
+    console.error('Delete failed:', error);
+    setIsDeleteModalOpen(false);
+  }, []);
+
   const { mutate, isPending } = useCommonMutationApi({
     url: "/product",
     method: "DELETE",
     successMessage: "Product deleted successfully",
-    onSuccess(data) {
-      queryClient.invalidateQueries({
-        queryKey: ["products"],
-        exact: false,
-      });
-      setIsDeleteModalOpen(false);
-    },
+    onSuccess: handleDeleteSuccess,
+    onError: handleDeleteError,
   });
   const handleDeleteProduct = (productId: string) => {
     mutate(productId);

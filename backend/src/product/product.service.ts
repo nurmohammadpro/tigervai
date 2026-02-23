@@ -321,19 +321,35 @@ export class ProductService {
    this.logger.log("delete-product",productId)
 
     const ProductModel = this.productModel();
-      const ShortProductModel = this.shortProductModel();
-      const findId =  await ShortProductModel.findOneAndUpdate({ _id:productId }, { isActive: false });
-      if(!findId) throw new HttpException('Short product not found', 404);
+    const ShortProductModel = this.shortProductModel();
+
+    // Try to find by ShortProduct _id first
+    let findId = await ShortProductModel.findOneAndUpdate({ _id: productId }, { isActive: false });
+
+    // If not found, try to find by Product _id and get the slug
+    if (!findId) {
+      const product = await ProductModel.findById(productId);
+      if (product) {
+        findId = await ShortProductModel.findOneAndUpdate({ slug: product.slug }, { isActive: false });
+      }
+    }
+
+    if(!findId) {
+      this.logger.error('Short product not found for deletion', { productId });
+      throw new HttpException('Short product not found', 404);
+    }
 
     const deleted = await ProductModel.findOneAndUpdate({slug:findId?.slug}, { isActive: false }, { new: true });
-    if (!deleted) throw new HttpException('Product not found', 404);
+    if (!deleted) {
+      this.logger.error('Product not found for deletion', { slug: findId?.slug });
+      throw new HttpException('Product not found', 404);
+    }
 
-    // ✅ NEW: Also delete from ShortProduct
-  
+    // ✅ NEW: Also delete from Meilisearch
+    await this.melieSeach.delete(findId._id.toString());
 
-    await this.melieSeach.delete(productId)
-
-    return { message: 'Product deleted successfully' };
+    this.logger.log('Product deleted successfully', { productId, slug: findId.slug });
+    return { message: 'Product deleted successfully', data: deleted };
   }
 
   async updateShortProductFlags(slug: string, dto: UpdateShortProductDto) {
