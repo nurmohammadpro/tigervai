@@ -120,142 +120,136 @@ export default function VariantSelector({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Size Selector */}
-      <div>
-        <h4 className="text-sm font-semibold mb-3" style={{ color: "var(--palette-text)" }}>
-          Size: <span className="font-normal">{selectedSize || "Select a size"}</span>
-        </h4>
-        <div className="flex flex-wrap gap-3">
-          {sizes.map((size) => {
-            const isAvailable = isSizeAvailable(size);
-            const isSelected = selectedSize === size;
+    <div className="space-y-4">
+      {/* Compact Layout: Sizes on Top, Colors on Bottom */}
+      <div
+        className="p-4 rounded-lg border"
+        style={{
+          backgroundColor: "rgba(238, 74, 35, 0.02)",
+          borderColor: "var(--palette-accent-3)",
+        }}
+      >
+        {/* Top Row: Size Selector */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-semibold" style={{ color: "var(--palette-text)" }}>
+              Size
+            </h4>
+            <span className="text-xs" style={{ color: "var(--palette-accent-3)" }}>
+              {selectedSize || "Select"}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {sizes.map((size) => {
+              const isAvailable = isSizeAvailable(size);
+              const isSelected = selectedSize === size;
 
-            return (
-              <button
-                key={size}
-                onClick={() => isAvailable && handleSizeSelect(size)}
-                disabled={!isAvailable}
-                className={`
-                  relative px-6 py-3 rounded-lg border-2 font-medium transition-all
-                  ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
-                  ${
-                    isSelected
-                      ? "border-orange-500 bg-orange-50 text-orange-600"
-                      : "border-gray-300 hover:border-gray-400"
-                  }
-                `}
-                style={{
-                  borderColor: isSelected ? "var(--palette-btn)" : undefined,
-                  backgroundColor: isSelected ? "rgba(238, 74, 35, 0.1)" : undefined,
-                  color: isSelected ? "var(--palette-btn)" : "var(--palette-text)",
-                }}
-              >
-                <span className="text-sm">{size}</span>
-                {isSelected && (
-                  <div
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{ color: "var(--palette-btn)" }}
-                  >
-                    <div
-                      className="absolute top-1 right-1 w-2 h-2 rounded-full"
-                      style={{ backgroundColor: "var(--palette-btn)" }}
-                    />
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Color Selector */}
-      <div>
-        <h4 className="text-sm font-semibold mb-3" style={{ color: "var(--palette-text)" }}>
-          Color: <span className="font-normal">{selectedColor || "Select a color"}</span>
-        </h4>
-        <div className="flex flex-wrap gap-3">
-          {colors.map((color) => {
-            const isAvailable = isColorAvailable(color);
-            const isSelected = selectedColor === color;
-            const swatchColor = getColorSwatch(color);
-
-            return (
-              <button
-                key={color}
-                onClick={() => isAvailable && handleColorSelect(color)}
-                disabled={!isAvailable}
-                className={`
-                  relative w-12 h-12 rounded-full border-3 transition-all
-                  ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:scale-110"}
-                  ${isSelected ? "ring-4 ring-offset-2" : ""}
-                `}
-                style={{
-                  backgroundColor: swatchColor,
-                  borderColor: isSelected ? "var(--palette-btn)" : "#e5e7eb",
-                  ringColor: isSelected ? "var(--palette-btn)" : undefined,
-                }}
-                title={color}
-              >
-                {isSelected && (
-                  <div
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{ color: swatchColor === "#ffffff" ? "#000" : "#fff" }}
-                  >
-                    <Check size={16} strokeWidth={3} />
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Selected Variant Info */}
-      {selectedVariant && (
-        <div
-          className="p-4 rounded-lg border"
-          style={{
-            backgroundColor: "rgba(238, 74, 35, 0.05)",
-            borderColor: "var(--palette-accent-3)",
-          }}
-        >
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm" style={{ color: "var(--palette-accent-3)" }}>
-                Selected: {selectedVariant.size} - {selectedVariant.color}
-              </p>
-              <p className="text-xs mt-1" style={{ color: "var(--palette-accent-3)" }}>
-                Stock: {selectedVariant.stock} available
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-lg font-bold" style={{ color: "var(--palette-btn)" }}>
-                ৳{selectedVariant.discountPrice || selectedVariant.price}
-              </p>
-              {selectedVariant.discountPrice && (
-                <p
-                  className="text-sm line-through"
-                  style={{ color: "var(--palette-accent-3)" }}
+              return (
+                <button
+                  key={size}
+                  onClick={() => isAvailable && handleSizeSelect(size)}
+                  disabled={!isAvailable}
+                  className={`
+                    relative px-4 py-2 rounded-md border-2 font-medium text-sm transition-all
+                    ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
+                  `}
+                  style={{
+                    borderColor: isSelected ? "var(--palette-btn)" : "var(--palette-accent-3)",
+                    backgroundColor: isSelected ? "var(--palette-btn)" : "transparent",
+                    color: isSelected ? "#ffffff" : "var(--palette-text)",
+                    minWidth: "60px",
+                  }}
                 >
-                  ৳{selectedVariant.price}
-                </p>
-              )}
-            </div>
+                  {size}
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
 
-      {/* Out of Stock Message */}
-      {selectedVariant && selectedVariant.stock === 0 && (
-        <div
-          className="p-3 rounded-lg text-center text-sm font-medium"
-          style={{
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            color: "#ef4444",
-          }}
-        >
-          This variant is currently out of stock
+        {/* Bottom Row: Color Selector */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-semibold" style={{ color: "var(--palette-text)" }}>
+              Color
+            </h4>
+            <span className="text-xs" style={{ color: "var(--palette-accent-3)" }}>
+              {selectedColor || "Select"}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {colors.map((color) => {
+              const isAvailable = isColorAvailable(color);
+              const isSelected = selectedColor === color;
+              const swatchColor = getColorSwatch(color);
+
+              return (
+                <button
+                  key={color}
+                  onClick={() => isAvailable && handleColorSelect(color)}
+                  disabled={!isAvailable}
+                  className={`
+                    relative w-10 h-10 rounded-full border-3 transition-all
+                    ${!isAvailable ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:scale-110"}
+                  `}
+                  style={{
+                    backgroundColor: swatchColor,
+                    borderColor: isSelected ? "var(--palette-btn)" : "#e5e7eb",
+                    boxShadow: isSelected ? `0 0 0 2px var(--palette-btn)` : "none",
+                  }}
+                  title={color}
+                >
+                  {isSelected && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center"
+                      style={{ color: swatchColor === "#ffffff" ? "#000" : "#fff" }}
+                    >
+                      <Check size={14} strokeWidth={3} />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Selected Variant Info - Compact */}
+      {selectedVariant && (
+        <div className="flex items-center justify-between px-4 py-2 rounded-lg border">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm">
+              <span style={{ color: "var(--palette-accent-3)" }}>
+                {selectedVariant.size} / {selectedVariant.color}
+              </span>
+              <span
+                className="text-xs px-2 py-1 rounded-full"
+                style={{
+                  backgroundColor: selectedVariant.stock > 0
+                    ? "rgba(34, 197, 94, 0.1)"
+                    : "rgba(239, 68, 68, 0.1)",
+                  color: selectedVariant.stock > 0 ? "#22c55e" : "#ef4444",
+                }}
+              >
+                {selectedVariant.stock > 0
+                  ? `${selectedVariant.stock} in stock`
+                  : "Out of stock"}
+              </span>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-base font-bold" style={{ color: "var(--palette-btn)" }}>
+              ৳{selectedVariant.discountPrice || selectedVariant.price}
+            </p>
+            {selectedVariant.discountPrice && (
+              <p
+                className="text-xs line-through"
+                style={{ color: "var(--palette-accent-3)" }}
+              >
+                ৳{selectedVariant.price}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
