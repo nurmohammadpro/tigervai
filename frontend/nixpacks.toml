@@ -1,16 +1,9 @@
-[phases.install]
-cmds = ["npm ci"]
-
 [phases.build]
 cmds = ["npm run build"]
 
-[phases.start]
-cmds = ["npm start"]
+[start]
+cmd = "npm start"
 
 [static]
 # Nixpacks will use Node.js
-# This config tells EasyPanel how to build your Next.js frontend
-
-[nixpacks]
-# Use Node.js provider
-provider = "node"
+# This config tells EasyPanel how to build and start your Next.js frontend
