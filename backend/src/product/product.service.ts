@@ -75,7 +75,7 @@ export class ProductService {
 
   async getProduct(slug:string){
     const ProductModel = this.productModel();
-    return ProductModel.findOne({slug}).populate([{
+    const product = await ProductModel.findOne({slug}).populate([{
       path:"stats",
       model: this.reviewStatsModel(),
 
@@ -87,6 +87,22 @@ export class ProductService {
     }
   ]).lean();
 
+    // Ensure defaults are applied for fields added after schema change
+    if (product) {
+      // Set default productType if not present (for products created before schema update)
+      if (!product.productType) {
+        product.productType = 'clothing';
+      }
+      // Ensure variants have color field properly set
+      if (product.variants && Array.isArray(product.variants)) {
+        product.variants = product.variants.map((variant: any) => ({
+          ...variant,
+          color: variant.color || undefined, // Normalize to undefined instead of null
+        }));
+      }
+    }
+
+    return product;
   }
   async getAllReviews(query:PaginationDto){
     const {id,limit =5,page = 1} = query
