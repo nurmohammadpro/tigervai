@@ -727,9 +727,22 @@ const ProductPage = ({ params }: { params: Product }) => {
       return null;
     }
 
-    const prices = params.variants.map((v) =>
-      v.discountPrice ? v.discountPrice : v.price,
-    );
+    // Calculate prices: use variant discountPrice if available,
+    // otherwise calculate from product-level offerPrice proportionally
+    const prices = params.variants.map((v) => {
+      // If variant has its own discountPrice, use it
+      if (v.discountPrice && v.discountPrice > 0) {
+        return v.discountPrice;
+      }
+      // If product has offerPrice, calculate proportional discount for this variant
+      if (params?.hasOffer && params?.offerPrice && params.offerPrice > 0 && params.price) {
+        const discountRatio = params.offerPrice / params.price;
+        return Math.round(v.price * discountRatio);
+      }
+      // Otherwise use regular price
+      return v.price;
+    });
+
     const originalPrices = params.variants.map((v) => v.price);
 
     const minPrice = Math.min(...prices);
