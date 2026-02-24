@@ -1010,7 +1010,7 @@ const ProductPage = ({ params }: { params: Product }) => {
             {/* Price Range - WITHOUT "Save up to" */}
             {priceRange && (
               <div className=" rounded-lg py-1.5">
-                <div className="flex flex-col items-start gap-1">
+                <div className="flex items-center gap-3 flex-wrap">
                   {priceRange.hasDiscount && (
                     <span className="text-lg text-muted-foreground line-through">
                       ৳{priceRange.originalMin.toLocaleString()}
