@@ -769,50 +769,30 @@ const ProductPage = ({ params }: { params: Product }) => {
     setChatPending(false);
   };
 
-  // Calculate cart summary at page level with detailed items
-  // Calculate cart summary at page level with detailed items
+  // Calculate cart summary from cart store items (dynamic)
   const cartSummary = React.useMemo(() => {
+    // Filter items that belong to this product
+    const productItems = items.filter(item => item.productId === params._id);
+
     let totalItems = 0;
     let totalPrice = 0;
-    const items: CartItemDetail[] = [];
+    const cartItemsDetails: CartItemDetail[] = [];
 
-    // Reuse the same safe parser from ProductVariantCards
-    const parseCartItemId = (id: string) => {
-      const parts = id.split("|");
-      if (parts.length < 3) return null;
-      return { productId: parts[0], size: parts[1], color: parts[2] };
-    };
+    productItems.forEach((item) => {
+      totalItems += item.quantity;
+      totalPrice += item.unitPrice * item.quantity;
 
-    Object.entries(variantQuantities).forEach(([cartItemId, quantity]) => {
-      if (quantity > 0) {
-        const parsed = parseCartItemId(cartItemId);
-        if (!parsed) return;
-
-        const { size, color } = parsed;
-        const variant = params.variants?.find(
-          (v) => v.size === size && v.color === color,
-        );
-
-        if (variant) {
-          // Use getVariantPrice helper to calculate the correct price
-          const priceInfo = getVariantPrice(variant);
-          const unitPrice = priceInfo.currentPrice;
-          totalItems += quantity;
-          totalPrice += unitPrice * quantity;
-
-          items.push({
-            name: params.name ?? "Product",
-            size: size,
-            color: color,
-            quantity: quantity,
-            unitPrice: unitPrice,
-          });
-        }
-      }
+      cartItemsDetails.push({
+        name: item.name,
+        size: item.variant.size,
+        color: item.variant.color || "",
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      });
     });
 
-    return { totalItems, totalPrice, items };
-  }, [variantQuantities, params.variants, params.name, params.hasOffer, params.offerPrice, params.price]);
+    return { totalItems, totalPrice, items: cartItemsDetails };
+  }, [items, params._id]);
 
   const getPriceRange = () => {
     if (!params?.variants || params.variants.length === 0) {
