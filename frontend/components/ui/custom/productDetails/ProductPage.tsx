@@ -1036,14 +1036,14 @@ const ProductPage = ({ params }: { params: Product }) => {
             )}
 
             {/* Short Description with Line Clamp & See More */}
-            <div className="space-y-2">
+            <div className="">
               {params?.shortDescription && (
                 <ShortDescription text={params?.shortDescription} />
               )}
 
               <Separator />
               {params?.special_offer && (
-                <div className="bg-green-50/20 rounded-lg">
+                <div className="bg-green-50/20 rounded-lg p-0">
                   <span className=" text-[#ff5507] font-bold">
                     Special Offer:
                   </span>
