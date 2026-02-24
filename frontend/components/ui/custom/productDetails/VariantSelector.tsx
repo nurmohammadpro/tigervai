@@ -167,9 +167,9 @@ export default function VariantSelector({
           borderColor: "var(--palette-accent-3)",
         }}
       >
-        {/* Top Row: Size Text Left, Size Buttons + Quantity Right */}
+        {/* Size Row - Left Aligned */}
         <div className={hasColorVariants ? "mb-4" : ""}>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             {/* Size label on left */}
             <h4
               className="text-sm font-bold uppercase tracking-wider"
@@ -178,18 +178,64 @@ export default function VariantSelector({
               Size:
             </h4>
 
-            {/* Size buttons and quantity selector on right */}
-            <div className="flex items-center gap-2">
-              {/* Size buttons */}
+            {/* Size buttons */}
+            <div className="flex flex-wrap gap-2">
+              {sizes.map((size) => {
+                const isAvailable = isSizeAvailable(size);
+                const isSelected = selectedSize === size;
+
+                return (
+                  <button
+                    key={size}
+                    onClick={() => isAvailable && handleSizeSelect(size)}
+                    disabled={!isAvailable}
+                    className={`
+                        relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
+                        ${
+                          !isAvailable
+                            ? "opacity-20 cursor-not-allowed grayscale"
+                            : "cursor-pointer hover:scale-105 active:scale-95"
+                        }
+                      `}
+                    style={{
+                      borderColor: isSelected
+                        ? "var(--palette-btn)"
+                        : "var(--palette-accent-3)",
+                      backgroundColor: isSelected
+                        ? "var(--palette-btn)"
+                        : "#ffffff",
+                      color: isSelected ? "#ffffff" : "var(--palette-text)",
+                      minWidth: "45px",
+                    }}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Color & Quantity Row - justify-between - Only if product has color variants */}
+        {hasColorVariants && (
+          <div className="flex items-center justify-between gap-4">
+            {/* Color text and values on left */}
+            <div className="flex items-center gap-3">
+              <h4
+                className="text-sm font-bold uppercase tracking-wider"
+                style={{ color: "var(--palette-text)" }}
+              >
+                Color:
+              </h4>
               <div className="flex flex-wrap gap-2">
-                {sizes.map((size) => {
-                  const isAvailable = isSizeAvailable(size);
-                  const isSelected = selectedSize === size;
+                {colors.map((color) => {
+                  const isAvailable = isColorAvailable(color);
+                  const isSelected = selectedColor === color;
 
                   return (
                     <button
-                      key={size}
-                      onClick={() => isAvailable && handleSizeSelect(size)}
+                      key={color}
+                      onClick={() => isAvailable && handleColorSelect(color)}
                       disabled={!isAvailable}
                       className={`
                         relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
@@ -210,93 +256,45 @@ export default function VariantSelector({
                         minWidth: "45px",
                       }}
                     >
-                      {size}
+                      {color}
                     </button>
                   );
                 })}
               </div>
-
-              {/* Quantity selector */}
-              <div className="flex items-center gap-0 border border-gray-300 rounded-full bg-white ml-2">
-                <button
-                  type="button"
-                  disabled={quantity <= 1}
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="h-8 w-8 flex justify-center items-center text-gray-600 hover:bg-gray-100 rounded-l-full disabled:opacity-50 transition-colors"
-                >
-                  <span className="text-lg font-bold">-</span>
-                </button>
-                <input
-                  type="text"
-                  value={quantity}
-                  onChange={(e) =>
-                    setQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                  }
-                  className="w-10 text-center border-none outline-none text-foreground text-sm font-semibold"
-                  min={1}
-                  max={selectedVariant?.stock || 99}
-                />
-                <button
-                  type="button"
-                  disabled={quantity >= (selectedVariant?.stock || 99)}
-                  onClick={() =>
-                    setQuantity(
-                      Math.min(selectedVariant?.stock || 99, quantity + 1)
-                    )
-                  }
-                  className="h-8 w-8 flex justify-center items-center text-gray-600 hover:bg-gray-100 rounded-r-full disabled:opacity-50 transition-colors"
-                >
-                  <span className="text-lg font-bold">+</span>
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Bottom Row: Color Selector - Only if product has color variants */}
-        {hasColorVariants && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <h4
-                className="text-sm font-bold uppercase tracking-wider"
-                style={{ color: "var(--palette-text)" }}
+            {/* Quantity selector on right */}
+            <div className="flex items-center gap-0 border border-gray-300 rounded-full bg-white">
+              <button
+                type="button"
+                disabled={quantity <= 1}
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="h-8 w-8 flex justify-center items-center text-gray-600 hover:bg-gray-100 rounded-l-full disabled:opacity-50 transition-colors"
               >
-                Color:
-              </h4>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {colors.map((color) => {
-                const isAvailable = isColorAvailable(color);
-                const isSelected = selectedColor === color;
-
-                return (
-                  <button
-                    key={color}
-                    onClick={() => isAvailable && handleColorSelect(color)}
-                    disabled={!isAvailable}
-                    className={`
-                      relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
-                      ${
-                        !isAvailable
-                          ? "opacity-20 cursor-not-allowed grayscale"
-                          : "cursor-pointer hover:scale-105 active:scale-95"
-                      }
-                    `}
-                    style={{
-                      borderColor: isSelected
-                        ? "var(--palette-btn)"
-                        : "var(--palette-accent-3)",
-                      backgroundColor: isSelected
-                        ? "var(--palette-btn)"
-                        : "#ffffff",
-                      color: isSelected ? "#ffffff" : "var(--palette-text)",
-                      minWidth: "45px",
-                    }}
-                  >
-                    {color}
-                  </button>
-                );
-              })}
+                <span className="text-lg font-bold">-</span>
+              </button>
+              <input
+                type="text"
+                value={quantity}
+                onChange={(e) =>
+                  setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                }
+                className="w-10 text-center border-none outline-none text-foreground text-sm font-semibold"
+                min={1}
+                max={selectedVariant?.stock || 99}
+              />
+              <button
+                type="button"
+                disabled={quantity >= (selectedVariant?.stock || 99)}
+                onClick={() =>
+                  setQuantity(
+                    Math.min(selectedVariant?.stock || 99, quantity + 1)
+                  )
+                }
+                className="h-8 w-8 flex justify-center items-center text-gray-600 hover:bg-gray-100 rounded-r-full disabled:opacity-50 transition-colors"
+              >
+                <span className="text-lg font-bold">+</span>
+              </button>
             </div>
           </div>
         )}
