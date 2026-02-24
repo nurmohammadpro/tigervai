@@ -737,12 +737,17 @@ const ProductPage = ({ params }: { params: Product }) => {
     const minOriginalPrice = Math.min(...originalPrices);
     const maxOriginalPrice = Math.max(...originalPrices);
 
+    // Check if any variant has a discountPrice OR if product has offerPrice
+    const hasVariantDiscount = prices.some((price, i) => price < originalPrices[i]);
+    const hasProductOffer = params?.hasOffer && params?.offerPrice && params.offerPrice > 0;
+    const hasDiscount = hasVariantDiscount || hasProductOffer;
+
     return {
       min: minPrice,
       max: maxPrice,
       originalMin: minOriginalPrice,
       originalMax: maxOriginalPrice,
-      hasDiscount: prices.some((price, i) => price < originalPrices[i]),
+      hasDiscount,
     };
   };
 
@@ -907,16 +912,16 @@ const ProductPage = ({ params }: { params: Product }) => {
             {/* Price Range - WITHOUT "Save up to" */}
             {priceRange && (
               <div className=" rounded-lg py-1.5">
-                <div className="flex items-baseline gap-3 flex-wrap">
+                <div className="flex flex-col items-start gap-1">
                   {priceRange.hasDiscount && (
-                    <span className="text-lg  text-muted-foreground line-through">
-                      Tk {priceRange.originalMin.toLocaleString()}
+                    <span className="text-lg text-muted-foreground line-through">
+                      ৳{priceRange.originalMin.toLocaleString()}
                       {priceRange.originalMin !== priceRange.originalMax &&
                         ` - ${priceRange.originalMax.toLocaleString()}`}
                     </span>
                   )}
-                  <span className="text-2xl  font-semibold text-palette-text">
-                    Tk {priceRange.min.toLocaleString()}
+                  <span className="text-2xl font-semibold text-palette-text">
+                    ৳{priceRange.min.toLocaleString()}
                     {priceRange.min !== priceRange.max &&
                       ` - ${priceRange.max.toLocaleString()}`}
                   </span>
