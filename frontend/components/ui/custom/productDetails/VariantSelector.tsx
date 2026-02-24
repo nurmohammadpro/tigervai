@@ -275,8 +275,8 @@ export default function VariantSelector({
         {/* Row 3: Price & Quantity */}
         {selectedVariant && (
           <div className="flex items-center justify-between gap-4 pt-2 border-t border-gray-200">
-            {/* Price Info (Regular, Offer, Discount %) */}
-            <div className="flex flex-col">
+            {/* Price Info (Regular, Offer, Discount %) - Horizontal */}
+            <div className="flex items-center gap-3">
               {getVariantPriceInfo(selectedVariant).hasDiscount ? (
                 <>
                   {/* Original Price (strikethrough) */}
