@@ -100,7 +100,7 @@ const StickyCartBanner: React.FC<{
 
           {/* Total Bar */}
           <div className="text-sm font-semibold text-gray-900    border-gray-200">
-            Total = {totalItems} item(s), Tk {totalPrice.toLocaleString()}
+            Total = {totalItems} item(s), ৳{totalPrice.toLocaleString()}
           </div>
         </div>
       </div>
@@ -546,20 +546,13 @@ const VariantCard: React.FC<VariantCardProps> = ({
               <div className="mt-1 flex items-center justify-between gap-2">
                 <div className="flex flex-col items-start justify-center">
                   {originalPrice && (
-                    <span className="text-sm font-bold text-muted-foreground line-through">
-                      Tk {originalPrice.toLocaleString()}
+                    <span className="text-base font-bold text-muted-foreground line-through">
+                      ৳{originalPrice.toLocaleString()}
                     </span>
                   )}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-foreground">
-                      Tk {currentPrice.toLocaleString()}
-                    </span>
-                    {discountPercentage > 0 && (
-                      <span className="text-xs text-green-600">
-                        ({discountPercentage}% off)
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-base font-bold text-palette-btn">
+                    ৳{currentPrice.toLocaleString()}
+                  </span>
                 </div>
 
                 <div className="flex flex-col items-center justify-center gap-1">

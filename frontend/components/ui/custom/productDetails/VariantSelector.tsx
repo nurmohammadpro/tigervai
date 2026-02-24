@@ -306,17 +306,17 @@ export default function VariantSelector({
             </div>
           </div>
           <div className="text-right">
-            <p
-              className="text-xl font-black"
-              style={{ color: "var(--palette-text)" }}
-            >
-              ৳{selectedVariant.discountPrice || selectedVariant.price}
-            </p>
             {selectedVariant.discountPrice && (
-              <p className="text-xs line-through opacity-50 font-bold">
-                ৳{selectedVariant.price}
+              <p className="text-base line-through opacity-60 font-bold">
+                ৳{selectedVariant.price.toLocaleString()}
               </p>
             )}
+            <p
+              className="text-lg font-black"
+              style={{ color: "var(--palette-text)" }}
+            >
+              ৳{(selectedVariant.discountPrice || selectedVariant.price).toLocaleString()}
+            </p>
           </div>
         </div>
       )}
