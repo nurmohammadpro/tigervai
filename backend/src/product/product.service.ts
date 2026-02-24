@@ -209,6 +209,9 @@ export class ProductService {
       finalOfferPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) || dto.offerPrice;
     } */
 
+    // ✅ NEW: Automatically calculate hasOffer based on offerPrice
+    const finalHasOffer = ProductHelper.calculateHasOffer(finalPrice, finalOfferPrice);
+
     const newProduct = await ProductModel.create({
       ...dto,
       slug,
@@ -217,6 +220,7 @@ export class ProductService {
       price: finalPrice,
       stock: finalStock,
       offerPrice: finalOfferPrice,
+      hasOffer: finalHasOffer,
     });
 
     if (!newProduct) throw new HttpException('Product not created', 400);
@@ -263,7 +267,18 @@ export class ProductService {
       updateData.offerPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) || dto.offerPrice;
     } */
 
-    const updated = await ProductModel.findByIdAndUpdate(productId, dto, { new: true });
+    // ✅ NEW: Automatically calculate hasOffer if price or offerPrice is being updated
+    let updateData = { ...dto };
+    if (dto.price !== undefined || dto.offerPrice !== undefined) {
+      const product = await ProductModel.findById(productId);
+      if (product) {
+        const price = dto.price ?? product.price;
+        const offerPrice = dto.offerPrice ?? product.offerPrice;
+        updateData.hasOffer = ProductHelper.calculateHasOffer(price, offerPrice);
+      }
+    }
+
+    const updated = await ProductModel.findByIdAndUpdate(productId, updateData, { new: true });
     if (!updated) throw new HttpException('Product not found', 404);
 
     // ✅ UPDATED: Sync ShortProduct with variants
@@ -306,7 +321,15 @@ export class ProductService {
       updateData.offerPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) || dto.offerPrice;
     } */
 
-    const updated = await ProductModel.findByIdAndUpdate(productId, dto, { new: true });
+    // ✅ NEW: Automatically calculate hasOffer if price or offerPrice is being updated
+    let updateData = { ...dto };
+    if (dto.price !== undefined || dto.offerPrice !== undefined) {
+      const price = dto.price ?? product.price;
+      const offerPrice = dto.offerPrice ?? product.offerPrice;
+      updateData.hasOffer = ProductHelper.calculateHasOffer(price, offerPrice);
+    }
+
+    const updated = await ProductModel.findByIdAndUpdate(productId, updateData, { new: true });
     if (!updated) throw new HttpException('Product not found', 404);
 
     // ✅ UPDATED: Sync ShortProduct with variants
