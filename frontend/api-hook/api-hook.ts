@@ -23,15 +23,39 @@ function parseAxiosError(error: AxiosError): { message: string, statusCode: numb
 
   let message = 'Something went wrong';
 
+  console.log("Parsing axios error:", res);
+
+  // Handle different error response formats from NestJS
   if (res?.message) {
-    if (Array.isArray(res.message?.message)) {
-      message = res.message.message[0];
-    } else if (typeof res.message === 'string') {
+    // Format 1: message is an array (class-validator errors)
+    if (Array.isArray(res.message)) {
+      message = res.message.join(', ');
+    }
+    // Format 2: message.message is an array
+    else if (Array.isArray(res.message?.message)) {
+      message = res.message.message.join(', ');
+    }
+    // Format 3: message is a string
+    else if (typeof res.message === 'string') {
       message = res.message;
-    } else if (typeof res.message?.message === 'string') {
+    }
+    // Format 4: message.message is a string
+    else if (typeof res.message?.message === 'string') {
       message = res.message.message;
     }
+    // Format 5: message is an object with multiple errors
+    else if (typeof res.message === 'object') {
+      const messages = Object.values(res.message).flat();
+      message = Array.isArray(messages) ? messages.join(', ') : JSON.stringify(res.message);
+    }
   }
+
+  // If we still don't have a good message, try the error field
+  if (message === 'Something went wrong' && res?.error) {
+    message = res.error;
+  }
+
+  console.log("Parsed error message:", message);
 
   return { message, statusCode };
 }

@@ -36,7 +36,10 @@ export function useApiMutation<TVars = any, TData = any>(
     mutationKey: [name],
     mutationFn: apiFn,
     onSuccess: (res) => {
+      console.log("Mutation response:", res);
+
       if (res?.error) {
+        console.error("Mutation error:", res.error);
         toast.error(res.error.message);
         return;
       }
@@ -48,11 +51,12 @@ export function useApiMutation<TVars = any, TData = any>(
 
       toast.success("Operation successful");
 
-     
+
     },
     onError: (err) => {
+      console.error("Mutation onError:", err);
       toast.error(err?.message || "Unknown error");
-     
+
     },
     ...options,
   });

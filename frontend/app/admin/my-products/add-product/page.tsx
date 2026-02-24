@@ -113,22 +113,10 @@ export default function AddProductPage() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSuccess = (data) => {
-    // Invalidate the products query cache to refresh the list
-    queryClient.invalidateQueries({
-      queryKey: ["products"],
-      exact: false,
-    });
-    // Reset form and navigate to products list
-    resetForm();
-    router.push("/admin/my-products");
-  };
-
   const { mutate, isPending } = useApiMutation(
     postNewProduct,
     undefined,
-    "new product",
-    onSuccess
+    "new product"
   );
 
   const handleSubmit = async () => {
@@ -137,8 +125,24 @@ export default function AddProductPage() {
       const finalData = calculateAndFinalize();
       console.log("Submitting product data:", finalData);
       mutate(finalData, {
+        onSuccess: (data) => {
+          console.log("Product created successfully:", data);
+          setIsSubmitting(false);
+          // Invalidate the products query cache to refresh the list
+          queryClient.invalidateQueries({
+            queryKey: ["products"],
+            exact: false,
+          });
+          // Reset form and navigate to products list
+          resetForm();
+          router.push("/admin/my-products");
+        },
         onError: (error) => {
           console.error("Error creating product:", error);
+          setIsSubmitting(false);
+        },
+        onSettled: () => {
+          // Always reset submitting state, whether success or error
           setIsSubmitting(false);
         },
       });
