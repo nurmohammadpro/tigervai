@@ -576,72 +576,81 @@ const VariantCard: React.FC<VariantCardProps> = ({
                 isOut ? "opacity-60" : ""
               }`}
             >
-              {/* Size and Quantity row - flex layout */}
-              <div className="flex items-center justify-between gap-3">
-                {/* Size text on left, size value on right */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-card-foreground">
-                    Size:
-                  </span>
-                  <span className="text-sm text-card-foreground">{size}</span>
-                </div>
-
-                {/* Quantity selector */}
-                <div className="flex items-center gap-0 border border-border rounded-full bg-background">
-                  <button
-                    type="button"
-                    disabled={isOut || currentQuantity <= 0}
-                    className={`h-8 w-8 flex justify-center items-center text-foreground hover:bg-accent text-sm ${
-                      isOut || currentQuantity <= 0
-                        ? "cursor-not-allowed opacity-50"
-                        : ""
-                    }`}
-                    onClick={handleDecrement}
-                  >
-                    <span className="text-lg font-bold">-</span>
-                  </button>
-                  <input
-                    type="text"
-                    value={currentQuantity}
-                    className="w-8 text-center border-none outline-none bg-transparent text-foreground text-sm"
-                    readOnly
-                  />
-                  <button
-                    type="button"
-                    disabled={isOut || currentQuantity >= stock}
-                    className={`h-8 w-8 flex justify-center items-center text-foreground hover:bg-accent text-sm ${
-                      isOut || currentQuantity >= stock
-                        ? "cursor-not-allowed opacity-50"
-                        : ""
-                    }`}
-                    onClick={handleIncrement}
-                  >
-                    <span className="text-lg font-bold">+</span>
-                  </button>
-                </div>
+              {/* Size row - left aligned */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-card-foreground">
+                  Size:
+                </span>
+                <span className="text-sm text-card-foreground">{size}</span>
               </div>
 
-              {/* Color Selection (if multiple colors) */}
-              {colors.length > 1 && (
-                <div className="mt-2">
-                  <div className="flex flex-wrap gap-2">
-                    {colors.map((color) => {
-                      const isSelected = selectedColor === color;
-                      return (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setSelectedColor(color || "")}
-                          className={`border border-border py-1 px-2 rounded text-sm leading-tight ${
-                            isSelected
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-background hover:bg-accent hover:text-accent-foreground"
-                          }`}
-                        >
-                          {color}
-                        </button>
-                      );
-                    })}
+              {/* Color and Quantity row - justify-between */}
+              {colors.length > 0 && (
+                <div className="flex items-center justify-between gap-3 mt-2">
+                  {/* Color text and values on left */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-card-foreground">
+                      Color:
+                    </span>
+                    {colors.length > 1 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {colors.map((color) => {
+                          const isSelected = selectedColor === color;
+                          return (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setSelectedColor(color || "")}
+                              className={`border border-border py-0.5 px-2 rounded text-sm leading-tight ${
+                                isSelected
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-background hover:bg-accent hover:text-accent-foreground"
+                              }`}
+                            >
+                              {color}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-card-foreground">
+                        {colors[0]}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Quantity selector on right */}
+                  <div className="flex items-center gap-0 border border-border rounded-full bg-background">
+                    <button
+                      type="button"
+                      disabled={isOut || currentQuantity <= 0}
+                      className={`h-8 w-8 flex justify-center items-center text-foreground hover:bg-accent text-sm ${
+                        isOut || currentQuantity <= 0
+                          ? "cursor-not-allowed opacity-50"
+                          : ""
+                      }`}
+                      onClick={handleDecrement}
+                    >
+                      <span className="text-lg font-bold">-</span>
+                    </button>
+                    <input
+                      type="text"
+                      value={currentQuantity}
+                      className="w-8 text-center border-none outline-none bg-transparent text-foreground text-sm"
+                      readOnly
+                    />
+                    <button
+                      type="button"
+                      disabled={isOut || currentQuantity >= stock}
+                      className={`h-8 w-8 flex justify-center items-center text-foreground hover:bg-accent text-sm ${
+                        isOut || currentQuantity >= stock
+                          ? "cursor-not-allowed opacity-50"
+                          : ""
+                      }`}
+                      onClick={handleIncrement}
+                    >
+                      <span className="text-lg font-bold">+</span>
+                    </button>
                   </div>
                 </div>
               )}
