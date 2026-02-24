@@ -53,12 +53,11 @@ const calculateTotals = (items: CartItem[]) => {
     return sum + item.variant.price * item.quantity;
   }, 0);
 
-  // Total Discount = difference between original and discounted price
+  // Total Discount = difference between original price and unitPrice
   const totalDiscount = items.reduce((sum, item) => {
-    if (item.variant.discountPrice) {
-      const discount =
-        (item.variant.price - item.variant.discountPrice) * item.quantity;
-      return sum + discount;
+    const discountPerItem = item.variant.price - item.unitPrice;
+    if (discountPerItem > 0) {
+      return sum + discountPerItem * item.quantity;
     }
     return sum;
   }, 0);

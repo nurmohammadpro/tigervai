@@ -117,14 +117,14 @@ export default function CartPage() {
 
                         {/* Price */}
                         <div className="flex items-center gap-2">
-                          <span className="text-palette-btn font-bold text-sm">
-                            TK {item.unitPrice.toFixed(2)}
-                          </span>
-                          {item.variant.discountPrice && (
+                          {item.unitPrice < item.variant.price && (
                             <span className="text-xs text-gray-500 line-through">
-                              TK {item.variant.price.toFixed(2)}
+                              ৳{item.variant.price.toLocaleString()}
                             </span>
                           )}
+                          <span className="text-palette-btn font-bold text-sm">
+                            ৳{item.unitPrice.toLocaleString()}
+                          </span>
                         </div>
 
                         {/* Stock warning */}
@@ -159,7 +159,7 @@ export default function CartPage() {
                         {/* Subtotal & Remove */}
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-semibold text-palette-text">
-                            TK {(item.unitPrice * item.quantity).toFixed(2)}
+                            ৳{(item.unitPrice * item.quantity).toLocaleString()}
                           </span>
                           <button
                             onClick={() => removeFromCart(item._id)}
@@ -209,7 +209,7 @@ export default function CartPage() {
                         </span>
                       </div>
                       <span className="text-palette-text font-medium whitespace-nowrap text-xs">
-                        TK {(item.unitPrice * item.quantity).toFixed(2)}
+                        ৳{(item.unitPrice * item.quantity).toLocaleString()}
                       </span>
                     </div>
                   ))}
@@ -220,7 +220,7 @@ export default function CartPage() {
                     Total ({totalItems} items)
                   </span>
                   <span className="text-palette-btn text-2xl font-bold">
-                    TK {totalPrice.toFixed(2)}
+                    ৳{totalPrice.toLocaleString()}
                   </span>
                 </div>
 

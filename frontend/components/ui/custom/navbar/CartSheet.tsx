@@ -149,14 +149,14 @@ export default function CartSheet() {
 
                       {/* Price */}
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="font-semibold text-palette-text">
-                          TK {item.unitPrice.toFixed(2)}
-                        </span>
-                        {item.variant.discountPrice && (
+                        {item.unitPrice < item.variant.price && (
                           <span className="text-xs text-gray-500 line-through">
-                            TK {item.variant.price.toFixed(2)}
+                            ৳{item.variant.price.toLocaleString()}
                           </span>
                         )}
+                        <span className="font-semibold text-palette-text">
+                          ৳{item.unitPrice.toLocaleString()}
+                        </span>
                       </div>
 
                       {/* Quantity Controls */}
@@ -211,7 +211,7 @@ export default function CartSheet() {
               {/* Subtotal */}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium">TK {totalPrice.toFixed(2)}</span>
+                <span className="font-medium">৳{totalPrice.toLocaleString()}</span>
               </div>
 
               {/* Checkout Button */}
