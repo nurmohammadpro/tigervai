@@ -1,50 +1,115 @@
 // app/dashboard/products/add/page.tsx
 "use client";
 
-import React, { useEffect } from "react";
-
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
 import StepBasicInfo from "@/components/ui/custom/admin/create-edit-product/create-product/StepBasicInfo";
-import StepPricing from "@/components/ui/custom/admin/create-edit-product/create-product/StepPricing";
 import StepVariants from "@/components/ui/custom/admin/create-edit-product/create-product/StepVariantsImproved";
 import StepMedia from "@/components/ui/custom/admin/create-edit-product/create-product/StepMedia";
 import StepShipping from "@/components/ui/custom/admin/create-edit-product/create-product/StepShipping";
-import StepAdditionalInfo from "@/components/ui/custom/admin/create-edit-product/create-product/StepAdditionalInfo";
-import StepReview from "@/components/ui/custom/admin/create-edit-product/create-product/StepReview";
 import { useApiMutation } from "@/api-hook/react-query-wrapper";
 import { postNewProduct } from "@/actions/product";
+import {
+  Shirt,
+  Car,
+  Zap,
+  Watch,
+  Package,
+  Info,
+} from "lucide-react";
 
-// ✅ UPDATED: 7 steps instead of 6
-const STEPS = [
-  { number: 1, title: "Basic Information", icon: "📋" },
-  { number: 2, title: "Pricing & Offers", icon: "💰" },
-  { number: 3, title: "Variants", icon: "📦" },
-  { number: 4, title: "Media", icon: "🖼️" },
-  { number: 5, title: "Shipping", icon: "🚚" }, // ✅ NEW
-  { number: 6, title: "Additional Info", icon: "ℹ️" },
-  { number: 7, title: "Review & Submit", icon: "✅" },
+// Product type configurations
+const PRODUCT_TYPES = [
+  {
+    id: "clothing",
+    name: "Clothing & Apparel",
+    icon: Shirt,
+    description: "T-shirts, pants, dresses, etc.",
+    color: "bg-blue-500",
+  },
+  {
+    id: "tyre",
+    name: "Tyres & Wheels",
+    icon: Car,
+    description: "Car tyres, bike tyres, wheels",
+    color: "bg-gray-700",
+  },
+  {
+    id: "electronics",
+    name: "Electronics",
+    icon: Zap,
+    description: "Phones, laptops, accessories",
+    color: "bg-yellow-500",
+  },
+  {
+    id: "accessories",
+    name: "Accessories",
+    icon: Watch,
+    description: "Jewelry, bags, watches",
+    color: "bg-purple-500",
+  },
+  {
+    id: "general",
+    name: "Other Products",
+    icon: Package,
+    description: "Products not listed above",
+    color: "bg-green-500",
+  },
 ];
+
+// Form sections for each product type
+const FORM_SECTIONS = {
+  clothing: [
+    { id: "basic", title: "Basic Info", icon: "📋", required: true },
+    { id: "variants", title: "Sizes & Colors", icon: "📦", required: true },
+    { id: "media", title: "Photos", icon: "🖼️", required: true },
+    { id: "shipping", title: "Shipping", icon: "🚚", required: false },
+  ],
+  tyre: [
+    { id: "basic", title: "Basic Info", icon: "📋", required: true },
+    { id: "variants", title: "Tyre Sizes", icon: "📦", required: true },
+    { id: "media", title: "Photos", icon: "🖼️", required: true },
+    { id: "shipping", title: "Shipping", icon: "🚚", required: false },
+  ],
+  electronics: [
+    { id: "basic", title: "Basic Info", icon: "📋", required: true },
+    { id: "variants", title: "Variants", icon: "📦", required: false },
+    { id: "media", title: "Photos", icon: "🖼️", required: true },
+    { id: "shipping", title: "Shipping & Warranty", icon: "🚚", required: false },
+  ],
+  accessories: [
+    { id: "basic", title: "Basic Info", icon: "📋", required: true },
+    { id: "variants", title: "Colors", icon: "🎨", required: false },
+    { id: "media", title: "Photos", icon: "🖼️", required: true },
+    { id: "shipping", title: "Shipping", icon: "🚚", required: false },
+  ],
+  general: [
+    { id: "basic", title: "Basic Info", icon: "📋", required: true },
+    { id: "variants", title: "Variants (Optional)", icon: "📦", required: false },
+    { id: "media", title: "Photos", icon: "🖼️", required: true },
+    { id: "shipping", title: "Shipping", icon: "🚚", required: false },
+  ],
+};
 
 export default function AddProductPage() {
   const router = useRouter();
-
-  const {
-    currentStep,
-    nextStep,
-    prevStep,
-    goToStep,
-    resetForm,
-    calculateAndFinalize,
-  } = useAddProductStore();
+  const { resetForm, calculateAndFinalize } = useAddProductStore();
+  const [selectedProductType, setSelectedProductType] = useState<string | null>(
+    null
+  );
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(["basic"])
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSuccess = (data) => {
     resetForm();
   };
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const { mutate, isPending } = useApiMutation(
     postNewProduct,
     undefined,
@@ -52,28 +117,95 @@ export default function AddProductPage() {
     onSuccess
   );
 
-  // ✅ UPDATED: Max step is now 7
   const handleSubmit = async () => {
-    // ✅ Calculate and finalize prices from variants
-    const finalData = calculateAndFinalize();
-
-    console.log(
-      "Submitting product with auto-calculated prices:",
-      JSON.stringify(finalData)
-    );
-    console.log(
-      "Submitting product with auto-calculated thumbnail:",
-      JSON.stringify(finalData.price)
-    );
-
-    // Here you would call your API to create the product
-    // const response = await fetch('/api/products', {
-    //   method: 'POST',
-    //   body: JSON.stringify(finalData)
-    // });
-    mutate(finalData);
+    try {
+      setIsSubmitting(true);
+      const finalData = calculateAndFinalize();
+      mutate(finalData);
+    } catch (error: any) {
+      console.error("Error:", error);
+      setIsSubmitting(false);
+    }
   };
 
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+
+  // Step 1: Product Type Selection
+  if (!selectedProductType) {
+    return (
+      <div
+        className="min-h-screen p-6"
+        style={{
+          backgroundColor: "var(--palette-bg)",
+          color: "var(--palette-text)",
+        }}
+      >
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
+            <Link href="/admin/my-products">
+              <button className="p-2 hover:bg-white/10 rounded transition inline-flex items-center gap-2 mb-4">
+                <ArrowLeft size={20} />
+                Back
+              </button>
+            </Link>
+            <h1 className="text-4xl font-bold mb-3">Add New Product</h1>
+            <p className="text-lg" style={{ color: "var(--palette-accent-3)" }}>
+              What type of product are you adding?
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {PRODUCT_TYPES.map((type) => {
+              const Icon = type.icon;
+              return (
+                <button
+                  key={type.id}
+                  onClick={() => setSelectedProductType(type.id)}
+                  className="p-6 bg-card rounded-xl border-2 hover:border-blue-500 hover:shadow-xl transition-all text-left group"
+                  style={{
+                    borderColor: "var(--palette-accent-3)",
+                  }}
+                >
+                  <div className="flex items-start gap-4">
+                    <div
+                      className={`p-4 ${type.color} rounded-xl group-hover:scale-110 transition-transform`}
+                    >
+                      <Icon className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-xl mb-2">{type.name}</h3>
+                      <p
+                        className="text-sm"
+                        style={{ color: "var(--palette-accent-3)" }}
+                      >
+                        {type.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const sections = FORM_SECTIONS[selectedProductType as keyof typeof FORM_SECTIONS] || FORM_SECTIONS.general;
+  const selectedType = PRODUCT_TYPES.find((t) => t.id === selectedProductType);
+  const TypeIcon = selectedType?.icon || Package;
+
+  // Step 2: Smart Form
   return (
     <div
       className="min-h-screen p-6"
@@ -82,142 +214,164 @@ export default function AddProductPage() {
         color: "var(--palette-text)",
       }}
     >
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <Link href="/admin/my-products">
-              <button className="p-2 hover:bg-white/10 rounded transition">
-                <ArrowLeft size={24} />
-              </button>
-            </Link>
-            <h1 className="text-3xl font-bold">Add New Product</h1>
-          </div>
-        </div>
+      <div className="max-w-5xl mx-auto">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur rounded-xl border p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedProductType(null)}
+              >
+                <ArrowLeft size={18} />
+              </Button>
+              <div className={`p-2 ${selectedType?.color} rounded-lg`}>
+                <TypeIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">
+                  Add {selectedType?.name}
+                </h1>
+                <p className="text-xs" style={{ color: "var(--palette-accent-3)" }}>
+                  Fill in the required fields *
+                </p>
+              </div>
+            </div>
 
-        {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-6 overflow-x-auto pb-2">
-            {STEPS.map((step, index) => (
-              <React.Fragment key={step.number}>
-                <button
-                  onClick={() => goToStep(step.number)}
-                  className={`flex flex-col items-center gap-2 transition flex-shrink-0 ${
-                    currentStep === step.number
-                      ? "opacity-100"
-                      : "opacity-60 hover:opacity-80"
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => router.back()}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isSubmitting || isPending ? (
+                  "Creating..."
+                ) : (
+                  <>
+                    <Check size={18} className="mr-2" />
+                    Create Product
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="mt-4 flex items-center gap-2 text-sm">
+            {sections.map((section, index) => (
+              <React.Fragment key={section.id}>
+                <div
+                  className={`flex items-center gap-1 ${
+                    expandedSections.has(section.id)
+                      ? "text-blue-600"
+                      : "text-gray-400"
                   }`}
                 >
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center font-semibold text-lg"
-                    style={{
-                      backgroundColor:
-                        currentStep >= step.number
-                          ? "var(--palette-btn)"
-                          : "var(--palette-accent-3)",
-                      color:
-                        currentStep >= step.number
-                          ? "white"
-                          : "var(--palette-text)",
-                    }}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
+                      expandedSections.has(section.id)
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200"
+                    }`}
                   >
-                    {currentStep > step.number ? (
-                      <Check size={20} />
-                    ) : (
-                      step.number
-                    )}
+                    {expandedSections.has(section.id) ? <Check size={12} /> : index + 1}
                   </div>
-                  <span className="text-xs text-center max-w-[80px]">
-                    {step.title.split(" ")[0]}
-                  </span>
-                </button>
-
-                {index < STEPS.length - 1 && (
-                  <div
-                    className="flex-1 h-1 mx-2 mb-8 flex-shrink-0"
-                    style={{
-                      backgroundColor:
-                        currentStep > step.number
-                          ? "var(--palette-btn)"
-                          : "var(--palette-accent-3)",
-                      minWidth: "20px",
-                    }}
-                  />
+                  <span className="hidden sm:inline">{section.title}</span>
+                </div>
+                {index < sections.length - 1 && (
+                  <div className="flex-1 h-0.5 bg-gray-200 mx-1" />
                 )}
               </React.Fragment>
             ))}
           </div>
         </div>
 
-        {/* Form Container */}
-        <div className="p-8 rounded-lg border border-palette-accent-2/30">
-          {/* Step Title */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-2">
-              {STEPS[currentStep - 1].icon} {STEPS[currentStep - 1].title}
-            </h2>
-            <p style={{ color: "var(--palette-accent-3)" }}>
-              Step {currentStep} of {STEPS.length}
-            </p>
-          </div>
+        {/* Collapsible Form Sections */}
+        <div className="space-y-4">
+          {sections.map((section) => {
+            const isExpanded = expandedSections.has(section.id);
+            const Icon = Info;
 
-          {/* Step Content */}
-          <div className="mb-8 ">
-            {currentStep === 1 && <StepBasicInfo />}
-            {currentStep === 2 && <StepPricing />}
-            {currentStep === 3 && <StepVariants />}
-            {currentStep === 4 && <StepMedia />}
-            {currentStep === 5 && <StepShipping />} {/* ✅ NEW */}
-            {currentStep === 6 && <StepAdditionalInfo />}
-            {currentStep === 7 && <StepReview />}
-          </div>
+            return (
+              <div
+                key={section.id}
+                className="bg-card rounded-xl border overflow-hidden"
+                style={{
+                  borderColor: "var(--palette-accent-3)",
+                }}
+              >
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className="w-full p-5 flex items-center justify-between hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">{section.icon}</div>
+                    <div className="text-left">
+                      <h3 className="font-bold text-lg">
+                        {section.title}
+                        {section.required && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </h3>
+                    </div>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </button>
 
-          {/* Navigation Buttons */}
-          <div
-            className="flex justify-between items-center pt-6 border-t"
-            style={{ borderColor: "var(--palette-accent-3)" }}
-          >
-            <Button
-              onClick={prevStep}
-              disabled={currentStep === 1}
-              variant="outline"
-              className="flex items-center gap-2"
-              style={{
-                borderColor: "var(--palette-accent-3)",
-                color:
-                  currentStep === 1
-                    ? "var(--palette-accent-3)"
-                    : "var(--palette-text)",
-              }}
-            >
-              <ArrowLeft size={18} />
-              Previous
-            </Button>
+                {isExpanded && (
+                  <div className="p-5 pt-0 border-t" style={{ borderColor: "var(--palette-accent-3)" }}>
+                    {section.id === "basic" && <StepBasicInfo />}
+                    {section.id === "variants" && <StepVariants />}
+                    {section.id === "media" && <StepMedia />}
+                    {section.id === "shipping" && <StepShipping />}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-            <div style={{ color: "var(--palette-accent-3)" }}>
-              Step {currentStep} of {STEPS.length}
+        {/* Review Section */}
+        <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-700 dark:text-blue-300">
+              <p className="font-semibold mb-1">
+                {selectedType?.name} Product Tips:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                {selectedProductType === "clothing" && (
+                  <>
+                    <li>Enter sizes like: S, M, L, XL or 28, 30, 32</li>
+                    <li>Add colors to generate size × color combinations automatically</li>
+                    <li>Upload clear photos showing the product details</li>
+                  </>
+                )}
+                {selectedProductType === "tyre" && (
+                  <>
+                    <li>Enter tyre sizes like: 175/65 R14, 195/65 R15</li>
+                    <li>No need to add colors for tyres</li>
+                    <li>Include brand and model in the product name</li>
+                  </>
+                )}
+                {(selectedProductType === "electronics" ||
+                  selectedProductType === "accessories") && (
+                  <>
+                    <li>Include warranty period in the description</li>
+                    <li>Add specifications like model, compatibility, etc.</li>
+                    <li>High-quality photos increase sales</li>
+                  </>
+                )}
+              </ul>
             </div>
-
-            {currentStep < STEPS.length ? (
-              <Button
-                onClick={nextStep}
-                className="flex items-center gap-2 text-white"
-                style={{ backgroundColor: "var(--palette-btn)" }}
-              >
-                Next
-                <ArrowRight size={18} />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex items-center gap-2 text-white"
-                style={{ backgroundColor: "var(--palette-btn)" }}
-              >
-                <Check size={18} />
-                {isSubmitting ? "Creating..." : "Create Product"}
-              </Button>
-            )}
           </div>
         </div>
       </div>
