@@ -787,33 +787,53 @@ export default function VariantSelector({
 
         {/* Row 3: Price & Quantity */}
         {selectedVariant && (
-          <div className="flex flex-col md:flex-row md:items-center gap-3 pt-2 border-t border-gray-200">
+          <div className="flex items-center gap-3 pt-2 border-t border-gray-200">
             {/* Price Info - Horizontal Layout */}
             <div className="flex items-center gap-2 flex-wrap">
               {getVariantPriceInfo(selectedVariant).hasDiscount ? (
                 <>
                   {/* Original Price (strikethrough) */}
                   <span className="text-xs text-gray-500 line-through">
-                    {getVariantPriceInfo(selectedVariant).originalPrice.toLocaleString()}
+                    {getVariantPriceInfo(
+                      selectedVariant,
+                    ).originalPrice.toLocaleString()}
                   </span>
                   {/* Current Total Price */}
-                  <span className="text-base font-bold" style={{ color: "var(--palette-text)" }}>
-                    {getVariantPriceInfo(selectedVariant).currentPrice.toLocaleString()}
+                  <span
+                    className="text-base font-bold"
+                    style={{ color: "var(--palette-text)" }}
+                  >
+                    {getVariantPriceInfo(
+                      selectedVariant,
+                    ).currentPrice.toLocaleString()}
                   </span>
                   {/* Discount Badge */}
                   <span className="text-xs font-semibold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
-                    {Math.round(((getVariantPriceInfo(selectedVariant).originalPrice - getVariantPriceInfo(selectedVariant).currentPrice) / getVariantPriceInfo(selectedVariant).originalPrice) * 100)}% OFF
+                    {Math.round(
+                      ((getVariantPriceInfo(selectedVariant).originalPrice -
+                        getVariantPriceInfo(selectedVariant).currentPrice) /
+                        getVariantPriceInfo(selectedVariant).originalPrice) *
+                        100,
+                    )}
+                    % OFF
                   </span>
                 </>
               ) : (
                 <>
                   {/* Unit Price */}
                   <span className="text-sm text-gray-500">
-                    {getVariantPriceInfo(selectedVariant).currentPrice.toLocaleString()}
+                    {getVariantPriceInfo(
+                      selectedVariant,
+                    ).currentPrice.toLocaleString()}
                   </span>
                   {/* Current Total Price */}
-                  <span className="text-base font-bold" style={{ color: "var(--palette-text)" }}>
-                    {getVariantPriceInfo(selectedVariant).currentPrice.toLocaleString()}
+                  <span
+                    className="text-base font-bold"
+                    style={{ color: "var(--palette-text)" }}
+                  >
+                    {getVariantPriceInfo(
+                      selectedVariant,
+                    ).currentPrice.toLocaleString()}
                   </span>
                 </>
               )}
