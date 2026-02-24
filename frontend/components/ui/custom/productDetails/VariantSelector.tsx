@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Check } from "lucide-react";
 
 interface Variant {
   size: string;
@@ -28,32 +27,17 @@ interface VariantSelectorProps {
   onVariantSelect: (variant: Variant) => void;
   selectedVariant?: Variant;
   productInfo?: ProductInfo;
+  quantity: number;
+  setQuantity: (qty: number) => void;
 }
-
-// Color mapping for visual swatches
-const COLOR_MAP: Record<string, string> = {
-  red: "#ef4444",
-  blue: "#3b82f6",
-  green: "#22c55e",
-  black: "#000000",
-  white: "#ffffff",
-  yellow: "#eab308",
-  orange: "#f97316",
-  purple: "#a855f7",
-  pink: "#ec4899",
-  gray: "#6b7280",
-  brown: "#92400e",
-  navy: "#1e3a8a",
-  beige: "#f5f5dc",
-  cream: "#fffdd0",
-  maroon: "#800000",
-};
 
 export default function VariantSelector({
   variants,
   onVariantSelect,
   selectedVariant,
   productInfo,
+  quantity,
+  setQuantity,
 }: VariantSelectorProps) {
 
   // Helper function to calculate price for a variant
@@ -162,10 +146,6 @@ export default function VariantSelector({
     }
   };
 
-  const getColorSwatch = (colorName: string): string => {
-    return COLOR_MAP[colorName.toLowerCase()] || "#cccccc";
-  };
-
   const isColorAvailable = (color: string) => {
     if (!selectedSize) return true;
     return variants.some((v) => v.size === selectedSize && v.color === color);
@@ -179,7 +159,7 @@ export default function VariantSelector({
 
   return (
     <div className="space-y-4">
-      {/* Compact Layout: Sizes on Top, Colors on Bottom (if applicable) */}
+      {/* Compact Layout: Sizes and Quantity in one row, Colors below */}
       <div
         className="p-4 rounded-xl border-2"
         style={{
@@ -187,80 +167,107 @@ export default function VariantSelector({
           borderColor: "var(--palette-accent-3)",
         }}
       >
-        {/* Top Row: Size Selector */}
+        {/* Top Row: Size Text Left, Size Buttons + Quantity Right */}
         <div className={hasColorVariants ? "mb-4" : ""}>
-          <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center justify-between gap-4">
+            {/* Size label on left */}
             <h4
               className="text-sm font-bold uppercase tracking-wider"
               style={{ color: "var(--palette-text)" }}
             >
-              Size
+              Size:
             </h4>
-            <span
-              className="text-xs font-semibold uppercase tracking-wide opacity-70"
-              style={{ color: "var(--palette-text)" }}
-            >
-              {selectedSize ? "Selected" : "Select"}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {sizes.map((size) => {
-              const isAvailable = isSizeAvailable(size);
-              const isSelected = selectedSize === size;
 
-              return (
+            {/* Size buttons and quantity selector on right */}
+            <div className="flex items-center gap-2">
+              {/* Size buttons */}
+              <div className="flex flex-wrap gap-2">
+                {sizes.map((size) => {
+                  const isAvailable = isSizeAvailable(size);
+                  const isSelected = selectedSize === size;
+
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => isAvailable && handleSizeSelect(size)}
+                      disabled={!isAvailable}
+                      className={`
+                        relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
+                        ${
+                          !isAvailable
+                            ? "opacity-20 cursor-not-allowed grayscale"
+                            : "cursor-pointer hover:scale-105 active:scale-95"
+                        }
+                      `}
+                      style={{
+                        borderColor: isSelected
+                          ? "var(--palette-btn)"
+                          : "var(--palette-accent-3)",
+                        backgroundColor: isSelected
+                          ? "var(--palette-btn)"
+                          : "#ffffff",
+                        color: isSelected ? "#ffffff" : "var(--palette-text)",
+                        minWidth: "45px",
+                      }}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Quantity selector */}
+              <div className="flex items-center gap-0 border border-gray-300 rounded-full bg-white ml-2">
                 <button
-                  key={size}
-                  onClick={() => isAvailable && handleSizeSelect(size)}
-                  disabled={!isAvailable}
-                  className={`
-                    relative h-10 px-4 rounded-lg border-2 font-bold text-sm transition-all duration-200
-                    ${
-                      !isAvailable
-                        ? "opacity-20 cursor-not-allowed grayscale"
-                        : "cursor-pointer hover:scale-105 active:scale-95"
-                    }
-                  `}
-                  style={{
-                    borderColor: isSelected
-                      ? "var(--palette-btn)"
-                      : "var(--palette-accent-3)",
-                    backgroundColor: isSelected
-                      ? "var(--palette-btn)"
-                      : "#ffffff",
-                    color: isSelected ? "#ffffff" : "var(--palette-text)",
-                    minWidth: "50px",
-                  }}
+                  type="button"
+                  disabled={quantity <= 1}
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="h-8 w-8 flex justify-center items-center text-gray-600 hover:bg-gray-100 rounded-l-full disabled:opacity-50 transition-colors"
                 >
-                  {size}
+                  <span className="text-lg font-bold">-</span>
                 </button>
-              );
-            })}
+                <input
+                  type="text"
+                  value={quantity}
+                  onChange={(e) =>
+                    setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                  }
+                  className="w-10 text-center border-none outline-none text-foreground text-sm font-semibold"
+                  min={1}
+                  max={selectedVariant?.stock || 99}
+                />
+                <button
+                  type="button"
+                  disabled={quantity >= (selectedVariant?.stock || 99)}
+                  onClick={() =>
+                    setQuantity(
+                      Math.min(selectedVariant?.stock || 99, quantity + 1)
+                    )
+                  }
+                  className="h-8 w-8 flex justify-center items-center text-gray-600 hover:bg-gray-100 rounded-r-full disabled:opacity-50 transition-colors"
+                >
+                  <span className="text-lg font-bold">+</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Bottom Row: Color Selector - Only if product has color variants */}
         {hasColorVariants && (
           <div>
-            <div className="flex items-center justify-between mb-3 px-1">
+            <div className="flex items-center gap-2 mb-2">
               <h4
                 className="text-sm font-bold uppercase tracking-wider"
                 style={{ color: "var(--palette-text)" }}
               >
-                Color
+                Color:
               </h4>
-              <span
-                className="text-xs font-semibold uppercase tracking-wide opacity-70"
-                style={{ color: "var(--palette-text)" }}
-              >
-                {selectedColor ? "Selected" : "Select"}
-              </span>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               {colors.map((color) => {
                 const isAvailable = isColorAvailable(color);
                 const isSelected = selectedColor === color;
-                const swatchColor = getColorSwatch(color);
 
                 return (
                   <button
@@ -268,34 +275,25 @@ export default function VariantSelector({
                     onClick={() => isAvailable && handleColorSelect(color)}
                     disabled={!isAvailable}
                     className={`
-                      relative w-10 h-10 rounded-full border-2 transition-all duration-200
+                      relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
                       ${
                         !isAvailable
                           ? "opacity-20 cursor-not-allowed grayscale"
-                          : "cursor-pointer hover:scale-110 active:scale-90"
+                          : "cursor-pointer hover:scale-105 active:scale-95"
                       }
                     `}
                     style={{
-                      backgroundColor: swatchColor,
                       borderColor: isSelected
                         ? "var(--palette-btn)"
-                        : "transparent",
-                      boxShadow: isSelected
-                        ? `0 0 0 2px #fff, 0 0 0 4px var(--palette-btn)`
-                        : "0 1px 3px rgba(0,0,0,0.1)",
+                        : "var(--palette-accent-3)",
+                      backgroundColor: isSelected
+                        ? "var(--palette-btn)"
+                        : "#ffffff",
+                      color: isSelected ? "#ffffff" : "var(--palette-text)",
+                      minWidth: "45px",
                     }}
-                    title={color}
                   >
-                    {isSelected && (
-                      <div
-                        className="absolute inset-0 flex items-center justify-center animate-in zoom-in duration-200"
-                        style={{
-                          color: swatchColor === "#ffffff" ? "#000" : "#fff",
-                        }}
-                      >
-                        <Check size={16} strokeWidth={4} />
-                      </div>
-                    )}
+                    {color}
                   </button>
                 );
               })}
@@ -303,66 +301,6 @@ export default function VariantSelector({
           </div>
         )}
       </div>
-
-      {/* Selected Variant Info - Compact Smart Stock Badge */}
-      {selectedVariant && (
-        <div
-          className="flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
-          style={{
-            borderColor: selectedVariant.stock > 0 ? "#22c55e" : "#ef4444",
-            backgroundColor:
-              selectedVariant.stock > 0
-                ? "rgba(34, 197, 94, 0.05)"
-                : "rgba(239, 68, 68, 0.05)",
-          }}
-        >
-          <div className="flex flex-col gap-0.5">
-            <p className="text-xs font-bold uppercase tracking-wide opacity-60">
-              {selectedVariant.size}
-              {selectedVariant.color && ` / ${selectedVariant.color}`}
-            </p>
-            <div className="flex items-center gap-2">
-              <span
-                className={`w-2 h-2 rounded-full animate-pulse`}
-                style={{
-                  backgroundColor:
-                    selectedVariant.stock > 0 ? "#22c55e" : "#ef4444",
-                }}
-              />
-              <span
-                className="text-sm font-bold"
-                style={{
-                  color: selectedVariant.stock > 0 ? "#15803d" : "#b91c1c",
-                }}
-              >
-                {selectedVariant.stock > 0
-                  ? `${selectedVariant.stock} in stock`
-                  : "Out of stock"}
-              </span>
-            </div>
-          </div>
-          <div className="text-right">
-            {(() => {
-              const priceInfo = getVariantPriceInfo(selectedVariant);
-              return (
-                <>
-                  {priceInfo.hasDiscount && priceInfo.originalPrice !== priceInfo.currentPrice && (
-                    <p className="text-base line-through opacity-60 font-bold">
-                      ৳{priceInfo.originalPrice.toLocaleString()}
-                    </p>
-                  )}
-                  <p
-                    className="text-lg font-black"
-                    style={{ color: "var(--palette-text)" }}
-                  >
-                    ৳{priceInfo.currentPrice.toLocaleString()}
-                  </p>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

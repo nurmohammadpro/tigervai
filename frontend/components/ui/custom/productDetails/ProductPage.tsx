@@ -10,8 +10,6 @@ import {
   Award,
   ChevronLeft,
   ChevronRight,
-  Plus,
-  Minus,
   MessageCircle,
   ShoppingCart,
   X,
@@ -1059,54 +1057,12 @@ const ProductPage = ({ params }: { params: Product }) => {
                     offerPrice: params.offerPrice,
                     price: params.price || 0,
                   }}
+                  quantity={quantity}
+                  setQuantity={setQuantity}
                 />
 
-                {/* Quantity Selector and Action Buttons */}
-                <div className="space-y-3 pt-2">
-                  {/* Quantity Selector */}
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-semibold">Quantity:</span>
-                    <div className="flex items-center gap-2 border rounded-full px-3 py-2">
-                      <button
-                        type="button"
-                        disabled={quantity <= 1}
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full disabled:opacity-50"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <input
-                        type="number"
-                        value={quantity}
-                        onChange={(e) =>
-                          setQuantity(
-                            Math.max(1, parseInt(e.target.value) || 1),
-                          )
-                        }
-                        className="w-16 text-center border-none outline-none font-semibold"
-                        min={1}
-                        max={selectedVariant?.stock || 1}
-                      />
-                      <button
-                        type="button"
-                        disabled={quantity >= (selectedVariant?.stock || 1)}
-                        onClick={() =>
-                          setQuantity(
-                            Math.min(selectedVariant?.stock || 1, quantity + 1),
-                          )
-                        }
-                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full disabled:opacity-50"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      Stock: {selectedVariant?.stock || 0}
-                    </span>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="grid grid-cols-2 gap-3">
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => {
                         if (selectedVariant && quantity > 0) {
@@ -1210,26 +1166,25 @@ const ProductPage = ({ params }: { params: Product }) => {
                     </button>
                   </div>
 
-                  {/* Chat Button */}
-                  <button
-                    onClick={() =>
-                      handleChatWithSeller(
-                        params?.createdBy?._id || "",
-                        params?.createdBy?.shopName,
-                        params?.isAdminCreated || false,
-                      )
-                    }
-                    disabled={isChatPending}
-                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#2E83F2] hover:bg-[#1976D2] text-white flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {isChatPending ? (
-                      <Spinner className="w-5 h-5" />
-                    ) : (
-                      <MessageCircle className="w-5 h-5" />
-                    )}
-                    Chat with Seller
-                  </button>
-                </div>
+                {/* Chat Button */}
+                <button
+                  onClick={() =>
+                    handleChatWithSeller(
+                      params?.createdBy?._id || "",
+                      params?.createdBy?.shopName,
+                      params?.isAdminCreated || false,
+                    )
+                  }
+                  disabled={isChatPending}
+                  className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#2E83F2] hover:bg-[#1976D2] text-white flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isChatPending ? (
+                    <Spinner className="w-5 h-5" />
+                  ) : (
+                    <MessageCircle className="w-5 h-5" />
+                  )}
+                  Chat with Seller
+                </button>
               </div>
             )}
 
