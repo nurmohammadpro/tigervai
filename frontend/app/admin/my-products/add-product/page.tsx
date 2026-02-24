@@ -22,42 +22,47 @@ import {
   Info,
 } from "lucide-react";
 
-// Product type configurations
+// Product type configurations - using palette colors
 const PRODUCT_TYPES = [
   {
     id: "clothing",
     name: "Clothing & Apparel",
     icon: Shirt,
     description: "T-shirts, pants, dresses, etc.",
-    color: "bg-blue-500",
+    bgColor: "rgba(238, 74, 35, 0.1)",
+    iconBg: "#ee4a23",
   },
   {
     id: "tyre",
     name: "Tyres & Wheels",
     icon: Car,
     description: "Car tyres, bike tyres, wheels",
-    color: "bg-gray-700",
+    bgColor: "rgba(43, 39, 44, 0.1)",
+    iconBg: "#342f2c",
   },
   {
     id: "electronics",
     name: "Electronics",
     icon: Zap,
     description: "Phones, laptops, accessories",
-    color: "bg-yellow-500",
+    bgColor: "rgba(196, 61, 29, 0.1)",
+    iconBg: "#c43d1d",
   },
   {
     id: "accessories",
     name: "Accessories",
     icon: Watch,
     description: "Jewelry, bags, watches",
-    color: "bg-purple-500",
+    bgColor: "rgba(255, 133, 102, 0.15)",
+    iconBg: "#ff8566",
   },
   {
     id: "general",
     name: "Other Products",
     icon: Package,
     description: "Products not listed above",
-    color: "bg-green-500",
+    bgColor: "rgba(134, 146, 156, 0.1)",
+    iconBg: "#86929c",
   },
 ];
 
@@ -147,19 +152,29 @@ export default function AddProductPage() {
         className="min-h-screen p-6"
         style={{
           backgroundColor: "var(--palette-bg)",
-          color: "var(--palette-text)",
         }}
       >
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <Link href="/admin/my-products">
-              <button className="p-2 hover:bg-white/10 rounded transition inline-flex items-center gap-2 mb-4">
+              <button
+                className="p-2 hover:opacity-70 rounded transition inline-flex items-center gap-2 mb-4"
+                style={{ color: "var(--palette-text)" }}
+              >
                 <ArrowLeft size={20} />
                 Back
               </button>
             </Link>
-            <h1 className="text-4xl font-bold mb-3">Add New Product</h1>
-            <p className="text-lg" style={{ color: "var(--palette-accent-3)" }}>
+            <h1
+              className="text-4xl font-bold mb-3"
+              style={{ color: "var(--palette-text)" }}
+            >
+              Add New Product
+            </h1>
+            <p
+              className="text-lg"
+              style={{ color: "var(--palette-accent-3)" }}
+            >
               What type of product are you adding?
             </p>
           </div>
@@ -171,19 +186,32 @@ export default function AddProductPage() {
                 <button
                   key={type.id}
                   onClick={() => setSelectedProductType(type.id)}
-                  className="p-6 bg-card rounded-xl border-2 hover:border-blue-500 hover:shadow-xl transition-all text-left group"
+                  className="p-6 rounded-xl border-2 hover:shadow-xl transition-all text-left group"
                   style={{
+                    backgroundColor: "var(--palette-bg)",
                     borderColor: "var(--palette-accent-3)",
                   }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--palette-btn)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--palette-accent-3)")
+                  }
                 >
                   <div className="flex items-start gap-4">
                     <div
-                      className={`p-4 ${type.color} rounded-xl group-hover:scale-110 transition-transform`}
+                      className="p-4 rounded-xl group-hover:scale-110 transition-transform"
+                      style={{ backgroundColor: type.iconBg }}
                     >
                       <Icon className="h-8 w-8 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-xl mb-2">{type.name}</h3>
+                      <h3
+                        className="font-bold text-xl mb-2"
+                        style={{ color: "var(--palette-text)" }}
+                      >
+                        {type.name}
+                      </h3>
                       <p
                         className="text-sm"
                         style={{ color: "var(--palette-accent-3)" }}
@@ -216,7 +244,13 @@ export default function AddProductPage() {
     >
       <div className="max-w-5xl mx-auto">
         {/* Sticky Header */}
-        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur rounded-xl border p-4 mb-6">
+        <div
+          className="sticky top-0 z-10 rounded-xl border p-4 mb-6"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            borderColor: "var(--palette-accent-3)",
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -226,27 +260,47 @@ export default function AddProductPage() {
               >
                 <ArrowLeft size={18} />
               </Button>
-              <div className={`p-2 ${selectedType?.color} rounded-lg`}>
+              <div
+                className="p-2 rounded-lg"
+                style={{ backgroundColor: selectedType?.iconBg || "#86929c" }}
+              >
                 <TypeIcon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">
+                <h1
+                  className="text-xl font-bold"
+                  style={{ color: "var(--palette-text)" }}
+                >
                   Add {selectedType?.name}
                 </h1>
-                <p className="text-xs" style={{ color: "var(--palette-accent-3)" }}>
+                <p
+                  className="text-xs"
+                  style={{ color: "var(--palette-accent-3)" }}
+                >
                   Fill in the required fields *
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => router.back()}>
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                style={{
+                  borderColor: "var(--palette-accent-3)",
+                  color: "var(--palette-text)",
+                }}
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting || isPending}
-                className="bg-blue-600 hover:bg-blue-700"
+                style={{
+                  backgroundColor: "var(--palette-btn)",
+                  color: "white",
+                }}
+                className="hover:opacity-90"
               >
                 {isSubmitting || isPending ? (
                   "Creating..."
@@ -267,23 +321,41 @@ export default function AddProductPage() {
                 <div
                   className={`flex items-center gap-1 ${
                     expandedSections.has(section.id)
-                      ? "text-blue-600"
-                      : "text-gray-400"
+                      ? "opacity-100"
+                      : "opacity-50"
                   }`}
+                  style={{
+                    color: expandedSections.has(section.id)
+                      ? "var(--palette-btn)"
+                      : "var(--palette-accent-3)",
+                  }}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-                      expandedSections.has(section.id)
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200"
-                    }`}
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
+                    style={{
+                      backgroundColor: expandedSections.has(section.id)
+                        ? "var(--palette-btn)"
+                        : "var(--palette-accent-3)",
+                      color: "white",
+                    }}
                   >
-                    {expandedSections.has(section.id) ? <Check size={12} /> : index + 1}
+                    {expandedSections.has(section.id) ? (
+                      <Check size={12} />
+                    ) : (
+                      index + 1
+                    )}
                   </div>
                   <span className="hidden sm:inline">{section.title}</span>
                 </div>
                 {index < sections.length - 1 && (
-                  <div className="flex-1 h-0.5 bg-gray-200 mx-1" />
+                  <div
+                    className="flex-1 h-0.5 mx-1"
+                    style={{
+                      backgroundColor: expandedSections.has(section.id)
+                        ? "var(--palette-btn)"
+                        : "var(--palette-accent-3)",
+                    }}
+                  />
                 )}
               </React.Fragment>
             ))}
@@ -294,40 +366,51 @@ export default function AddProductPage() {
         <div className="space-y-4">
           {sections.map((section) => {
             const isExpanded = expandedSections.has(section.id);
-            const Icon = Info;
 
             return (
               <div
                 key={section.id}
-                className="bg-card rounded-xl border overflow-hidden"
+                className="rounded-xl border overflow-hidden"
                 style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.5)",
                   borderColor: "var(--palette-accent-3)",
                 }}
               >
                 <button
                   onClick={() => toggleSection(section.id)}
-                  className="w-full p-5 flex items-center justify-between hover:bg-white/5 transition-colors"
+                  className="w-full p-5 flex items-center justify-between transition-colors"
+                  style={{ backgroundColor: "transparent" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "rgba(238, 74, 35, 0.05)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
                 >
                   <div className="flex items-center gap-3">
                     <div className="text-2xl">{section.icon}</div>
                     <div className="text-left">
-                      <h3 className="font-bold text-lg">
+                      <h3
+                        className="font-bold text-lg"
+                        style={{ color: "var(--palette-text)" }}
+                      >
                         {section.title}
                         {section.required && (
-                          <span className="text-red-500 ml-1">*</span>
+                          <span style={{ color: "var(--palette-btn)" }} className="ml-1">
+                            *
+                          </span>
                         )}
                       </h3>
                     </div>
                   </div>
-                  {isExpanded ? (
-                    <ChevronUp size={20} />
-                  ) : (
-                    <ChevronDown size={20} />
-                  )}
+                  {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </button>
 
                 {isExpanded && (
-                  <div className="p-5 pt-0 border-t" style={{ borderColor: "var(--palette-accent-3)" }}>
+                  <div
+                    className="p-5 pt-0 border-t"
+                    style={{ borderColor: "var(--palette-accent-3)" }}
+                  >
                     {section.id === "basic" && <StepBasicInfo />}
                     {section.id === "variants" && <StepVariants />}
                     {section.id === "media" && <StepMedia />}
@@ -340,10 +423,22 @@ export default function AddProductPage() {
         </div>
 
         {/* Review Section */}
-        <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200">
+        <div
+          className="mt-8 p-6 rounded-xl border"
+          style={{
+            backgroundColor: "rgba(238, 74, 35, 0.08)",
+            borderColor: "var(--palette-btn)",
+          }}
+        >
           <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-700 dark:text-blue-300">
+            <Info
+              className="flex-shrink-0 mt-0.5"
+              style={{ color: "var(--palette-btn)" }}
+            />
+            <div
+              className="text-sm"
+              style={{ color: "var(--palette-text)" }}
+            >
               <p className="font-semibold mb-1">
                 {selectedType?.name} Product Tips:
               </p>

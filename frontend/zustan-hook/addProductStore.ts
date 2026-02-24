@@ -121,6 +121,13 @@ export const useAddProductStore = create<AddProductState>((set, get) => ({
       throw new Error("Please add at least one variant");
     }
 
+    // Clean up variants: remove empty string colors
+    const cleanedVariants = variants.map((variant) => ({
+      ...variant,
+      // Convert empty string to undefined for color
+      color: variant.color && variant.color.trim() !== "" ? variant.color.trim() : undefined,
+    }));
+
     /* // Calculate average price
     const avgPrice = calculateAveragePrice(variants); */
 
@@ -130,14 +137,12 @@ export const useAddProductStore = create<AddProductState>((set, get) => ({
     // Calculate total stock
     const totalStock = calculateTotalStock(variants);
 
-   
-
     return {
       ...formData,
-  
+      variants: cleanedVariants,
       stock: totalStock,
       hasOffer:(formData?.offerPrice ?? 0) > 0 ? true : false,
-  
+
     };
   },
 }));
