@@ -167,59 +167,9 @@ export default function VariantSelector({
           borderColor: "var(--palette-accent-3)",
         }}
       >
-        {/* Size Row - Left Aligned */}
-        <div className={hasColorVariants ? "mb-4" : ""}>
-          <div className="flex items-center gap-3">
-            {/* Size label on left */}
-            <h4
-              className="text-sm font-bold uppercase tracking-wider"
-              style={{ color: "var(--palette-text)" }}
-            >
-              Size:
-            </h4>
-
-            {/* Size buttons */}
-            <div className="flex flex-wrap gap-2">
-              {sizes.map((size) => {
-                const isAvailable = isSizeAvailable(size);
-                const isSelected = selectedSize === size;
-
-                return (
-                  <button
-                    key={size}
-                    onClick={() => isAvailable && handleSizeSelect(size)}
-                    disabled={!isAvailable}
-                    className={`
-                        relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
-                        ${
-                          !isAvailable
-                            ? "opacity-20 cursor-not-allowed grayscale"
-                            : "cursor-pointer hover:scale-105 active:scale-95"
-                        }
-                      `}
-                    style={{
-                      borderColor: isSelected
-                        ? "var(--palette-btn)"
-                        : "var(--palette-accent-3)",
-                      backgroundColor: isSelected
-                        ? "var(--palette-btn)"
-                        : "#ffffff",
-                      color: isSelected ? "#ffffff" : "var(--palette-text)",
-                      minWidth: "45px",
-                    }}
-                  >
-                    {size}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Color & Quantity Row - justify-between - Only if product has color variants */}
+        {/* Row 1: Color Variant (Top) - Only if product has color variants */}
         {hasColorVariants && (
-          <div className="flex items-center justify-between gap-4">
-            {/* Color text and values on left */}
+          <div className="mb-4">
             <div className="flex items-center gap-3">
               <h4
                 className="text-sm font-bold uppercase tracking-wider"
@@ -262,8 +212,95 @@ export default function VariantSelector({
                 })}
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Quantity selector on right */}
+        {/* Row 2: Size with Inline Stock Display */}
+        <div className="mb-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h4
+              className="text-sm font-bold uppercase tracking-wider"
+              style={{ color: "var(--palette-text)" }}
+            >
+              Size:
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {sizes.map((size) => {
+                const isAvailable = isSizeAvailable(size);
+                const isSelected = selectedSize === size;
+                // Get stock for this variant
+                const variant = variants.find(
+                  (v) => v.size === size && (!hasColorVariants || v.color === selectedColor)
+                );
+                const stock = variant?.stock || 0;
+
+                return (
+                  <button
+                    key={size}
+                    onClick={() => isAvailable && handleSizeSelect(size)}
+                    disabled={!isAvailable}
+                    className={`
+                        relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
+                        ${
+                          !isAvailable
+                            ? "opacity-20 cursor-not-allowed grayscale"
+                            : "cursor-pointer hover:scale-105 active:scale-95"
+                        }
+                      `}
+                    style={{
+                      borderColor: isSelected
+                        ? "var(--palette-btn)"
+                        : "var(--palette-accent-3)",
+                      backgroundColor: isSelected
+                        ? "var(--palette-btn)"
+                        : "#ffffff",
+                      color: isSelected ? "#ffffff" : "var(--palette-text)",
+                      minWidth: "45px",
+                    }}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Inline Stock Display */}
+            {selectedVariant && (
+              <span className="text-xs font-semibold" style={{ color: selectedVariant.stock <= 3 ? "#ef4444" : selectedVariant.stock <= 5 ? "#f97316" : "#22c55e" }}>
+                Stock: {selectedVariant.stock} {selectedVariant.stock === 1 ? "item" : "items"}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Row 3: Price & Quantity */}
+        {selectedVariant && (
+          <div className="flex items-center justify-between gap-4 pt-2 border-t border-gray-200">
+            {/* Price Info (Regular, Offer, Discount %) */}
+            <div className="flex flex-col">
+              {getVariantPriceInfo(selectedVariant).hasDiscount ? (
+                <>
+                  {/* Original Price (strikethrough) */}
+                  <span className="text-sm text-gray-500 line-through">
+                    ৳{getVariantPriceInfo(selectedVariant).originalPrice.toLocaleString()}
+                  </span>
+                  {/* Offer Price */}
+                  <span className="text-lg font-bold" style={{ color: "var(--palette-text)" }}>
+                    ৳{getVariantPriceInfo(selectedVariant).currentPrice.toLocaleString()}
+                  </span>
+                  {/* Discount Percentage */}
+                  <span className="text-xs font-semibold text-green-600">
+                    Save {Math.round(((getVariantPriceInfo(selectedVariant).originalPrice - getVariantPriceInfo(selectedVariant).currentPrice) / getVariantPriceInfo(selectedVariant).originalPrice) * 100)}%
+                  </span>
+                </>
+              ) : (
+                // No Discount - Just Show Price
+                <span className="text-lg font-bold" style={{ color: "var(--palette-text)" }}>
+                  ৳{getVariantPriceInfo(selectedVariant).currentPrice.toLocaleString()}
+                </span>
+              )}
+            </div>
+
+            {/* Quantity Selector */}
             <div className="flex items-center gap-0 border border-gray-300 rounded-full bg-white">
               <button
                 type="button"
