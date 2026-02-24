@@ -346,11 +346,6 @@ const COLOR_MAP: Record<string, string> = {
   "pale lavender": "#DCD0FF",
   lilac: "#C8A2C8",
   "dark lilac": "#9370DB",
-  mauve: "#E0B0FF",
-  plum: "#DDA0DD",
-  orchid: "#DA70D6",
-  fuchsia: "#FF00FF",
-  magenta: "#FF00FF",
   grape: "#6F2DA8",
   eggplant: "#614051",
   aubergine: "#3B1816",
@@ -372,8 +367,6 @@ const COLOR_MAP: Record<string, string> = {
   mulberry: "#80005C",
   perrywinkle: "#8F8CE7",
   "mardi gras": "#880085",
-  wine: "#722F37",
-  merlot: "#722F37",
 
   // METALLICS
   silver: "#C0C0C0",
@@ -391,7 +384,6 @@ const COLOR_MAP: Record<string, string> = {
   tin: "#82898F",
   zinc: "#B9B9B9",
   aluminum: "#A9A9A9",
-  cobalt: "#0047AB",
   titanium: "#878989",
   magnesium: "#BEBEC0",
 
@@ -434,27 +426,10 @@ const COLOR_MAP: Record<string, string> = {
   heather: "#8C92AC",
   marl: "#B0BEC5",
 
-  // SKIN TONES & NUDES
+  // SKIN TONES & NUDES (unique colors only)
   nude: "#E3BC9A",
   skin: "#E3BC9A",
   natural: "#E3BC9A",
-  beige: "#F5F5DC",
-  ivory: "#FFFFF0",
-  cream: "#FFFDD0",
-  almond: "#EFDECD",
-  cashew: "#C4A77D",
-  pecan: "#9D8659",
-  fawn: "#E5AA70",
-  buff: "#F0DC82",
-  bisque: "#FFE4C4",
-  taupe: "#483C32",
-  camel: "#C19A6B",
-  "light brown": "#C4A484",
-  tan: "#D2B48C",
-  coffee: "#6F4E37",
-  latte: "#E6D0B3",
-  mocha: "#784421",
-  espresso: "#3C2415",
 
   // OTHERS
   clear: "#F5F5F5",
