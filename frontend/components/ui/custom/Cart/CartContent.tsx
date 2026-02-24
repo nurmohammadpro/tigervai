@@ -15,6 +15,8 @@ export default function CartPage() {
     items,
     totalPrice,
     totalItems,
+    subtotal,
+    totalDiscount,
     incrementQuantity,
     decrementQuantity,
     removeFromCart,

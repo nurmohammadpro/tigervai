@@ -674,7 +674,7 @@ const ProductPage = ({ params }: { params: Product }) => {
   >(params.variants?.[0]);
   const [quantity, setQuantity] = useState(1);
   const [isChatPending, setChatPending] = useState(false);
-  const { addToCart, updateQuantity } = useCartStore();
+  const { addToCart, updateQuantity, items } = useCartStore();
   const router = useRouter();
   // Lift variantQuantities state to page level
   const [variantQuantities, setVariantQuantities] = useState<VariantQuantity>(
@@ -812,7 +812,7 @@ const ProductPage = ({ params }: { params: Product }) => {
     });
 
     return { totalItems, totalPrice, items };
-  }, [variantQuantities, params.variants, params.name]);
+  }, [variantQuantities, params.variants, params.name, params.hasOffer, params.offerPrice, params.price]);
 
   const getPriceRange = () => {
     if (!params?.variants || params.variants.length === 0) {
@@ -1129,25 +1129,35 @@ const ProductPage = ({ params }: { params: Product }) => {
                           const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
                           // Calculate price using helper function
                           const priceInfo = getVariantPrice(selectedVariant);
-                          const cartItem: Omit<CartItem, "quantity"> = {
-                            _id: cartItemId,
-                            productId: params._id,
-                            name: params.name ?? "Product",
-                            thumbnail: params.thumbnail?.url ?? "",
-                            brandName: params.brand?.name ?? "Unknown Brand",
-                            slug: params.slug ?? "",
-                            variant: {
-                              size: selectedVariant.size,
-                              color: selectedVariant.color,
-                              price: selectedVariant.price,
-                              discountPrice: selectedVariant.discountPrice,
-                            },
-                            unitPrice: priceInfo.currentPrice,
-                            variantStock: selectedVariant.stock ?? 0,
-                          };
-                          addToCart(cartItem);
-                          // Update quantity to match selected quantity
-                          updateQuantity(cartItemId, quantity);
+
+                          // Check if item already exists in cart
+                          const existingItem = items.find(item => item._id === cartItemId);
+
+                          if (existingItem) {
+                            // Update existing item quantity
+                            updateQuantity(cartItemId, existingItem.quantity + quantity);
+                          } else {
+                            // Add new item with the selected quantity
+                            const cartItem: Omit<CartItem, "quantity"> = {
+                              _id: cartItemId,
+                              productId: params._id,
+                              name: params.name ?? "Product",
+                              thumbnail: params.thumbnail?.url ?? "",
+                              brandName: params.brand?.name ?? "Unknown Brand",
+                              slug: params.slug ?? "",
+                              variant: {
+                                size: selectedVariant.size,
+                                color: selectedVariant.color,
+                                price: selectedVariant.price,
+                                discountPrice: selectedVariant.discountPrice,
+                              },
+                              unitPrice: priceInfo.currentPrice,
+                              variantStock: selectedVariant.stock ?? 0,
+                            };
+                            addToCart(cartItem);
+                            // Set the correct quantity for newly added item
+                            updateQuantity(cartItemId, quantity);
+                          }
                           toast.success(`Added ${quantity} item(s) to cart!`);
                         }
                       }}
@@ -1165,25 +1175,35 @@ const ProductPage = ({ params }: { params: Product }) => {
                           const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
                           // Calculate price using helper function
                           const priceInfo = getVariantPrice(selectedVariant);
-                          const cartItem: Omit<CartItem, "quantity"> = {
-                            _id: cartItemId,
-                            productId: params._id,
-                            name: params.name ?? "Product",
-                            thumbnail: params.thumbnail?.url ?? "",
-                            brandName: params.brand?.name ?? "Unknown Brand",
-                            slug: params.slug ?? "",
-                            variant: {
-                              size: selectedVariant.size,
-                              color: selectedVariant.color,
-                              price: selectedVariant.price,
-                              discountPrice: selectedVariant.discountPrice,
-                            },
-                            unitPrice: priceInfo.currentPrice,
-                            variantStock: selectedVariant.stock ?? 0,
-                          };
-                          addToCart(cartItem);
-                          // Update quantity to match selected quantity
-                          updateQuantity(cartItemId, quantity);
+
+                          // Check if item already exists in cart
+                          const existingItem = items.find(item => item._id === cartItemId);
+
+                          if (existingItem) {
+                            // Update existing item quantity
+                            updateQuantity(cartItemId, existingItem.quantity + quantity);
+                          } else {
+                            // Add new item with the selected quantity
+                            const cartItem: Omit<CartItem, "quantity"> = {
+                              _id: cartItemId,
+                              productId: params._id,
+                              name: params.name ?? "Product",
+                              thumbnail: params.thumbnail?.url ?? "",
+                              brandName: params.brand?.name ?? "Unknown Brand",
+                              slug: params.slug ?? "",
+                              variant: {
+                                size: selectedVariant.size,
+                                color: selectedVariant.color,
+                                price: selectedVariant.price,
+                                discountPrice: selectedVariant.discountPrice,
+                              },
+                              unitPrice: priceInfo.currentPrice,
+                              variantStock: selectedVariant.stock ?? 0,
+                            };
+                            addToCart(cartItem);
+                            // Set the correct quantity for newly added item
+                            updateQuantity(cartItemId, quantity);
+                          }
                           router.push("/cart/shipment");
                         }
                       }}
