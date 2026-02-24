@@ -17,10 +17,17 @@ interface Variant {
   };
 }
 
+interface ProductInfo {
+  hasOffer: boolean;
+  offerPrice?: number;
+  price: number;
+}
+
 interface VariantSelectorProps {
   variants: Variant[];
   onVariantSelect: (variant: Variant) => void;
   selectedVariant?: Variant;
+  productInfo?: ProductInfo;
 }
 
 // Color mapping for visual swatches
@@ -46,7 +53,36 @@ export default function VariantSelector({
   variants,
   onVariantSelect,
   selectedVariant,
+  productInfo,
 }: VariantSelectorProps) {
+
+  // Helper function to calculate price for a variant
+  const getVariantPriceInfo = (variant: Variant) => {
+    // If variant has its own discountPrice, use it
+    if (variant.discountPrice && variant.discountPrice > 0) {
+      return {
+        originalPrice: variant.price,
+        currentPrice: variant.discountPrice,
+        hasDiscount: true,
+      };
+    }
+    // If product has offerPrice, calculate proportional discount
+    if (productInfo?.hasOffer && productInfo.offerPrice && productInfo.offerPrice > 0 && productInfo.price) {
+      const discountRatio = productInfo.offerPrice / productInfo.price;
+      const discountedPrice = Math.round(variant.price * discountRatio);
+      return {
+        originalPrice: variant.price,
+        currentPrice: discountedPrice,
+        hasDiscount: discountedPrice < variant.price,
+      };
+    }
+    // No discount
+    return {
+      originalPrice: variant.price,
+      currentPrice: variant.price,
+      hasDiscount: false,
+    };
+  };
   // Extract unique sizes and colors (only include non-undefined colors)
   const sizes = Array.from(new Set(variants.map((v) => v.size)));
   const colors = useMemo(
@@ -306,17 +342,24 @@ export default function VariantSelector({
             </div>
           </div>
           <div className="text-right">
-            {selectedVariant.discountPrice && (
-              <p className="text-base line-through opacity-60 font-bold">
-                ৳{selectedVariant.price.toLocaleString()}
-              </p>
-            )}
-            <p
-              className="text-lg font-black"
-              style={{ color: "var(--palette-text)" }}
-            >
-              ৳{(selectedVariant.discountPrice || selectedVariant.price).toLocaleString()}
-            </p>
+            {(() => {
+              const priceInfo = getVariantPriceInfo(selectedVariant);
+              return (
+                <>
+                  {priceInfo.hasDiscount && priceInfo.originalPrice !== priceInfo.currentPrice && (
+                    <p className="text-base line-through opacity-60 font-bold">
+                      ৳{priceInfo.originalPrice.toLocaleString()}
+                    </p>
+                  )}
+                  <p
+                    className="text-lg font-black"
+                    style={{ color: "var(--palette-text)" }}
+                  >
+                    ৳{priceInfo.currentPrice.toLocaleString()}
+                  </p>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

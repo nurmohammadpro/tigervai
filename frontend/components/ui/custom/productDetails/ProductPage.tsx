@@ -158,6 +158,35 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
     };
   };
 
+  // --- HELPER TO CALCULATE EFFECTIVE PRICE FOR A VARIANT ---
+  // Considers both variant-level discountPrice and product-level offerPrice
+  const getVariantPrice = (variant: typeof product.variants[0]) => {
+    // If variant has its own discountPrice, use it
+    if (variant.discountPrice && variant.discountPrice > 0) {
+      return {
+        originalPrice: variant.price,
+        currentPrice: variant.discountPrice,
+        hasDiscount: true,
+      };
+    }
+    // If product has offerPrice, calculate proportional discount
+    if (product.hasOffer && product.offerPrice && product.offerPrice > 0 && product.price) {
+      const discountRatio = product.offerPrice / product.price;
+      const discountedPrice = Math.round(variant.price * discountRatio);
+      return {
+        originalPrice: variant.price,
+        currentPrice: discountedPrice,
+        hasDiscount: discountedPrice < variant.price,
+      };
+    }
+    // No discount
+    return {
+      originalPrice: variant.price,
+      currentPrice: variant.price,
+      hasDiscount: false,
+    };
+  };
+
   const handleAddAllToCart = (isForCheckout?: boolean) => {
     let addedCount = 0;
 
@@ -436,14 +465,12 @@ const VariantCard: React.FC<VariantCardProps> = ({
 
   const currentVariant = variants.find((v) => v.color === selectedColor);
 
-  const currentPrice =
-    currentVariant?.discountPrice || currentVariant?.price || 0;
-  const originalPrice = currentVariant?.discountPrice
-    ? currentVariant?.price
-    : null;
-  const discountPercentage = originalPrice
-    ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
-    : 0;
+  // Use helper function to calculate price
+  const variantPriceInfo = currentVariant
+    ? getVariantPrice(currentVariant)
+    : { originalPrice: 0, currentPrice: 0, hasDiscount: false };
+
+  const { originalPrice, currentPrice, hasDiscount } = variantPriceInfo;
 
   const stock = currentVariant?.stock || 0;
   const isRecommended = currentVariant?.recommended;
@@ -545,7 +572,7 @@ const VariantCard: React.FC<VariantCardProps> = ({
               {/* Second row: Prices left, Qty control right with stock centered above qty */}
               <div className="mt-1 flex items-center justify-between gap-2">
                 <div className="flex flex-col items-start justify-center">
-                  {originalPrice && (
+                  {hasDiscount && originalPrice !== currentPrice && (
                     <span className="text-base font-bold text-muted-foreground line-through">
                       ৳{originalPrice.toLocaleString()}
                     </span>
@@ -976,6 +1003,11 @@ const ProductPage = ({ params }: { params: Product }) => {
                   variants={params.variants}
                   onVariantSelect={setSelectedVariant}
                   selectedVariant={selectedVariant}
+                  productInfo={{
+                    hasOffer: params.hasOffer || false,
+                    offerPrice: params.offerPrice,
+                    price: params.price || 0,
+                  }}
                 />
 
                 {/* Quantity Selector and Action Buttons */}
@@ -1030,6 +1062,8 @@ const ProductPage = ({ params }: { params: Product }) => {
                           // Use empty string as fallback for undefined color
                           const colorValue = selectedVariant.color || "";
                           const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
+                          // Calculate price using helper function
+                          const priceInfo = getVariantPrice(selectedVariant);
                           const cartItem: Omit<CartItem, "quantity"> = {
                             _id: cartItemId,
                             productId: params._id,
@@ -1043,9 +1077,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                               price: selectedVariant.price,
                               discountPrice: selectedVariant.discountPrice,
                             },
-                            unitPrice:
-                              selectedVariant.discountPrice ??
-                              selectedVariant.price,
+                            unitPrice: priceInfo.currentPrice,
                             variantStock: selectedVariant.stock ?? 0,
                           };
                           addToCart(cartItem);
@@ -1066,6 +1098,8 @@ const ProductPage = ({ params }: { params: Product }) => {
                           // Use empty string as fallback for undefined color
                           const colorValue = selectedVariant.color || "";
                           const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
+                          // Calculate price using helper function
+                          const priceInfo = getVariantPrice(selectedVariant);
                           const cartItem: Omit<CartItem, "quantity"> = {
                             _id: cartItemId,
                             productId: params._id,
@@ -1079,9 +1113,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                               price: selectedVariant.price,
                               discountPrice: selectedVariant.discountPrice,
                             },
-                            unitPrice:
-                              selectedVariant.discountPrice ??
-                              selectedVariant.price,
+                            unitPrice: priceInfo.currentPrice,
                             variantStock: selectedVariant.stock ?? 0,
                           };
                           addToCart(cartItem);
