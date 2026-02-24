@@ -13,6 +13,7 @@ import StepMedia from "@/components/ui/custom/admin/create-edit-product/create-p
 import StepShipping from "@/components/ui/custom/admin/create-edit-product/create-product/StepShipping";
 import { useApiMutation } from "@/api-hook/react-query-wrapper";
 import { postNewProduct } from "@/actions/product";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Shirt,
   Car,
@@ -102,6 +103,7 @@ const FORM_SECTIONS = {
 
 export default function AddProductPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { resetForm, calculateAndFinalize } = useAddProductStore();
   const [selectedProductType, setSelectedProductType] = useState<string | null>(
     null
@@ -112,7 +114,14 @@ export default function AddProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSuccess = (data) => {
+    // Invalidate the products query cache to refresh the list
+    queryClient.invalidateQueries({
+      queryKey: ["products"],
+      exact: false,
+    });
+    // Reset form and navigate to products list
     resetForm();
+    router.push("/admin/my-products");
   };
 
   const { mutate, isPending } = useApiMutation(
@@ -126,7 +135,12 @@ export default function AddProductPage() {
     try {
       setIsSubmitting(true);
       const finalData = calculateAndFinalize();
-      mutate(finalData);
+      mutate(finalData, {
+        onError: (error) => {
+          console.error("Error creating product:", error);
+          setIsSubmitting(false);
+        },
+      });
     } catch (error: any) {
       console.error("Error:", error);
       setIsSubmitting(false);
