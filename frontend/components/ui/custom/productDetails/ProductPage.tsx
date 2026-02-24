@@ -1043,7 +1043,7 @@ const ProductPage = ({ params }: { params: Product }) => {
 
               <Separator />
               {params?.special_offer && (
-                <div className="bg-green-50/20 px-3 py-2 rounded-lg mt-2">
+                <div className="bg-green-50/20 px-3 py-2 rounded-lg">
                   <span className=" text-[#ff5507] font-bold">
                     Special Offer:
                   </span>
@@ -1072,108 +1072,108 @@ const ProductPage = ({ params }: { params: Product }) => {
 
                 {/* Action Buttons */}
                 <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => {
-                        if (selectedVariant && quantity > 0) {
-                          // Use empty string as fallback for undefined color
-                          const colorValue = selectedVariant.color || "";
-                          const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
-                          // Calculate price using helper function
-                          const priceInfo = getVariantPrice(selectedVariant);
+                  <button
+                    onClick={() => {
+                      if (selectedVariant && quantity > 0) {
+                        // Use empty string as fallback for undefined color
+                        const colorValue = selectedVariant.color || "";
+                        const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
+                        // Calculate price using helper function
+                        const priceInfo = getVariantPrice(selectedVariant);
 
-                          // Check if item already exists in cart
-                          const existingItem = items.find(
-                            (item) => item._id === cartItemId,
+                        // Check if item already exists in cart
+                        const existingItem = items.find(
+                          (item) => item._id === cartItemId,
+                        );
+
+                        if (existingItem) {
+                          // Update existing item quantity
+                          updateQuantity(
+                            cartItemId,
+                            existingItem.quantity + quantity,
                           );
-
-                          if (existingItem) {
-                            // Update existing item quantity
-                            updateQuantity(
-                              cartItemId,
-                              existingItem.quantity + quantity,
-                            );
-                          } else {
-                            // Add new item with the selected quantity
-                            const cartItem: Omit<CartItem, "quantity"> = {
-                              _id: cartItemId,
-                              productId: params._id,
-                              name: params.name ?? "Product",
-                              thumbnail: params.thumbnail?.url ?? "",
-                              brandName: params.brand?.name ?? "Unknown Brand",
-                              slug: params.slug ?? "",
-                              variant: {
-                                size: selectedVariant.size,
-                                color: selectedVariant.color,
-                                price: selectedVariant.price,
-                                discountPrice: selectedVariant.discountPrice,
-                              },
-                              unitPrice: priceInfo.currentPrice,
-                              variantStock: selectedVariant.stock ?? 0,
-                            };
-                            addToCart(cartItem);
-                            // Set the correct quantity for newly added item
-                            updateQuantity(cartItemId, quantity);
-                          }
-                          toast.success(`Added ${quantity} item(s) to cart!`);
+                        } else {
+                          // Add new item with the selected quantity
+                          const cartItem: Omit<CartItem, "quantity"> = {
+                            _id: cartItemId,
+                            productId: params._id,
+                            name: params.name ?? "Product",
+                            thumbnail: params.thumbnail?.url ?? "",
+                            brandName: params.brand?.name ?? "Unknown Brand",
+                            slug: params.slug ?? "",
+                            variant: {
+                              size: selectedVariant.size,
+                              color: selectedVariant.color,
+                              price: selectedVariant.price,
+                              discountPrice: selectedVariant.discountPrice,
+                            },
+                            unitPrice: priceInfo.currentPrice,
+                            variantStock: selectedVariant.stock ?? 0,
+                          };
+                          addToCart(cartItem);
+                          // Set the correct quantity for newly added item
+                          updateQuantity(cartItemId, quantity);
                         }
-                      }}
-                      disabled={!selectedVariant || quantity <= 0}
-                      className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-r from-[#ffbd05] to-[#ffbd05] text-gray-800 disabled:opacity-50"
-                    >
-                      Add To Cart
-                    </button>
+                        toast.success(`Added ${quantity} item(s) to cart!`);
+                      }
+                    }}
+                    disabled={!selectedVariant || quantity <= 0}
+                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-r from-[#ffbd05] to-[#ffbd05] text-gray-800 disabled:opacity-50"
+                  >
+                    Add To Cart
+                  </button>
 
-                    <button
-                      onClick={() => {
-                        if (selectedVariant && quantity > 0) {
-                          // Use empty string as fallback for undefined color
-                          const colorValue = selectedVariant.color || "";
-                          const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
-                          // Calculate price using helper function
-                          const priceInfo = getVariantPrice(selectedVariant);
+                  <button
+                    onClick={() => {
+                      if (selectedVariant && quantity > 0) {
+                        // Use empty string as fallback for undefined color
+                        const colorValue = selectedVariant.color || "";
+                        const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
+                        // Calculate price using helper function
+                        const priceInfo = getVariantPrice(selectedVariant);
 
-                          // Check if item already exists in cart
-                          const existingItem = items.find(
-                            (item) => item._id === cartItemId,
+                        // Check if item already exists in cart
+                        const existingItem = items.find(
+                          (item) => item._id === cartItemId,
+                        );
+
+                        if (existingItem) {
+                          // Update existing item quantity
+                          updateQuantity(
+                            cartItemId,
+                            existingItem.quantity + quantity,
                           );
-
-                          if (existingItem) {
-                            // Update existing item quantity
-                            updateQuantity(
-                              cartItemId,
-                              existingItem.quantity + quantity,
-                            );
-                          } else {
-                            // Add new item with the selected quantity
-                            const cartItem: Omit<CartItem, "quantity"> = {
-                              _id: cartItemId,
-                              productId: params._id,
-                              name: params.name ?? "Product",
-                              thumbnail: params.thumbnail?.url ?? "",
-                              brandName: params.brand?.name ?? "Unknown Brand",
-                              slug: params.slug ?? "",
-                              variant: {
-                                size: selectedVariant.size,
-                                color: selectedVariant.color,
-                                price: selectedVariant.price,
-                                discountPrice: selectedVariant.discountPrice,
-                              },
-                              unitPrice: priceInfo.currentPrice,
-                              variantStock: selectedVariant.stock ?? 0,
-                            };
-                            addToCart(cartItem);
-                            // Set the correct quantity for newly added item
-                            updateQuantity(cartItemId, quantity);
-                          }
-                          router.push("/cart/shipment");
+                        } else {
+                          // Add new item with the selected quantity
+                          const cartItem: Omit<CartItem, "quantity"> = {
+                            _id: cartItemId,
+                            productId: params._id,
+                            name: params.name ?? "Product",
+                            thumbnail: params.thumbnail?.url ?? "",
+                            brandName: params.brand?.name ?? "Unknown Brand",
+                            slug: params.slug ?? "",
+                            variant: {
+                              size: selectedVariant.size,
+                              color: selectedVariant.color,
+                              price: selectedVariant.price,
+                              discountPrice: selectedVariant.discountPrice,
+                            },
+                            unitPrice: priceInfo.currentPrice,
+                            variantStock: selectedVariant.stock ?? 0,
+                          };
+                          addToCart(cartItem);
+                          // Set the correct quantity for newly added item
+                          updateQuantity(cartItemId, quantity);
                         }
-                      }}
-                      disabled={!selectedVariant || quantity <= 0}
-                      className="w-full py-3 px-4 rounded-full font-semibold text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50"
-                    >
-                      Order Now <span className="text-xs">(অর্ডার করুন)</span>
-                    </button>
-                  </div>
+                        router.push("/cart/shipment");
+                      }
+                    }}
+                    disabled={!selectedVariant || quantity <= 0}
+                    className="w-full py-3 px-4 rounded-full font-semibold text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50"
+                  >
+                    Order Now <span className="text-xs">(অর্ডার করুন)</span>
+                  </button>
+                </div>
 
                 {/* Chat Button */}
                 <button
