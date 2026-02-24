@@ -137,12 +137,55 @@ export const useAddProductStore = create<AddProductState>((set, get) => ({
     // Calculate total stock
     const totalStock = calculateTotalStock(variants);
 
-    return {
+    // Helper to clean optional string fields (convert empty string to undefined)
+    const cleanOptionalString = (value: any) => {
+      if (typeof value === "string" && value.trim() === "") return undefined;
+      return value;
+    };
+
+    // Clean the form data - convert empty strings to undefined for optional fields
+    const cleanedData: any = {
       ...formData,
       variants: cleanedVariants,
       stock: totalStock,
       hasOffer:(formData?.offerPrice ?? 0) > 0 ? true : false,
-
     };
+
+    // Clean optional string fields that should be undefined if empty
+    const optionalStringFields = [
+      "shortDescription",
+      "special_offer",
+      "company_details",
+      "description",
+      "warrantyPeriod",
+      "returnPolicy",
+      "weight",
+      "size",
+      "shippingTime",
+      "offerExpiresAt",
+    ];
+
+    optionalStringFields.forEach((field) => {
+      if (cleanedData[field] !== undefined) {
+        cleanedData[field] = cleanOptionalString(cleanedData[field]);
+      }
+    });
+
+    // Clean nested object fields - remove empty id from brand
+    if (cleanedData.brand && cleanedData.brand.id === "") {
+      delete cleanedData.brand.id;
+    }
+
+    // Clean category fields - remove empty subMain/semiSub if present
+    if (cleanedData.category) {
+      if (cleanedData.category.subMain === "") {
+        delete cleanedData.category.subMain;
+      }
+      if (cleanedData.category.semiSub === "") {
+        delete cleanedData.category.semiSub;
+      }
+    }
+
+    return cleanedData;
   },
 }));

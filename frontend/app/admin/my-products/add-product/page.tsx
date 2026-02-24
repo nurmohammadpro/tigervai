@@ -135,6 +135,7 @@ export default function AddProductPage() {
     try {
       setIsSubmitting(true);
       const finalData = calculateAndFinalize();
+      console.log("Submitting product data:", finalData);
       mutate(finalData, {
         onError: (error) => {
           console.error("Error creating product:", error);
