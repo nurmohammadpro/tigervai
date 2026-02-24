@@ -204,6 +204,9 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
         );
 
         if (variant && (variant.stock || 0) >= quantity) {
+          // Use getVariantPrice helper to calculate the correct price
+          const priceInfo = getVariantPrice(variant);
+
           const cartItem: Omit<CartItem, "quantity"> = {
             _id: cartItemId, // Keep the ID consistent
             productId: product._id,
@@ -217,7 +220,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
               price: variant.price,
               discountPrice: variant.discountPrice,
             },
-            unitPrice: variant.discountPrice ?? variant.price,
+            unitPrice: priceInfo.currentPrice,
             variantStock: variant.stock ?? 0,
           };
 
@@ -280,6 +283,9 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
         );
 
         if (variant && (variant.stock || 0) >= quantity) {
+          // Use getVariantPrice helper to calculate the correct price
+          const priceInfo = getVariantPrice(variant);
+
           const cartItem: Omit<CartItem, "quantity"> = {
             _id: cartItemId,
             productId: product._id,
@@ -293,7 +299,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
               price: variant.price,
               discountPrice: variant.discountPrice,
             },
-            unitPrice: variant.discountPrice ?? variant.price,
+            unitPrice: priceInfo.currentPrice,
             variantStock: variant.stock ?? 0,
           };
 
@@ -788,7 +794,9 @@ const ProductPage = ({ params }: { params: Product }) => {
         );
 
         if (variant) {
-          const unitPrice = variant.discountPrice ?? variant.price;
+          // Use getVariantPrice helper to calculate the correct price
+          const priceInfo = getVariantPrice(variant);
+          const unitPrice = priceInfo.currentPrice;
           totalItems += quantity;
           totalPrice += unitPrice * quantity;
 
