@@ -636,10 +636,9 @@ export default function VariantSelector({
     <div className="space-y-4">
       {/* Compact Layout: Sizes and Quantity in one row, Colors below */}
       <div
-        className="p-4 rounded-xl border-2"
+        className="p-4 rounded-xl border border-black"
         style={{
           backgroundColor: "rgba(238, 74, 35, 0.04)",
-          borderColor: "var(--sidebar)",
         }}
       >
         {/* Row 1: Color Variant (Top) - Only if product has color variants */}
