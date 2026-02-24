@@ -75,6 +75,12 @@ export default function LoginPage() {
             </h1>
             <p className="text-gray-600 text-sm">Log in to your account</p>
           </div>
+          <div>
+            <div className=" w-full flex justify-center-safe items-center-safe">
+              <LoginWithGoogle />
+              <Separator className=" my-2 md:my-6" />
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className=" space-y-2.5 md:space-y-5">
             {/* Email */}
@@ -189,10 +195,6 @@ export default function LoginPage() {
               </Link>
             </p>
           </form>
-          <Separator className=" my-2 md:my-6" />
-          <div className=" w-full flex justify-center-safe items-center-safe">
-            <LoginWithGoogle />
-          </div>
         </CardContent>
       </Card>
 

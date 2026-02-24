@@ -664,7 +664,7 @@ export default function VariantSelector({
         className="p-4 rounded-xl border-2"
         style={{
           backgroundColor: "rgba(238, 74, 35, 0.04)",
-          borderColor: "#000000",
+          borderColor: "var(--sidebar)",
         }}
       >
         {/* Row 1: Color Variant (Top) - Only if product has color variants */}
