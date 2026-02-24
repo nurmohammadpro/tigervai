@@ -4,13 +4,13 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pen, Plus, Trash2, Upload, X, Sparkles } from "lucide-react";
+import { Pen, Plus, Trash2, Upload, X, Sparkles, Info } from "lucide-react";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
 import { useUploadSingleImage } from "@/lib/useHandelImageUpload";
 
 interface Variant {
   size: string;
-  color: string;
+  color?: string; // Optional for products like tyres
   price: number;
   stock: number;
   discountPrice?: number;
@@ -43,11 +43,10 @@ export default function StepVariantsImproved() {
   const handleAddVariant = () => {
     if (
       !newVariant.size ||
-      !newVariant.color ||
       newVariant.price <= 0 ||
       newVariant.stock < 0
     ) {
-      alert("Please fill all required variant fields");
+      alert("Please fill all required variant fields (Size, Price, Stock)");
       return;
     }
 
@@ -61,13 +60,13 @@ export default function StepVariantsImproved() {
     });
   };
 
-  // Generate all combinations of sizes and colors
+  // Generate all combinations of sizes and colors (or just sizes if no colors)
   const handleGenerateVariants = () => {
     const sizeList = sizes.split(",").map((s) => s.trim()).filter(Boolean);
     const colorList = colors.split(",").map((c) => c.trim()).filter(Boolean);
 
-    if (sizeList.length === 0 || colorList.length === 0) {
-      alert("Please enter at least one size and one color");
+    if (sizeList.length === 0) {
+      alert("Please enter at least one size");
       return;
     }
 
@@ -76,26 +75,42 @@ export default function StepVariantsImproved() {
       return;
     }
 
-    // Generate all combinations
+    // Generate variants
     const newVariants: Variant[] = [];
     const existingCombos = new Set(
-      variants.map((v) => `${v.size}-${v.color}`)
+      variants.map((v) => `${v.size}-${v.color || ""}`)
     );
 
-    sizeList.forEach((size) => {
-      colorList.forEach((color) => {
-        const comboKey = `${size}-${color}`;
+    if (colorList.length === 0) {
+      // No colors - just create size variants (for tyres, etc.)
+      sizeList.forEach((size) => {
+        const comboKey = `${size}-`;
         if (!existingCombos.has(comboKey)) {
           newVariants.push({
             size,
-            color,
             price: defaultPrice,
             stock: defaultStock >= 0 ? defaultStock : 0,
             isAvailable: true,
           });
         }
       });
-    });
+    } else {
+      // Has colors - create all size × color combinations
+      sizeList.forEach((size) => {
+        colorList.forEach((color) => {
+          const comboKey = `${size}-${color}`;
+          if (!existingCombos.has(comboKey)) {
+            newVariants.push({
+              size,
+              color,
+              price: defaultPrice,
+              stock: defaultStock >= 0 ? defaultStock : 0,
+              isAvailable: true,
+            });
+          }
+        });
+      });
+    }
 
     if (newVariants.length === 0) {
       alert("All combinations already exist!");
@@ -110,7 +125,7 @@ export default function StepVariantsImproved() {
     setDefaultPrice(0);
     setDefaultStock(0);
 
-    alert(`Generated ${newVariants.length} variant combinations!`);
+    alert(`Generated ${newVariants.length} variant(s)!`);
   };
 
   const handleRemoveVariant = (index: number) => {
@@ -162,8 +177,16 @@ export default function StepVariantsImproved() {
           style={{ color: "var(--palette-text)" }}
         >
           <Sparkles size={20} style={{ color: "var(--palette-btn)" }} />
-          Quick Variant Generator (All Sizes × All Colors)
+          Quick Variant Generator
         </h3>
+
+        <div className="mb-3 p-3 rounded bg-blue-50 dark:bg-blue-900/20 flex items-start gap-2">
+          <Info size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-700 dark:text-blue-300">
+            <strong>For products with colors:</strong> Enter both sizes and colors to generate all combinations.<br />
+            <strong>For products without colors (e.g., tyres):</strong> Enter only sizes and leave colors empty.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
@@ -171,7 +194,7 @@ export default function StepVariantsImproved() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Sizes (comma separated)
+              Sizes (comma separated) *
             </label>
             <Input
               placeholder="e.g., M, L, XL, 2XL"
@@ -193,10 +216,10 @@ export default function StepVariantsImproved() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Colors (comma separated)
+              Colors (comma separated) - Optional
             </label>
             <Input
-              placeholder="e.g., Red, Blue, Green, Black"
+              placeholder="e.g., Red, Blue, Green (leave empty for no colors)"
               value={colors}
               onChange={(e) => setColors(e.target.value)}
               style={{
@@ -206,7 +229,7 @@ export default function StepVariantsImproved() {
               }}
             />
             <p className="text-xs mt-1" style={{ color: "var(--palette-accent-3)", opacity: 0.7 }}>
-              Separate colors with commas
+              Leave empty for products without colors
             </p>
           </div>
         </div>
@@ -217,7 +240,7 @@ export default function StepVariantsImproved() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Default Price
+              Default Price *
             </label>
             <Input
               type="number"
@@ -239,7 +262,7 @@ export default function StepVariantsImproved() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Default Stock
+              Default Stock *
             </label>
             <Input
               type="number"
@@ -263,11 +286,15 @@ export default function StepVariantsImproved() {
           style={{ backgroundColor: "var(--palette-btn)" }}
         >
           <Sparkles size={18} />
-          Generate All Combinations
+          Generate Variants
         </Button>
 
         <p className="text-xs mt-2 text-center" style={{ color: "var(--palette-accent-3)", opacity: 0.7 }}>
-          This will create {sizes.split(",").filter(Boolean).length} sizes × {colors.split(",").filter(Boolean).length} colors = {sizes.split(",").filter(Boolean).length * colors.split(",").filter(Boolean).length} variants
+          {colors ? (
+            <>Will create {sizes.split(",").filter(Boolean).length} sizes × {colors.split(",").filter(Boolean).length} colors = {sizes.split(",").filter(Boolean).length * colors.split(",").filter(Boolean).length} variants</>
+          ) : (
+            <>Will create {sizes.split(",").filter(Boolean).length} size variants (no colors)</>
+          )}
         </p>
       </div>
 
@@ -291,7 +318,7 @@ export default function StepVariantsImproved() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Size
+              Size *
             </label>
             <Input
               placeholder="e.g., M, L, 42"
@@ -312,7 +339,7 @@ export default function StepVariantsImproved() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Color
+              Color (Optional)
             </label>
             <Input
               placeholder="e.g., Red, Blue"
@@ -333,7 +360,7 @@ export default function StepVariantsImproved() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Price
+              Price *
             </label>
             <Input
               type="number"
@@ -358,7 +385,7 @@ export default function StepVariantsImproved() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Stock
+              Stock *
             </label>
             <Input
               type="number"
@@ -543,7 +570,7 @@ export default function StepVariantsImproved() {
                   <div className="flex-shrink-0">
                     <img
                       src={variant.image.url}
-                      alt={`${variant.size} ${variant.color}`}
+                      alt={`${variant.size} ${variant.color || ""}`}
                       className="w-16 h-16 object-cover rounded border"
                       style={{ borderColor: "var(--palette-accent-3)" }}
                     />
@@ -552,7 +579,8 @@ export default function StepVariantsImproved() {
 
                 <div className="flex-1">
                   <p className="font-medium">
-                    {variant.size} - {variant.color}
+                    {variant.size}
+                    {variant.color && ` - ${variant.color}`}
                   </p>
                   <p
                     className="text-sm"
@@ -567,7 +595,7 @@ export default function StepVariantsImproved() {
                 <button
                   onClick={() => {
                     setNewVariant({
-                      color: variant?.color,
+                      color: variant?.color || "",
                       price: variant?.price,
                       size: variant?.size,
                       stock: variant?.stock,

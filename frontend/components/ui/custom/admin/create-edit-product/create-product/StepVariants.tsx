@@ -10,7 +10,7 @@ import { useUploadSingleImage } from "@/lib/useHandelImageUpload";
 
 interface Variant {
   size: string;
-  color: string;
+  color?: string; // Optional for products like tyres
   price: number;
   stock: number;
   discountPrice?: number;
@@ -37,11 +37,10 @@ export default function StepVariants() {
   const handleAddVariant = () => {
     if (
       !newVariant.size ||
-      !newVariant.color ||
       newVariant.price <= 0 ||
       newVariant.stock < 0
     ) {
-      alert("Please fill all required variant fields");
+      alert("Please fill all required variant fields (Size, Price, Stock)");
       return;
     }
 
@@ -131,7 +130,7 @@ export default function StepVariants() {
               className="text-xs font-semibold mb-1 block"
               style={{ color: "var(--palette-accent-3)" }}
             >
-              Color
+              Color (Optional)
             </label>
             <Input
               placeholder="e.g., Red, Blue"
@@ -383,7 +382,7 @@ export default function StepVariants() {
                   <div className="flex-shrink-0">
                     <img
                       src={variant.image.url}
-                      alt={`${variant.size} ${variant.color}`}
+                      alt={`${variant.size} ${variant.color || ""}`}
                       className="w-16 h-16 object-cover rounded border"
                       style={{ borderColor: "var(--palette-accent-3)" }}
                     />
@@ -392,7 +391,8 @@ export default function StepVariants() {
 
                 <div className="flex-1">
                   <p className="font-medium">
-                    {variant.size} - {variant.color}
+                    {variant.size}
+                    {variant.color && ` - ${variant.color}`}
                   </p>
                   <p
                     className="text-sm"
@@ -407,7 +407,7 @@ export default function StepVariants() {
                 <button
                   onClick={() => {
                     setNewVariant({
-                      color: variant?.color,
+                      color: variant?.color || "",
                       price: variant?.price,
                       size: variant?.size,
                       stock: variant?.stock,
