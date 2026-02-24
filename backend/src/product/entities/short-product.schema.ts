@@ -7,8 +7,8 @@ class ShortProductVariant {
   @Prop({ required: true })
   size: string;
 
-  @Prop({ required: true })
-  color: string;
+  @Prop()
+  color?: string;
 
   @Prop({ required: true })
   price: number;
