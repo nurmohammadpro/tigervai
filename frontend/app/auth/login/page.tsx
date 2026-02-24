@@ -76,7 +76,7 @@ export default function LoginPage() {
             <p className="text-gray-600 text-sm">Log in to your account</p>
           </div>
           <div>
-            <div className=" w-full flex justify-center-safe items-center-safe">
+            <div className=" w-full flex flex-col justify-center-safe items-center-safe">
               <LoginWithGoogle />
               <Separator className=" my-2 md:my-6" />
             </div>
