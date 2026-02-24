@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware";
 // ============ TYPES ============
 export interface ProductVariant {
   size: string;
-  color: string;
+  color?: string; // Optional for products like tyres that don't have colors
   price: number;
   discountPrice?: number;
 }

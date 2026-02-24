@@ -66,7 +66,7 @@ interface VariantQuantity {
 interface CartItemDetail {
   name: string;
   size: string;
-  color: string;
+  color?: string; // Optional for products like tyres
   quantity: number;
   unitPrice: number;
 }
@@ -965,7 +965,6 @@ const ProductPage = ({ params }: { params: Product }) => {
                   variants={params.variants}
                   onVariantSelect={setSelectedVariant}
                   selectedVariant={selectedVariant}
-                  productType={params.productType || "clothing"}
                 />
 
                 {/* Quantity Selector and Action Buttons */}
@@ -1017,7 +1016,9 @@ const ProductPage = ({ params }: { params: Product }) => {
                     <button
                       onClick={() => {
                         if (selectedVariant && quantity > 0) {
-                          const cartItemId = `${params._id}|${selectedVariant.size}|${selectedVariant.color}`;
+                          // Use empty string as fallback for undefined color
+                          const colorValue = selectedVariant.color || "";
+                          const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
                           const cartItem: Omit<CartItem, "quantity"> = {
                             _id: cartItemId,
                             productId: params._id,
@@ -1051,7 +1052,9 @@ const ProductPage = ({ params }: { params: Product }) => {
                     <button
                       onClick={() => {
                         if (selectedVariant && quantity > 0) {
-                          const cartItemId = `${params._id}|${selectedVariant.size}|${selectedVariant.color}`;
+                          // Use empty string as fallback for undefined color
+                          const colorValue = selectedVariant.color || "";
+                          const cartItemId = `${params._id}|${selectedVariant.size}|${colorValue}`;
                           const cartItem: Omit<CartItem, "quantity"> = {
                             _id: cartItemId,
                             productId: params._id,

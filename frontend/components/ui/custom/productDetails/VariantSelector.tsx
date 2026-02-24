@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Check } from "lucide-react";
-import { useAddProductStore } from "@/zustan-hook/addProductStore";
 
 interface Variant {
   size: string;
@@ -22,7 +21,6 @@ interface VariantSelectorProps {
   variants: Variant[];
   onVariantSelect: (variant: Variant) => void;
   selectedVariant?: Variant;
-  productType?: "tyre" | "clothing";
 }
 
 // Color mapping for visual swatches
@@ -48,53 +46,68 @@ export default function VariantSelector({
   variants,
   onVariantSelect,
   selectedVariant,
-  productType = "clothing",
 }: VariantSelectorProps) {
-  // Extract unique sizes and colors
+  // Extract unique sizes and colors (only include non-undefined colors)
   const sizes = Array.from(new Set(variants.map((v) => v.size)));
-  const colors = Array.from(
-    new Set(variants.map((v) => v.color).filter(Boolean)),
+  const colors = useMemo(
+    () => Array.from(new Set(variants.map((v) => v.color).filter(Boolean))),
+    [variants]
   );
 
+  // Determine if this product has color variants
+  const hasColorVariants = colors.length > 0;
+
   const [selectedSize, setSelectedSize] = useState<string>(
-    selectedVariant?.size || "",
+    selectedVariant?.size || ""
   );
   const [selectedColor, setSelectedColor] = useState<string>(
-    selectedVariant?.color || "",
+    selectedVariant?.color || ""
   );
 
   // Filter available colors based on selected size
-  const availableColors = selectedSize
-    ? Array.from(
-        new Set(
-          variants
-            .filter((v) => v.size === selectedSize && v.color !== undefined)
-            .map((v) => v.color),
-        ),
-      )
-    : colors;
+  const availableColors = useMemo(() => {
+    if (!selectedSize || !hasColorVariants) return colors;
 
-  // Filter available sizes based on selected color
-  const availableSizes =
-    selectedColor && productType === "clothing"
-      ? Array.from(
-          new Set(
-            variants
-              .filter((v) => v.color === selectedColor)
-              .map((v) => v.size),
-          ),
-        )
-      : sizes;
+    return Array.from(
+      new Set(
+        variants
+          .filter((v) => v.size === selectedSize && v.color)
+          .map((v) => v.color)
+      )
+    );
+  }, [selectedSize, variants, colors, hasColorVariants]);
+
+  // Filter available sizes based on selected color (only if product has colors)
+  const availableSizes = useMemo(() => {
+    if (!hasColorVariants || !selectedColor) return sizes;
+
+    return Array.from(
+      new Set(
+        variants
+          .filter((v) => v.color === selectedColor)
+          .map((v) => v.size)
+      )
+    );
+  }, [selectedColor, variants, sizes, hasColorVariants]);
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
-    // For tyres, select first available variant with this size
-    // For clothing, try to match with selected color first
-    const variant =
-      productType === "tyre"
-        ? variants.find((v) => v.size === size)
-        : variants.find((v) => v.size === size && v.color === selectedColor) ||
-          variants.find((v) => v.size === size);
+
+    // Find the appropriate variant based on whether colors are used
+    let variant;
+    if (hasColorVariants && selectedColor) {
+      // Try to match both size and color first
+      variant = variants.find(
+        (v) => v.size === size && v.color === selectedColor
+      );
+      // Fall back to first variant with this size
+      if (!variant) {
+        variant = variants.find((v) => v.size === size);
+      }
+    } else {
+      // No colors, just find by size
+      variant = variants.find((v) => v.size === size);
+    }
 
     if (variant) {
       onVariantSelect(variant);
@@ -103,14 +116,13 @@ export default function VariantSelector({
 
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
-    // Only allow color selection for clothing products
-    if (productType === "clothing") {
-      const variant = variants.find(
-        (v) => v.color === color && v.size === selectedSize,
-      );
-      if (variant) {
-        onVariantSelect(variant);
-      }
+
+    // Find variant with both size and color
+    const variant = variants.find(
+      (v) => v.color === color && v.size === selectedSize
+    );
+    if (variant) {
+      onVariantSelect(variant);
     }
   };
 
@@ -119,20 +131,15 @@ export default function VariantSelector({
   };
 
   const isColorAvailable = (color: string) => {
-    if (productType === "tyre") return false; // Hide color options for tyres
-    return selectedSize
-      ? variants.some((v) => v.size === selectedSize && v.color === color)
-      : true;
+    if (!selectedSize) return true;
+    return variants.some((v) => v.size === selectedSize && v.color === color);
   };
 
   const isSizeAvailable = (size: string) => {
-    return productType === "clothing" && selectedColor
-      ? variants.some((v) => v.color === selectedColor && v.size === size)
-      : true;
+    // If no colors, all sizes are available
+    if (!hasColorVariants || !selectedColor) return true;
+    return variants.some((v) => v.color === selectedColor && v.size === size);
   };
-
-  // Check if color selector should be shown
-  const showColorSelector = productType === "clothing" && colors.length > 0;
 
   return (
     <div className="space-y-4">
@@ -145,7 +152,7 @@ export default function VariantSelector({
         }}
       >
         {/* Top Row: Size Selector */}
-        <div className="mb-4">
+        <div className={hasColorVariants ? "mb-4" : ""}>
           <div className="flex items-center justify-between mb-3 px-1">
             <h4
               className="text-sm font-bold uppercase tracking-wider"
@@ -196,8 +203,8 @@ export default function VariantSelector({
           </div>
         </div>
 
-        {/* Bottom Row: Color Selector - Only for clothing */}
-        {showColorSelector && (
+        {/* Bottom Row: Color Selector - Only if product has color variants */}
+        {hasColorVariants && (
           <div>
             <div className="flex items-center justify-between mb-3 px-1">
               <h4
@@ -277,7 +284,6 @@ export default function VariantSelector({
             <p className="text-xs font-bold uppercase tracking-wide opacity-60">
               {selectedVariant.size}
               {selectedVariant.color && ` / ${selectedVariant.color}`}
-              {productType === "tyre" && " Tyre"}
             </p>
             <div className="flex items-center gap-2">
               <span
