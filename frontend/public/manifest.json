@@ -1,0 +1,17 @@
+{
+  "name": "Tiger Bhai Multi-Vendor",
+  "short_name": "TigerBhai",
+  "description": "Multi-vendor e-commerce platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ee4a23",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
