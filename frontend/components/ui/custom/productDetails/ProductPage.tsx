@@ -463,6 +463,34 @@ const VariantCard: React.FC<VariantCardProps> = ({
 }) => {
   const [selectedColor, setSelectedColor] = useState<string>(colors[0] || "");
 
+  // --- HELPER TO CALCULATE EFFECTIVE PRICE FOR A VARIANT ---
+  const getVariantPrice = (variant: typeof variants[0]) => {
+    // If variant has its own discountPrice, use it
+    if (variant.discountPrice && variant.discountPrice > 0) {
+      return {
+        originalPrice: variant.price,
+        currentPrice: variant.discountPrice,
+        hasDiscount: true,
+      };
+    }
+    // If product has offerPrice, calculate proportional discount
+    if (product.hasOffer && product.offerPrice && product.offerPrice > 0 && product.price) {
+      const discountRatio = product.offerPrice / product.price;
+      const discountedPrice = Math.round(variant.price * discountRatio);
+      return {
+        originalPrice: variant.price,
+        currentPrice: discountedPrice,
+        hasDiscount: discountedPrice < variant.price,
+      };
+    }
+    // No discount
+    return {
+      originalPrice: variant.price,
+      currentPrice: variant.price,
+      hasDiscount: false,
+    };
+  };
+
   const currentVariant = variants.find((v) => v.color === selectedColor);
 
   // Use helper function to calculate price
@@ -660,6 +688,35 @@ const ProductPage = ({ params }: { params: Product }) => {
       setGetUser(user);
     });
   }, []);
+
+  // --- HELPER TO CALCULATE EFFECTIVE PRICE FOR A VARIANT ---
+  // Considers both variant-level discountPrice and product-level offerPrice
+  const getVariantPrice = (variant: (typeof params.variants)[0]) => {
+    // If variant has its own discountPrice, use it
+    if (variant.discountPrice && variant.discountPrice > 0) {
+      return {
+        originalPrice: variant.price,
+        currentPrice: variant.discountPrice,
+        hasDiscount: true,
+      };
+    }
+    // If product has offerPrice, calculate proportional discount
+    if (params.hasOffer && params.offerPrice && params.offerPrice > 0 && params.price) {
+      const discountRatio = params.offerPrice / params.price;
+      const discountedPrice = Math.round(variant.price * discountRatio);
+      return {
+        originalPrice: variant.price,
+        currentPrice: discountedPrice,
+        hasDiscount: discountedPrice < variant.price,
+      };
+    }
+    // No discount
+    return {
+      originalPrice: variant.price,
+      currentPrice: variant.price,
+      hasDiscount: false,
+    };
+  };
 
   const handleChatWithSeller = async (
     vendorId: string,
