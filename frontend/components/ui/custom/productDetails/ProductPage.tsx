@@ -160,7 +160,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
 
   // --- HELPER TO CALCULATE EFFECTIVE PRICE FOR A VARIANT ---
   // Considers both variant-level discountPrice and product-level offerPrice
-  const getVariantPrice = (variant: typeof product.variants[0]) => {
+  const getVariantPrice = (variant: (typeof product.variants)[0]) => {
     // If variant has its own discountPrice, use it
     if (variant.discountPrice && variant.discountPrice > 0) {
       return {
@@ -170,7 +170,12 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
       };
     }
     // If product has offerPrice, calculate proportional discount
-    if (product.hasOffer && product.offerPrice && product.offerPrice > 0 && product.price) {
+    if (
+      product.hasOffer &&
+      product.offerPrice &&
+      product.offerPrice > 0 &&
+      product.price
+    ) {
       const discountRatio = product.offerPrice / product.price;
       const discountedPrice = Math.round(variant.price * discountRatio);
       return {
@@ -470,7 +475,7 @@ const VariantCard: React.FC<VariantCardProps> = ({
   const [selectedColor, setSelectedColor] = useState<string>(colors[0] || "");
 
   // --- HELPER TO CALCULATE EFFECTIVE PRICE FOR A VARIANT ---
-  const getVariantPrice = (variant: typeof variants[0]) => {
+  const getVariantPrice = (variant: (typeof variants)[0]) => {
     // If variant has its own discountPrice, use it
     if (variant.discountPrice && variant.discountPrice > 0) {
       return {
@@ -480,7 +485,12 @@ const VariantCard: React.FC<VariantCardProps> = ({
       };
     }
     // If product has offerPrice, calculate proportional discount
-    if (product.hasOffer && product.offerPrice && product.offerPrice > 0 && product.price) {
+    if (
+      product.hasOffer &&
+      product.offerPrice &&
+      product.offerPrice > 0 &&
+      product.price
+    ) {
       const discountRatio = product.offerPrice / product.price;
       const discountedPrice = Math.round(variant.price * discountRatio);
       return {
@@ -554,9 +564,6 @@ const VariantCard: React.FC<VariantCardProps> = ({
         <div className="flex-1 pb-1 flex flex-col gap-2">
           {/* Line 1: Color Title and Recommended */}
           <div className="flex flex-col items-start justify-start">
-            {/*  <div className="font-semibold text-card-foreground">
-              {selectedColor || colors[0]}
-            </div> */}
             {isRecommended && (
               <div className=" text-sm pl-1.5 md:text-base text-black  leading-tight mt-0.5">
                 {isRecommended}
@@ -571,16 +578,54 @@ const VariantCard: React.FC<VariantCardProps> = ({
                 isOut ? "opacity-60" : ""
               }`}
             >
-              {/* Top row: Size full width */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-card-foreground">
-                  Size: {size}
-                </span>
+              {/* Size and Quantity row - flex layout */}
+              <div className="flex items-center justify-between gap-3">
+                {/* Size text on left, size value on right */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-card-foreground">
+                    Size:
+                  </span>
+                  <span className="text-sm text-card-foreground">{size}</span>
+                </div>
+
+                {/* Quantity selector */}
+                <div className="flex items-center gap-0 border border-border rounded-full bg-background">
+                  <button
+                    type="button"
+                    disabled={isOut || currentQuantity <= 0}
+                    className={`h-8 w-8 flex justify-center items-center text-foreground hover:bg-accent text-sm ${
+                      isOut || currentQuantity <= 0
+                        ? "cursor-not-allowed opacity-50"
+                        : ""
+                    }`}
+                    onClick={handleDecrement}
+                  >
+                    <span className="text-lg font-bold">-</span>
+                  </button>
+                  <input
+                    type="text"
+                    value={currentQuantity}
+                    className="w-8 text-center border-none outline-none bg-transparent text-foreground text-sm"
+                    readOnly
+                  />
+                  <button
+                    type="button"
+                    disabled={isOut || currentQuantity >= stock}
+                    className={`h-8 w-8 flex justify-center items-center text-foreground hover:bg-accent text-sm ${
+                      isOut || currentQuantity >= stock
+                        ? "cursor-not-allowed opacity-50"
+                        : ""
+                    }`}
+                    onClick={handleIncrement}
+                  >
+                    <span className="text-lg font-bold">+</span>
+                  </button>
+                </div>
               </div>
 
               {/* Color Selection (if multiple colors) */}
               {colors.length > 1 && (
-                <div className="mt-1.5 mb-1.5">
+                <div className="mt-2">
                   <div className="flex flex-wrap gap-2">
                     {colors.map((color) => {
                       const isSelected = selectedColor === color;
@@ -602,58 +647,6 @@ const VariantCard: React.FC<VariantCardProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* Second row: Prices left, Qty control right with stock centered above qty */}
-              <div className="mt-1 flex items-center justify-between gap-2">
-                <div className="flex flex-col items-start justify-center">
-                  {hasDiscount && originalPrice !== currentPrice && (
-                    <span className="text-base font-bold text-muted-foreground line-through">
-                      ৳{originalPrice.toLocaleString()}
-                    </span>
-                  )}
-                  <span className="text-base font-bold text-palette-btn">
-                    ৳{currentPrice.toLocaleString()}
-                  </span>
-                </div>
-
-                <div className="flex flex-col items-center justify-center gap-1">
-                  <span className="text-sm  text-muted-foreground">
-                    Stock: {stock ?? 0}
-                  </span>
-                  <div className="flex items-center justify-center h-10 sm:h-11 gap-0 border border-border rounded-full bg-background">
-                    <button
-                      type="button"
-                      disabled={isOut || currentQuantity <= 0}
-                      className={`sm:h-11 sm:w-10 h-10 w-9 flex justify-center items-center text-foreground hover:bg-accent text-base ${
-                        isOut || currentQuantity <= 0
-                          ? "cursor-not-allowed opacity-50"
-                          : ""
-                      }`}
-                      onClick={handleDecrement}
-                    >
-                      <span className="text-xl font-bold">-</span>
-                    </button>
-                    <input
-                      type="text"
-                      value={currentQuantity}
-                      className="sm:w-10 w-9 text-center border-none outline-none bg-transparent text-foreground text-base"
-                      readOnly
-                    />
-                    <button
-                      type="button"
-                      disabled={isOut || currentQuantity >= stock}
-                      className={`sm:h-11 sm:w-10 h-10 w-9 flex justify-center items-center text-foreground hover:bg-accent text-base ${
-                        isOut || currentQuantity >= stock
-                          ? "cursor-not-allowed opacity-50"
-                          : ""
-                      }`}
-                      onClick={handleIncrement}
-                    >
-                      <span className="text-xl font-bold">+</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -707,7 +700,12 @@ const ProductPage = ({ params }: { params: Product }) => {
       };
     }
     // If product has offerPrice, calculate proportional discount
-    if (params.hasOffer && params.offerPrice && params.offerPrice > 0 && params.price) {
+    if (
+      params.hasOffer &&
+      params.offerPrice &&
+      params.offerPrice > 0 &&
+      params.price
+    ) {
       const discountRatio = params.offerPrice / params.price;
       const discountedPrice = Math.round(variant.price * discountRatio);
       return {
@@ -772,7 +770,7 @@ const ProductPage = ({ params }: { params: Product }) => {
   // Calculate cart summary from cart store items (dynamic)
   const cartSummary = React.useMemo(() => {
     // Filter items that belong to this product
-    const productItems = items.filter(item => item.productId === params._id);
+    const productItems = items.filter((item) => item.productId === params._id);
 
     let totalItems = 0;
     let totalPrice = 0;
@@ -807,7 +805,12 @@ const ProductPage = ({ params }: { params: Product }) => {
         return v.discountPrice;
       }
       // If product has offerPrice, calculate proportional discount for this variant
-      if (params?.hasOffer && params?.offerPrice && params.offerPrice > 0 && params.price) {
+      if (
+        params?.hasOffer &&
+        params?.offerPrice &&
+        params.offerPrice > 0 &&
+        params.price
+      ) {
         const discountRatio = params.offerPrice / params.price;
         return Math.round(v.price * discountRatio);
       }
@@ -823,8 +826,11 @@ const ProductPage = ({ params }: { params: Product }) => {
     const maxOriginalPrice = Math.max(...originalPrices);
 
     // Check if any variant has a discountPrice OR if product has offerPrice
-    const hasVariantDiscount = prices.some((price, i) => price < originalPrices[i]);
-    const hasProductOffer = params?.hasOffer && params?.offerPrice && params.offerPrice > 0;
+    const hasVariantDiscount = prices.some(
+      (price, i) => price < originalPrices[i],
+    );
+    const hasProductOffer =
+      params?.hasOffer && params?.offerPrice && params.offerPrice > 0;
     const hasDiscount = hasVariantDiscount || hasProductOffer;
 
     return {
@@ -908,12 +914,12 @@ const ProductPage = ({ params }: { params: Product }) => {
             <div className="flex flex-col lg:flex-row gap-3">
               {/* Thumbnails - BOTTOM for mobile, LEFT for desktop */}
               {(params?.images?.length ?? 0) > 1 && (
-                <div className="flex flex-row lg:flex-col gap-2 order-2 lg:order-1 w-full lg:w-16 xl:w-20 flex-shrink-0 overflow-x-auto lg:overflow-x-visible">
+                <div className="flex flex-row lg:flex-col gap-2 order-2 lg:order-1 w-full lg:w-16 xl:w-20 shrink-0 overflow-x-auto lg:overflow-x-visible">
                   {params?.images?.map((image, index) => (
                     <button
                       key={image?.id ?? index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`w-16 sm:w-20 lg:w-full aspect-square flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`w-16 sm:w-20 lg:w-full aspect-square shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
                         selectedImageIndex === index
                           ? "border-palette-btn ring-2 ring-palette-btn/30"
                           : "border-gray-200 hover:border-gray-300"
@@ -1111,11 +1117,16 @@ const ProductPage = ({ params }: { params: Product }) => {
                           const priceInfo = getVariantPrice(selectedVariant);
 
                           // Check if item already exists in cart
-                          const existingItem = items.find(item => item._id === cartItemId);
+                          const existingItem = items.find(
+                            (item) => item._id === cartItemId,
+                          );
 
                           if (existingItem) {
                             // Update existing item quantity
-                            updateQuantity(cartItemId, existingItem.quantity + quantity);
+                            updateQuantity(
+                              cartItemId,
+                              existingItem.quantity + quantity,
+                            );
                           } else {
                             // Add new item with the selected quantity
                             const cartItem: Omit<CartItem, "quantity"> = {
@@ -1157,11 +1168,16 @@ const ProductPage = ({ params }: { params: Product }) => {
                           const priceInfo = getVariantPrice(selectedVariant);
 
                           // Check if item already exists in cart
-                          const existingItem = items.find(item => item._id === cartItemId);
+                          const existingItem = items.find(
+                            (item) => item._id === cartItemId,
+                          );
 
                           if (existingItem) {
                             // Update existing item quantity
-                            updateQuantity(cartItemId, existingItem.quantity + quantity);
+                            updateQuantity(
+                              cartItemId,
+                              existingItem.quantity + quantity,
+                            );
                           } else {
                             // Add new item with the selected quantity
                             const cartItem: Omit<CartItem, "quantity"> = {

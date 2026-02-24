@@ -7,7 +7,7 @@ interface Variant {
   size: string;
   color?: string;
   price: number;
-  stock: number;
+  stock?: number;
   discountPrice?: number;
   sku?: string;
   image?: {
