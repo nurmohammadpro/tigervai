@@ -1043,7 +1043,7 @@ const ProductPage = ({ params }: { params: Product }) => {
 
               <Separator />
               {params?.special_offer && (
-                <div className="bg-green-50/20 rounded-lg p-0">
+                <div className="bg-green-50/20 rounded-lg p-0 py-1">
                   <span className=" text-[#ff5507] font-bold">
                     Special Offer:
                   </span>
