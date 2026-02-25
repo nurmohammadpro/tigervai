@@ -4,9 +4,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Upload, X, ChevronDown } from "lucide-react";
+import { Plus, Trash2, X, ChevronDown } from "lucide-react";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
-import { useUploadSingleImage } from "@/lib/useHandelImageUpload";
 
 interface Variant {
   size: string;
@@ -23,14 +22,9 @@ interface Variant {
   };
 }
 
-// Color group with image
+// Color group
 interface ColorVariant {
   color: string;
-  image?: {
-    url: string;
-    key: string;
-    id: string;
-  };
 }
 
 // Size row with multiple colors
@@ -110,7 +104,6 @@ export default function StepVariantsImproved() {
           stock: firstVariant.stock,
           colors: variantsOfSize.map((v) => ({
             color: v.color || "",
-            image: v.image,
           })),
         });
       });
@@ -140,7 +133,6 @@ export default function StepVariantsImproved() {
               price: row.regularPrice,
               discountPrice: row.offerPrice || undefined,
               stock: row.stock,
-              image: colorVar.image,
             });
           });
         }
@@ -148,8 +140,6 @@ export default function StepVariantsImproved() {
       updateField("variants", flatVariants);
     }
   }, [sizeRows]);
-
-  const { mutate, isPending } = useUploadSingleImage();
 
   // Add a new size row
   const handleAddSizeRow = () => {
@@ -201,14 +191,6 @@ export default function StepVariantsImproved() {
     setOpenColorDropdowns({ ...openColorDropdowns, [rowId]: false });
   };
 
-  // Check if all sizes have stock
-  const hasInvalidStock = () => {
-    for (const row of sizeRows) {
-      if (!row.stock || row.stock <= 0) return true;
-    }
-    return false;
-  };
-
   // Get count of sizes without stock
   const getMissingStockCount = () => {
     let count = 0;
@@ -225,45 +207,6 @@ export default function StepVariantsImproved() {
 
     const newColors = row.colors.filter((_, i) => i !== colorIndex);
     handleUpdateSizeRow(rowId, "colors", newColors);
-  };
-
-  // Update color variant (stock)
-  const handleUpdateColorVariant = (
-    rowId: string,
-    colorIndex: number,
-    field: keyof ColorVariant,
-    value: any,
-  ) => {
-    const row = sizeRows.find((r) => r.id === rowId);
-    if (!row) return;
-
-    const newColors = [...row.colors];
-    newColors[colorIndex] = { ...newColors[colorIndex], [field]: value };
-    handleUpdateSizeRow(rowId, "colors", newColors);
-  };
-
-  // Upload image for a color
-  const handleUploadColorImage = (
-    rowId: string,
-    colorIndex: number,
-    file: File,
-  ) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    mutate(formData, {
-      onSuccess: (data) => {
-        handleUpdateColorVariant(rowId, colorIndex, "image", {
-          url: data?.data?.url as string,
-          key: data?.data?.key as string,
-          id: data?.data?.key as string,
-        });
-      },
-    });
-  };
-
-  // Remove image from a color
-  const handleRemoveColorImage = (rowId: string, colorIndex: number) => {
-    handleUpdateColorVariant(rowId, colorIndex, "image", undefined);
   };
 
   // Get available colors for dropdown (exclude already added colors)
@@ -335,7 +278,7 @@ export default function StepVariantsImproved() {
               className="p-4 border-b"
               style={{ borderColor: "var(--palette-accent-3)" }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
                 {/* Size Name */}
                 <div>
                   <label
@@ -446,18 +389,27 @@ export default function StepVariantsImproved() {
                   />
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2">
-                  {/* Color Dropdown */}
+                {/* Color */}
+                <div>
+                  <label
+                    className="text-xs font-semibold mb-1 block"
+                    style={{ color: "var(--palette-accent-3)" }}
+                  >
+                    Color
+                  </label>
                   <div
-                    className="relative flex-1"
+                    className="relative"
                     ref={(el) => {
                       if (el) dropdownRefs.current[row.id] = el;
                     }}
                   >
                     <button
                       type="button"
-                      onClick={() => toggleColorDropdown(row.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleColorDropdown(row.id);
+                      }}
                       className="w-full h-10 px-3 rounded-lg border flex items-center justify-between gap-2 transition-colors"
                       style={{
                         backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -465,28 +417,31 @@ export default function StepVariantsImproved() {
                         color: "var(--palette-text)",
                       }}
                     >
-                      <span className="text-sm">+ Add Color</span>
+                      <span className="text-sm">Select Color</span>
                       <ChevronDown size={16} />
                     </button>
 
-                    {/* Dropdown Menu - Inline */}
+                    {/* Dropdown Menu */}
                     {openColorDropdowns[row.id] && (
                       <div
-                        className="rounded-lg border shadow-lg max-h-60 overflow-y-auto z-50 mt-1"
+                        className="rounded-lg border shadow-lg max-h-60 overflow-y-auto"
                         style={{
                           position: "absolute",
-                          top: "100%",
+                          top: "calc(100% + 4px)",
                           left: 0,
                           right: 0,
                           backgroundColor: "var(--palette-bg)",
                           borderColor: "var(--palette-accent-3)",
+                          zIndex: 100,
                         }}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {getAvailableColors(row.id).map((color) => (
                           <button
                             key={color}
                             type="button"
                             onClick={(e) => {
+                              e.preventDefault();
                               e.stopPropagation();
                               handleAddColor(row.id, color);
                             }}
@@ -510,15 +465,21 @@ export default function StepVariantsImproved() {
                       </div>
                     )}
                   </div>
+                </div>
 
-                  {/* Delete Size Button */}
+                {/* Delete Size Button */}
+                <div className="flex items-end">
                   <button
                     type="button"
                     onClick={() => handleRemoveSizeRow(row.id)}
-                    className="p-2 rounded-lg hover:bg-red-500/20 transition"
+                    className="h-10 px-3 rounded-lg hover:bg-red-500/20 transition flex items-center justify-center"
                     title="Remove this size"
+                    style={{
+                      border: "1px solid rgba(239, 68, 68, 0.3)",
+                      color: "#ef4444",
+                    }}
                   >
-                    <Trash2 size={18} className="text-red-400" />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
@@ -527,115 +488,41 @@ export default function StepVariantsImproved() {
             {/* Colors List for this Size */}
             {row.colors.length > 0 && (
               <div style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}>
-                {/* Table Header */}
-                <div
-                  className="px-4 py-2 grid grid-cols-12 gap-3 border-b text-xs font-semibold uppercase tracking-wider"
-                  style={{
-                    borderColor: "var(--palette-accent-3)",
-                    color: "var(--palette-accent-3)",
-                  }}
-                >
-                  <div className="col-span-3">Color</div>
-                  <div className="col-span-7">Image (Optional)</div>
-                  <div className="col-span-2 text-center">Actions</div>
-                </div>
-
                 {/* Color Rows */}
-                <div className="p-4 space-y-3">
+                <div className="p-4 flex flex-wrap gap-2">
                   {row.colors.map((colorVar, colorIndex) => (
                     <div
                       key={colorIndex}
-                      className="grid grid-cols-12 gap-3 p-3 rounded-lg border items-center"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border"
                       style={{
                         borderColor: "var(--palette-accent-3)",
                         backgroundColor: "rgba(255, 255, 255, 0.03)",
                       }}
                     >
                       {/* Color Name */}
-                      <div className="col-span-3 flex items-center gap-2">
-                        <div
-                          className="w-6 h-6 rounded-full border flex-shrink-0"
-                          style={{
-                            backgroundColor: colorVar.color.toLowerCase(),
-                            borderColor: "rgba(0,0,0,0.2)",
-                          }}
-                        />
-                        <span
-                          className="font-medium text-sm"
-                          style={{ color: "var(--palette-text)" }}
-                        >
-                          {colorVar.color}
-                        </span>
-                      </div>
-
-                      {/* Image Upload */}
-                      <div className="col-span-7">
-                        {!colorVar.image?.url ? (
-                          <div className="relative">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleUploadColorImage(
-                                    row.id,
-                                    colorIndex,
-                                    file,
-                                  );
-                                }
-                              }}
-                              className="hidden"
-                              id={`image-${row.id}-${colorIndex}`}
-                              disabled={isPending}
-                            />
-                            <label
-                              htmlFor={`image-${row.id}-${colorIndex}`}
-                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:bg-white/5 transition"
-                              style={{
-                                borderColor: "var(--palette-accent-3)",
-                                color: "var(--palette-accent-3)",
-                              }}
-                            >
-                              <Upload size={16} />
-                              <span className="text-sm">
-                                {isPending ? "Uploading..." : "Upload Image"}
-                              </span>
-                            </label>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={colorVar.image.url}
-                              alt={colorVar.color}
-                              className="w-12 h-12 object-cover rounded border"
-                              style={{ borderColor: "var(--palette-accent-3)" }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleRemoveColorImage(row.id, colorIndex)
-                              }
-                              className="p-1 hover:bg-red-500/20 rounded transition"
-                              title="Remove image"
-                            >
-                              <X size={16} className="text-red-400" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      <div
+                        className="w-5 h-5 rounded-full border shrink-0"
+                        style={{
+                          backgroundColor: colorVar.color.toLowerCase(),
+                          borderColor: "rgba(0,0,0,0.2)",
+                        }}
+                      />
+                      <span
+                        className="font-medium text-sm"
+                        style={{ color: "var(--palette-text)" }}
+                      >
+                        {colorVar.color}
+                      </span>
 
                       {/* Remove Color Button */}
-                      <div className="col-span-2 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveColor(row.id, colorIndex)}
-                          className="p-2 rounded-lg hover:bg-red-500/20 transition"
-                          title="Remove this color"
-                        >
-                          <Trash2 size={16} className="text-red-400" />
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveColor(row.id, colorIndex)}
+                        className="p-1 rounded hover:bg-red-500/20 transition"
+                        title="Remove this color"
+                      >
+                        <X size={14} className="text-red-400" />
+                      </button>
                     </div>
                   ))}
                 </div>

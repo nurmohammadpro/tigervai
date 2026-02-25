@@ -814,7 +814,7 @@ export default function VariantSelector({
             </div>
 
             {/* Quantity Selector */}
-            <div className="flex items-center gap-0 border-2 border-red-500 rounded-full bg-white">
+            <div className="flex items-center gap-0 border-2 border-black rounded-full bg-white">
               <button
                 type="button"
                 disabled={quantity <= 1}
@@ -841,7 +841,7 @@ export default function VariantSelector({
                     Math.min(selectedVariant?.stock || 99, quantity + 1),
                   )
                 }
-                className="h-8 w-8 flex justify-center items-center font-bold text-gray-600 hover:bg-gray-100 rounded-r-full disabled:opacity-50 transition-colors"
+                className="h-8 w-8 flex justify-center items-center font-bold text-white bg-red-500 <hover:bg-red-600</hover:bg-red-6> rounded-r-full disabled:opacity-50 transition-colors"
               >
                 <span className="text-lg">+</span>
               </button>
