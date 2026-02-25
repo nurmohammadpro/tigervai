@@ -4,13 +4,13 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pen, Plus, Trash2, Upload, X, Sparkles, Info } from "lucide-react";
+import { Plus, Trash2, Upload, X, ChevronDown, Check } from "lucide-react";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
 import { useUploadSingleImage } from "@/lib/useHandelImageUpload";
 
 interface Variant {
   size: string;
-  color?: string; // Optional for products like tyres
+  color?: string;
   price: number;
   stock: number;
   discountPrice?: number;
@@ -23,612 +23,534 @@ interface Variant {
   };
 }
 
+// Color group with image and stock
+interface ColorVariant {
+  color: string;
+  stock: number;
+  image?: {
+    url: string;
+    key: string;
+    id: string;
+  };
+}
+
+// Size row with multiple colors
+interface SizeRow {
+  id: string;
+  size: string;
+  regularPrice: number;
+  offerPrice: number;
+  colors: ColorVariant[];
+}
+
+// Common color options for dropdown
+const COLOR_OPTIONS = [
+  "Red", "Blue", "Green", "Yellow", "Black", "White",
+  "Pink", "Purple", "Orange", "Brown", "Gray", "Beige",
+  "Navy", "Turquoise", "Maroon", "Lavender", "Teal",
+  "Cream", "Gold", "Silver", "Coral", "Peach", "Magenta"
+];
+
 export default function StepVariantsImproved() {
   const { formData, updateField } = useAddProductStore();
-  const [newVariant, setNewVariant] = useState<Variant>({
-    size: "",
-    color: "",
-    price: 0,
-    stock: 0,
-  });
-
-  // New state for bulk generation
-  const [sizes, setSizes] = useState<string>("");
-  const [colors, setColors] = useState<string>("");
-  const [defaultPrice, setDefaultPrice] = useState<number>(0);
-  const [defaultStock, setDefaultStock] = useState<number>(0);
-
   const variants = (formData.variants as Variant[]) || [];
 
-  const handleAddVariant = () => {
-    if (
-      !newVariant.size ||
-      newVariant.price <= 0 ||
-      newVariant.stock < 0
-    ) {
-      alert("Please fill all required variant fields (Size, Price, Stock)");
-      return;
-    }
+  // State for table-like input
+  const [sizeRows, setSizeRows] = useState<SizeRow[]>([]);
 
-    updateField("variants", [...variants, newVariant]);
-    setNewVariant({
-      size: "",
-      color: "",
-      price: 0,
-      stock: 0,
-      image: { url: "", key: "", id: "" },
-    });
-  };
+  // State for color dropdown
+  const [openColorDropdowns, setOpenColorDropdowns] = useState<Record<string, boolean>>({});
 
-  // Generate all combinations of sizes and colors (or just sizes if no colors)
-  const handleGenerateVariants = () => {
-    const sizeList = sizes.split(",").map((s) => s.trim()).filter(Boolean);
-    const colorList = colors.split(",").map((c) => c.trim()).filter(Boolean);
-
-    if (sizeList.length === 0) {
-      alert("Please enter at least one size");
-      return;
-    }
-
-    if (defaultPrice <= 0) {
-      alert("Please enter a default price");
-      return;
-    }
-
-    // Generate variants
-    const newVariants: Variant[] = [];
-    const existingCombos = new Set(
-      variants.map((v) => `${v.size}-${v.color || ""}`)
-    );
-
-    if (colorList.length === 0) {
-      // No colors - just create size variants (for tyres, etc.)
-      sizeList.forEach((size) => {
-        const comboKey = `${size}-`;
-        if (!existingCombos.has(comboKey)) {
-          newVariants.push({
-            size,
-            price: defaultPrice,
-            stock: defaultStock >= 0 ? defaultStock : 0,
-            isAvailable: true,
-          });
+  // Initialize sizeRows from existing variants on mount
+  React.useEffect(() => {
+    if (variants.length > 0 && sizeRows.length === 0) {
+      // Group variants by size
+      const groupedBySize = new Map<string, Variant[]>();
+      variants.forEach((v) => {
+        const key = v.size;
+        if (!groupedBySize.has(key)) {
+          groupedBySize.set(key, []);
         }
+        groupedBySize.get(key)!.push(v);
       });
-    } else {
-      // Has colors - create all size × color combinations
-      sizeList.forEach((size) => {
-        colorList.forEach((color) => {
-          const comboKey = `${size}-${color}`;
-          if (!existingCombos.has(comboKey)) {
-            newVariants.push({
-              size,
-              color,
-              price: defaultPrice,
-              stock: defaultStock >= 0 ? defaultStock : 0,
-              isAvailable: true,
-            });
-          }
+
+      // Convert to SizeRow format
+      const rows: SizeRow[] = [];
+      groupedBySize.forEach((variantsOfSize, size) => {
+        const firstVariant = variantsOfSize[0];
+        rows.push({
+          id: `size-${size}-${Date.now()}`,
+          size,
+          regularPrice: firstVariant.price,
+          offerPrice: firstVariant.discountPrice || 0,
+          colors: variantsOfSize.map((v) => ({
+            color: v.color || "",
+            stock: v.stock,
+            image: v.image,
+          })),
         });
       });
+      setSizeRows(rows);
     }
+  }, [variants]);
 
-    if (newVariants.length === 0) {
-      alert("All combinations already exist!");
-      return;
+  // Update formData.variants when sizeRows change
+  React.useEffect(() => {
+    if (sizeRows.length > 0) {
+      // Flatten sizeRows back to variants array
+      const flatVariants: Variant[] = [];
+      sizeRows.forEach((row) => {
+        row.colors.forEach((colorVar) => {
+          flatVariants.push({
+            size: row.size,
+            color: colorVar.color || undefined,
+            price: row.regularPrice,
+            discountPrice: row.offerPrice || undefined,
+            stock: colorVar.stock,
+            image: colorVar.image,
+          });
+        });
+      });
+      updateField("variants", flatVariants);
     }
-
-    updateField("variants", [...variants, ...newVariants]);
-
-    // Reset form
-    setSizes("");
-    setColors("");
-    setDefaultPrice(0);
-    setDefaultStock(0);
-
-    alert(`Generated ${newVariants.length} variant(s)!`);
-  };
-
-  const handleRemoveVariant = (index: number) => {
-    updateField(
-      "variants",
-      variants.filter((_, i) => i !== index)
-    );
-  };
+  }, [sizeRows]);
 
   const { mutate, isPending } = useUploadSingleImage();
 
-  const handelUploadImage = (file: File) => {
-    const fromData = new FormData();
-    fromData.append("file", file);
-    mutate(fromData, {
+  // Add a new size row
+  const handleAddSizeRow = () => {
+    const newRow: SizeRow = {
+      id: `size-${Date.now()}`,
+      size: "",
+      regularPrice: 0,
+      offerPrice: 0,
+      colors: [],
+    };
+    setSizeRows([...sizeRows, newRow]);
+  };
+
+  // Remove a size row
+  const handleRemoveSizeRow = (rowId: string) => {
+    setSizeRows(sizeRows.filter((row) => row.id !== rowId));
+  };
+
+  // Update size row fields
+  const handleUpdateSizeRow = (rowId: string, field: keyof SizeRow, value: any) => {
+    setSizeRows(sizeRows.map((row) =>
+      row.id === rowId ? { ...row, [field]: value } : row
+    ));
+  };
+
+  // Add color to a size row
+  const handleAddColor = (rowId: string, color: string) => {
+    const row = sizeRows.find((r) => r.id === rowId);
+    if (!row) return;
+
+    // Check if color already exists
+    if (row.colors.some((c) => c.color === color)) {
+      alert("This color is already added for this size");
+      return;
+    }
+
+    const newColor: ColorVariant = {
+      color,
+      stock: 0,
+    };
+
+    handleUpdateSizeRow(rowId, "colors", [...row.colors, newColor]);
+    setOpenColorDropdowns({ ...openColorDropdowns, [rowId]: false });
+  };
+
+  // Remove color from a size row
+  const handleRemoveColor = (rowId: string, colorIndex: number) => {
+    const row = sizeRows.find((r) => r.id === rowId);
+    if (!row) return;
+
+    const newColors = row.colors.filter((_, i) => i !== colorIndex);
+    handleUpdateSizeRow(rowId, "colors", newColors);
+  };
+
+  // Update color variant (stock)
+  const handleUpdateColorVariant = (
+    rowId: string,
+    colorIndex: number,
+    field: keyof ColorVariant,
+    value: any
+  ) => {
+    const row = sizeRows.find((r) => r.id === rowId);
+    if (!row) return;
+
+    const newColors = [...row.colors];
+    newColors[colorIndex] = { ...newColors[colorIndex], [field]: value };
+    handleUpdateSizeRow(rowId, "colors", newColors);
+  };
+
+  // Upload image for a color
+  const handleUploadColorImage = (rowId: string, colorIndex: number, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    mutate(formData, {
       onSuccess: (data) => {
-        setNewVariant({
-          ...newVariant,
-          image: {
-            url: data?.data?.url as string,
-            key: data?.data?.key as string,
-            id: data?.data?.key as string,
-          },
+        handleUpdateColorVariant(rowId, colorIndex, "image", {
+          url: data?.data?.url as string,
+          key: data?.data?.key as string,
+          id: data?.data?.key as string,
         });
       },
     });
   };
 
-  const handleRemoveImage = () => {
-    setNewVariant({
-      ...newVariant,
-      image: undefined,
+  // Remove image from a color
+  const handleRemoveColorImage = (rowId: string, colorIndex: number) => {
+    handleUpdateColorVariant(rowId, colorIndex, "image", undefined);
+  };
+
+  // Get available colors for dropdown (exclude already added colors)
+  const getAvailableColors = (rowId: string) => {
+    const row = sizeRows.find((r) => r.id === rowId);
+    if (!row) return COLOR_OPTIONS;
+    return COLOR_OPTIONS.filter((c) => !row.colors.some((rc) => rc.color === c));
+  };
+
+  // Toggle color dropdown
+  const toggleColorDropdown = (rowId: string) => {
+    setOpenColorDropdowns({
+      ...openColorDropdowns,
+      [rowId]: !openColorDropdowns[rowId],
     });
   };
 
   return (
-    <div className="space-y-6">
-      {/* Quick Variant Generator */}
-      <div
-        className="p-4 rounded-lg border"
-        style={{
-          borderColor: "var(--palette-accent-3)",
-          backgroundColor: "rgba(238, 74, 35, 0.05)",
-          borderStyle: "dashed",
-        }}
-      >
+    <div className="space-y-4">
+      {/* Header */}
+      <div>
         <h3
-          className="font-semibold mb-4 flex items-center gap-2"
-          style={{ color: "var(--palette-text)" }}
+          className="font-semibold mb-1"
+          style={{ color: "var(--palette-accent-1)" }}
         >
-          <Sparkles size={20} style={{ color: "var(--palette-btn)" }} />
-          Quick Variant Generator
+          Product Variants
         </h3>
-
-        <div className="mb-3 p-3 rounded bg-blue-50 dark:bg-blue-900/20 flex items-start gap-2">
-          <Info size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-blue-700 dark:text-blue-300">
-            <strong>For products with colors:</strong> Enter both sizes and colors to generate all combinations.<br />
-            <strong>For products without colors (e.g., tyres):</strong> Enter only sizes and leave colors empty.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Sizes (comma separated) *
-            </label>
-            <Input
-              placeholder="e.g., M, L, XL, 2XL"
-              value={sizes}
-              onChange={(e) => setSizes(e.target.value)}
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-            <p className="text-xs mt-1" style={{ color: "var(--palette-accent-3)", opacity: 0.7 }}>
-              Separate sizes with commas
-            </p>
-          </div>
-
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Colors (comma separated) - Optional
-            </label>
-            <Input
-              placeholder="e.g., Red, Blue, Green (leave empty for no colors)"
-              value={colors}
-              onChange={(e) => setColors(e.target.value)}
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-            <p className="text-xs mt-1" style={{ color: "var(--palette-accent-3)", opacity: 0.7 }}>
-              Leave empty for products without colors
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Default Price *
-            </label>
-            <Input
-              type="number"
-              placeholder="1000"
-              value={defaultPrice > 0 ? defaultPrice : ""}
-              onChange={(e) =>
-                setDefaultPrice(parseFloat(e.target.value) || 0)
-              }
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-          </div>
-
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Default Stock *
-            </label>
-            <Input
-              type="number"
-              placeholder="10"
-              value={defaultStock > 0 ? defaultStock : ""}
-              onChange={(e) =>
-                setDefaultStock(parseFloat(e.target.value) || 0)
-              }
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-          </div>
-        </div>
-
-        <Button
-          onClick={handleGenerateVariants}
-          className="flex items-center gap-2 text-white w-full"
-          style={{ backgroundColor: "var(--palette-btn)" }}
+        <p
+          className="text-sm"
+          style={{ color: "var(--palette-accent-3)" }}
         >
-          <Sparkles size={18} />
-          Generate Variants
-        </Button>
-
-        <p className="text-xs mt-2 text-center" style={{ color: "var(--palette-accent-3)", opacity: 0.7 }}>
-          {colors ? (
-            <>Will create {sizes.split(",").filter(Boolean).length} sizes × {colors.split(",").filter(Boolean).length} colors = {sizes.split(",").filter(Boolean).length * colors.split(",").filter(Boolean).length} variants</>
-          ) : (
-            <>Will create {sizes.split(",").filter(Boolean).length} size variants (no colors)</>
-          )}
+          Add sizes, colors, stock, and pricing for your product variants.
         </p>
       </div>
 
-      {/* Manual Add Variant Form */}
-      <div
-        className="p-4 rounded-lg border"
-        style={{
-          borderColor: "var(--palette-accent-3)",
-          backgroundColor: "rgba(255, 255, 255, 0.02)",
-        }}
-      >
-        <h3
-          className="font-semibold mb-4"
-          style={{ color: "var(--palette-accent-1)" }}
-        >
-          Or Add Single Variant Manually
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Size *
-            </label>
-            <Input
-              placeholder="e.g., M, L, 42"
-              value={newVariant.size}
-              onChange={(e) =>
-                setNewVariant({ ...newVariant, size: e.target.value })
-              }
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-          </div>
-
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Color (Optional)
-            </label>
-            <Input
-              placeholder="e.g., Red, Blue"
-              value={newVariant.color}
-              onChange={(e) =>
-                setNewVariant({ ...newVariant, color: e.target.value })
-              }
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-          </div>
-
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Price *
-            </label>
-            <Input
-              type="number"
-              placeholder="1000"
-              value={newVariant.price > 0 ? newVariant.price : ""}
-              onChange={(e) =>
-                setNewVariant({
-                  ...newVariant,
-                  price: parseFloat(e.target.value) || 0,
-                })
-              }
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-          </div>
-
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Stock *
-            </label>
-            <Input
-              type="number"
-              placeholder="0"
-              value={newVariant.stock > 0 ? newVariant.stock : ""}
-              onChange={(e) =>
-                setNewVariant({
-                  ...newVariant,
-                  stock: parseFloat(e.target.value) || 0,
-                })
-              }
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              Discount Price (Optional)
-            </label>
-            <Input
-              type="number"
-              placeholder="0"
-              value={
-                (newVariant.discountPrice ?? 0) > 0
-                  ? newVariant.discountPrice
-                  : ""
-              }
-              onChange={(e) =>
-                setNewVariant({
-                  ...newVariant,
-                  discountPrice: parseFloat(e.target.value) || undefined,
-                })
-              }
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-          </div>
-
-          <div>
-            <label
-              className="text-xs font-semibold mb-1 block"
-              style={{ color: "var(--palette-accent-3)" }}
-            >
-              SKU (Optional)
-            </label>
-            <Input
-              placeholder="e.g., SKU-001"
-              value={newVariant.sku || ""}
-              onChange={(e) =>
-                setNewVariant({ ...newVariant, sku: e.target.value })
-              }
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                borderColor: "var(--palette-accent-3)",
-                color: "var(--palette-text)",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Image Upload Section */}
-        <div className="mb-4">
-          <label
-            className="text-xs font-semibold mb-2 block"
-            style={{ color: "var(--palette-accent-3)" }}
+      {/* Size Rows */}
+      <div className="space-y-4">
+        {sizeRows.map((row) => (
+          <div
+            key={row.id}
+            className="rounded-lg border overflow-hidden"
+            style={{
+              borderColor: "var(--palette-accent-3)",
+              backgroundColor: "rgba(255, 255, 255, 0.02)",
+            }}
           >
-            Variant Image (Optional)
-          </label>
-
-          {!newVariant.image?.url ? (
-            <div
-              className="relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-white/5 transition-colors"
-              style={{ borderColor: "var(--palette-accent-3)" }}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    handelUploadImage(file);
-                  }
-                }}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                disabled={isPending}
-              />
-              <div className="flex flex-col items-center gap-2">
-                <Upload
-                  size={32}
-                  style={{ color: "var(--palette-accent-3)" }}
-                />
-                <p
-                  className="text-sm font-medium"
-                  style={{ color: "var(--palette-accent-3)" }}
-                >
-                  {isPending ? "Uploading..." : "Click to upload variant image"}
-                </p>
-                <p
-                  className="text-xs"
-                  style={{ color: "var(--palette-accent-3)", opacity: 0.7 }}
-                >
-                  PNG, JPG, WEBP up to 5MB
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div
-              className="relative rounded-lg border p-2"
-              style={{
-                borderColor: "var(--palette-accent-3)",
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-              }}
-            >
-              <div className="relative w-full h-32">
-                <img
-                  src={newVariant.image.url}
-                  alt="Variant preview"
-                  className="w-full h-full object-cover rounded"
-                />
-                <button
-                  onClick={handleRemoveImage}
-                  className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 rounded-full transition"
-                  type="button"
-                >
-                  <X size={16} className="text-white" />
-                </button>
-              </div>
-              <p
-                className="text-xs mt-2 text-center"
-                style={{ color: "var(--palette-accent-3)" }}
-              >
-                Image uploaded ✓
-              </p>
-            </div>
-          )}
-        </div>
-
-        <Button
-          onClick={handleAddVariant}
-          className="flex items-center gap-2 text-white"
-          style={{ backgroundColor: "var(--palette-btn)" }}
-        >
-          <Plus size={18} />
-          Add Single Variant
-        </Button>
-      </div>
-
-      {/* Variants List */}
-      {variants.length > 0 && (
-        <div>
-          <h3
-            className="font-semibold mb-3"
-            style={{ color: "var(--palette-accent-1)" }}
-          >
-            Added Variants ({variants.length})
-          </h3>
-          <div className="space-y-2">
-            {variants.map((variant, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center p-3 rounded-lg gap-3"
-                style={{
-                  borderColor: "var(--palette-accent-3)",
-                  backgroundColor: "rgba(255, 255, 255, 0.02)",
-                  border: "1px solid",
-                }}
-              >
-                {/* Variant Image Preview */}
-                {variant.image?.url && (
-                  <div className="flex-shrink-0">
-                    <img
-                      src={variant.image.url}
-                      alt={`${variant.size} ${variant.color || ""}`}
-                      className="w-16 h-16 object-cover rounded border"
-                      style={{ borderColor: "var(--palette-accent-3)" }}
-                    />
-                  </div>
-                )}
-
-                <div className="flex-1">
-                  <p className="font-medium">
-                    {variant.size}
-                    {variant.color && ` - ${variant.color}`}
-                  </p>
-                  <p
-                    className="text-sm"
+            {/* Size Header Row */}
+            <div className="p-4 border-b" style={{ borderColor: "var(--palette-accent-3)" }}>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                {/* Size Name */}
+                <div>
+                  <label
+                    className="text-xs font-semibold mb-1 block"
                     style={{ color: "var(--palette-accent-3)" }}
                   >
-                    ৳{variant.price}
-                    {variant.discountPrice && ` → ৳${variant.discountPrice}`} |
-                    Stock: {variant.stock}
-                    {variant.sku && ` | SKU: ${variant.sku}`}
-                  </p>
+                    Size *
+                  </label>
+                  <Input
+                    placeholder="e.g., M, L, XL"
+                    value={row.size}
+                    onChange={(e) =>
+                      handleUpdateSizeRow(row.id, "size", e.target.value)
+                    }
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      borderColor: "var(--palette-accent-3)",
+                      color: "var(--palette-text)",
+                    }}
+                  />
                 </div>
-                <button
-                  onClick={() => {
-                    setNewVariant({
-                      color: variant?.color || "",
-                      price: variant?.price,
-                      size: variant?.size,
-                      stock: variant?.stock,
-                      recommended: variant?.recommended,
-                      discountPrice: variant?.discountPrice,
-                      sku: variant?.sku,
-                      image: variant?.image,
-                    });
-                    handleRemoveVariant(index);
-                  }}
-                  className="p-2 hover:bg-blue-500/20 rounded transition"
-                  style={{ color: "var(--palette-accent-2)" }}
-                  title="Edit variant (loads into form)"
-                >
-                  <Pen size={18} />
-                </button>
-                <button
-                  onClick={() => handleRemoveVariant(index)}
-                  className="p-2 rounded transition"
-                  style={{ color: "#ef4444" }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)"}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                  title="Delete variant"
-                >
-                  <Trash2 size={18} />
-                </button>
+
+                {/* Regular Price */}
+                <div>
+                  <label
+                    className="text-xs font-semibold mb-1 block"
+                    style={{ color: "var(--palette-accent-3)" }}
+                  >
+                    Regular Price *
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="500"
+                    value={row.regularPrice > 0 ? row.regularPrice : ""}
+                    onChange={(e) =>
+                      handleUpdateSizeRow(
+                        row.id,
+                        "regularPrice",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      borderColor: "var(--palette-accent-3)",
+                      color: "var(--palette-text)",
+                    }}
+                  />
+                </div>
+
+                {/* Offer Price */}
+                <div>
+                  <label
+                    className="text-xs font-semibold mb-1 block"
+                    style={{ color: "var(--palette-accent-3)" }}
+                  >
+                    Offer Price (Optional)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="450"
+                    value={row.offerPrice > 0 ? row.offerPrice : ""}
+                    onChange={(e) =>
+                      handleUpdateSizeRow(
+                        row.id,
+                        "offerPrice",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      borderColor: "var(--palette-accent-3)",
+                      color: "var(--palette-text)",
+                    }}
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  {/* Color Dropdown */}
+                  <div className="relative flex-1">
+                    <button
+                      type="button"
+                      onClick={() => toggleColorDropdown(row.id)}
+                      className="w-full h-10 px-3 rounded-lg border flex items-center justify-between gap-2 transition-colors"
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        borderColor: "var(--palette-accent-3)",
+                        color: "var(--palette-text)",
+                      }}
+                    >
+                      <span className="text-sm">+ Add Color</span>
+                      <ChevronDown size={16} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {openColorDropdowns[row.id] && (
+                      <div
+                        className="absolute top-full left-0 right-0 mt-1 rounded-lg border shadow-lg z-10 max-h-60 overflow-y-auto"
+                        style={{
+                          backgroundColor: "var(--palette-bg)",
+                          borderColor: "var(--palette-accent-3)",
+                        }}
+                      >
+                        {getAvailableColors(row.id).map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => handleAddColor(row.id, color)}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors flex items-center gap-2"
+                            style={{ color: "var(--palette-text)" }}
+                          >
+                            <div
+                              className="w-4 h-4 rounded-full border"
+                              style={{
+                                backgroundColor:
+                                  COLOR_OPTIONS.find((c) => c === color) === color
+                                    ? color.toLowerCase()
+                                    : "#ccc",
+                                borderColor: "rgba(0,0,0,0.2)",
+                              }}
+                            />
+                            {color}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Delete Size Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSizeRow(row.id)}
+                    className="p-2 rounded-lg hover:bg-red-500/20 transition"
+                    title="Remove this size"
+                  >
+                    <Trash2 size={18} className="text-red-400" />
+                  </button>
+                </div>
               </div>
-            ))}
+            </div>
+
+            {/* Colors List for this Size */}
+            {row.colors.length > 0 && (
+              <div className="p-4 space-y-3" style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}>
+                {row.colors.map((colorVar, colorIndex) => (
+                  <div
+                    key={colorIndex}
+                    className="flex flex-col md:flex-row gap-3 p-3 rounded-lg border"
+                    style={{
+                      borderColor: "var(--palette-accent-3)",
+                      backgroundColor: "rgba(255, 255, 255, 0.03)",
+                    }}
+                  >
+                    {/* Color Name */}
+                    <div className="flex items-center gap-2 min-w-[120px]">
+                      <div
+                        className="w-6 h-6 rounded-full border flex-shrink-0"
+                        style={{
+                          backgroundColor: colorVar.color.toLowerCase(),
+                          borderColor: "rgba(0,0,0,0.2)",
+                        }}
+                      />
+                      <span className="font-medium text-sm" style={{ color: "var(--palette-text)" }}>
+                        {colorVar.color}
+                      </span>
+                    </div>
+
+                    {/* Stock */}
+                    <div className="flex-1 max-w-[150px]">
+                      <label
+                        className="text-xs font-semibold mb-1 block"
+                        style={{ color: "var(--palette-accent-3)" }}
+                      >
+                        Stock *
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={colorVar.stock > 0 ? colorVar.stock : ""}
+                        onChange={(e) =>
+                          handleUpdateColorVariant(
+                            row.id,
+                            colorIndex,
+                            "stock",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        style={{
+                          backgroundColor: "rgba(255, 255, 255, 0.05)",
+                          borderColor: "var(--palette-accent-3)",
+                          color: "var(--palette-text)",
+                        }}
+                      />
+                    </div>
+
+                    {/* Image Upload */}
+                    <div className="flex-1">
+                      <label
+                        className="text-xs font-semibold mb-1 block"
+                        style={{ color: "var(--palette-accent-3)" }}
+                      >
+                        Image (Optional)
+                      </label>
+                      {!colorVar.image?.url ? (
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleUploadColorImage(row.id, colorIndex, file);
+                              }
+                            }}
+                            className="hidden"
+                            id={`image-${row.id}-${colorIndex}`}
+                            disabled={isPending}
+                          />
+                          <label
+                            htmlFor={`image-${row.id}-${colorIndex}`}
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:bg-white/5 transition"
+                            style={{
+                              borderColor: "var(--palette-accent-3)",
+                              color: "var(--palette-accent-3)",
+                            }}
+                          >
+                            <Upload size={16} />
+                            <span className="text-sm">
+                              {isPending ? "Uploading..." : "Upload"}
+                            </span>
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={colorVar.image.url}
+                            alt={colorVar.color}
+                            className="w-12 h-12 object-cover rounded border"
+                            style={{ borderColor: "var(--palette-accent-3)" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveColorImage(row.id, colorIndex)}
+                            className="p-1 hover:bg-red-500/20 rounded transition"
+                          >
+                            <X size={16} className="text-red-400" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Remove Color Button */}
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveColor(row.id, colorIndex)}
+                        className="p-2 rounded-lg hover:bg-red-500/20 transition"
+                        title="Remove this color"
+                      >
+                        <Trash2 size={16} className="text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+        ))}
+      </div>
+
+      {/* Add New Size Button */}
+      <Button
+        type="button"
+        onClick={handleAddSizeRow}
+        className="flex items-center gap-2 text-white w-full"
+        style={{ backgroundColor: "var(--palette-btn)" }}
+      >
+        <Plus size={18} />
+        Add New Size
+      </Button>
+
+      {/* Summary */}
+      {sizeRows.length > 0 && (
+        <div
+          className="p-4 rounded-lg"
+          style={{
+            backgroundColor: "rgba(238, 74, 35, 0.05)",
+            border: "1px solid var(--palette-accent-3)",
+          }}
+        >
+          <p className="text-sm font-semibold" style={{ color: "var(--palette-text)" }}>
+            Summary: {sizeRows.length} size(s),{" "}
+            {sizeRows.reduce((acc, row) => acc + row.colors.length, 0)} color variant(s)
+          </p>
         </div>
       )}
 
-      {variants.length === 0 && (
+      {/* Empty State */}
+      {sizeRows.length === 0 && (
         <div
           className="text-center p-8 rounded-lg"
           style={{
@@ -638,7 +560,7 @@ export default function StepVariantsImproved() {
           }}
         >
           <p style={{ color: "var(--palette-accent-3)" }}>
-            No variants added yet. Use the generator above or add manually.
+            No variants added yet. Click "Add New Size" to get started.
           </p>
         </div>
       )}
