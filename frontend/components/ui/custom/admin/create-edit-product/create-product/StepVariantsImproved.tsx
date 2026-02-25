@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Upload, X, ChevronDown } from "lucide-react";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
 import { useUploadSingleImage } from "@/lib/useHandelImageUpload";
-import { createPortal } from "react-dom";
 
 interface Variant {
   size: string;
@@ -24,10 +23,9 @@ interface Variant {
   };
 }
 
-// Color group with image and stock
+// Color group with image
 interface ColorVariant {
   color: string;
-  stock: number;
   image?: {
     url: string;
     key: string;
@@ -41,15 +39,35 @@ interface SizeRow {
   size: string;
   regularPrice: number;
   offerPrice: number;
+  stock: number;
   colors: ColorVariant[];
 }
 
 // Common color options for dropdown
 const COLOR_OPTIONS = [
-  "Red", "Blue", "Green", "Yellow", "Black", "White",
-  "Pink", "Purple", "Orange", "Brown", "Gray", "Beige",
-  "Navy", "Turquoise", "Maroon", "Lavender", "Teal",
-  "Cream", "Gold", "Silver", "Coral", "Peach", "Magenta"
+  "Red",
+  "Blue",
+  "Green",
+  "Yellow",
+  "Black",
+  "White",
+  "Pink",
+  "Purple",
+  "Orange",
+  "Brown",
+  "Gray",
+  "Beige",
+  "Navy",
+  "Turquoise",
+  "Maroon",
+  "Lavender",
+  "Teal",
+  "Cream",
+  "Gold",
+  "Silver",
+  "Coral",
+  "Peach",
+  "Magenta",
 ];
 
 export default function StepVariantsImproved() {
@@ -60,9 +78,12 @@ export default function StepVariantsImproved() {
   const [sizeRows, setSizeRows] = useState<SizeRow[]>([]);
 
   // State for color dropdown
-  const [openColorDropdowns, setOpenColorDropdowns] = useState<Record<string, boolean>>({});
-  const [dropdownPositions, setDropdownPositions] = useState<Record<string, { top: number; left: number; width: number }>>({});
-  const dropdownRefs = useRef<Record<string, HTMLButtonElement>>({});
+  const [openColorDropdowns, setOpenColorDropdowns] = useState<
+    Record<string, boolean>
+  >({});
+  const dropdownRefs = useRef<
+    Record<string, HTMLButtonElement | HTMLDivElement>
+  >({});
 
   // Initialize sizeRows from existing variants on mount
   React.useEffect(() => {
@@ -86,9 +107,9 @@ export default function StepVariantsImproved() {
           size,
           regularPrice: firstVariant.price,
           offerPrice: firstVariant.discountPrice || 0,
+          stock: firstVariant.stock,
           colors: variantsOfSize.map((v) => ({
             color: v.color || "",
-            stock: v.stock,
             image: v.image,
           })),
         });
@@ -103,16 +124,26 @@ export default function StepVariantsImproved() {
       // Flatten sizeRows back to variants array
       const flatVariants: Variant[] = [];
       sizeRows.forEach((row) => {
-        row.colors.forEach((colorVar) => {
+        // If no colors, create a single variant with just size
+        if (row.colors.length === 0) {
           flatVariants.push({
             size: row.size,
-            color: colorVar.color || undefined,
             price: row.regularPrice,
             discountPrice: row.offerPrice || undefined,
-            stock: colorVar.stock,
-            image: colorVar.image,
+            stock: row.stock,
           });
-        });
+        } else {
+          row.colors.forEach((colorVar) => {
+            flatVariants.push({
+              size: row.size,
+              color: colorVar.color || undefined,
+              price: row.regularPrice,
+              discountPrice: row.offerPrice || undefined,
+              stock: row.stock,
+              image: colorVar.image,
+            });
+          });
+        }
       });
       updateField("variants", flatVariants);
     }
@@ -127,6 +158,7 @@ export default function StepVariantsImproved() {
       size: "",
       regularPrice: 0,
       offerPrice: 0,
+      stock: 0,
       colors: [],
     };
     setSizeRows([...sizeRows, newRow]);
@@ -138,10 +170,16 @@ export default function StepVariantsImproved() {
   };
 
   // Update size row fields
-  const handleUpdateSizeRow = (rowId: string, field: keyof SizeRow, value: any) => {
-    setSizeRows(sizeRows.map((row) =>
-      row.id === rowId ? { ...row, [field]: value } : row
-    ));
+  const handleUpdateSizeRow = (
+    rowId: string,
+    field: keyof SizeRow,
+    value: any,
+  ) => {
+    setSizeRows(
+      sizeRows.map((row) =>
+        row.id === rowId ? { ...row, [field]: value } : row,
+      ),
+    );
   };
 
   // Add color to a size row
@@ -157,31 +195,25 @@ export default function StepVariantsImproved() {
 
     const newColor: ColorVariant = {
       color,
-      stock: 0, // Default to 0, user must enter stock
     };
 
     handleUpdateSizeRow(rowId, "colors", [...row.colors, newColor]);
     setOpenColorDropdowns({ ...openColorDropdowns, [rowId]: false });
   };
 
-  // Check if all colors have stock
+  // Check if all sizes have stock
   const hasInvalidStock = () => {
     for (const row of sizeRows) {
-      if (row.colors.length === 0) return true; // Size with no colors
-      for (const colorVar of row.colors) {
-        if (!colorVar.stock || colorVar.stock <= 0) return true;
-      }
+      if (!row.stock || row.stock <= 0) return true;
     }
     return false;
   };
 
-  // Get count of colors without stock
+  // Get count of sizes without stock
   const getMissingStockCount = () => {
     let count = 0;
     for (const row of sizeRows) {
-      for (const colorVar of row.colors) {
-        if (!colorVar.stock || colorVar.stock <= 0) count++;
-      }
+      if (!row.stock || row.stock <= 0) count++;
     }
     return count;
   };
@@ -200,7 +232,7 @@ export default function StepVariantsImproved() {
     rowId: string,
     colorIndex: number,
     field: keyof ColorVariant,
-    value: any
+    value: any,
   ) => {
     const row = sizeRows.find((r) => r.id === rowId);
     if (!row) return;
@@ -211,7 +243,11 @@ export default function StepVariantsImproved() {
   };
 
   // Upload image for a color
-  const handleUploadColorImage = (rowId: string, colorIndex: number, file: File) => {
+  const handleUploadColorImage = (
+    rowId: string,
+    colorIndex: number,
+    file: File,
+  ) => {
     const formData = new FormData();
     formData.append("file", file);
     mutate(formData, {
@@ -234,41 +270,30 @@ export default function StepVariantsImproved() {
   const getAvailableColors = (rowId: string) => {
     const row = sizeRows.find((r) => r.id === rowId);
     if (!row) return COLOR_OPTIONS;
-    return COLOR_OPTIONS.filter((c) => !row.colors.some((rc) => rc.color === c));
+    return COLOR_OPTIONS.filter(
+      (c) => !row.colors.some((rc) => rc.color === c),
+    );
   };
 
   // Toggle color dropdown
   const toggleColorDropdown = (rowId: string) => {
     const isOpen = !openColorDropdowns[rowId];
-
     // Close all other dropdowns first
+    setOpenColorDropdowns({});
     setOpenColorDropdowns({ [rowId]: isOpen });
-
-    if (isOpen) {
-      // Calculate position for the dropdown
-      const button = dropdownRefs.current[rowId];
-      if (button) {
-        const rect = button.getBoundingClientRect();
-        setDropdownPositions({
-          [rowId]: {
-            top: rect.bottom + window.scrollY + 4,
-            left: rect.left + window.scrollX,
-            width: rect.width,
-          },
-        });
-      }
-    }
   };
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      const openDropdownId = Object.keys(openColorDropdowns).find(id => openColorDropdowns[id]);
+      const openDropdownId = Object.keys(openColorDropdowns).find(
+        (id) => openColorDropdowns[id],
+      );
 
       if (openDropdownId) {
-        const button = dropdownRefs.current[openDropdownId];
-        if (button && !button.contains(target)) {
+        const container = dropdownRefs.current[openDropdownId];
+        if (container && !container.contains(target)) {
           setOpenColorDropdowns({ [openDropdownId]: false });
         }
       }
@@ -288,11 +313,9 @@ export default function StepVariantsImproved() {
         >
           Product Variants
         </h3>
-        <p
-          className="text-sm"
-          style={{ color: "var(--palette-accent-3)" }}
-        >
-          Add sizes, colors, stock, and pricing for your product variants.
+        <p className="text-sm" style={{ color: "var(--palette-accent-3)" }}>
+          Add sizes with pricing, stock, and optional colors for your product
+          variants.
         </p>
       </div>
 
@@ -308,8 +331,11 @@ export default function StepVariantsImproved() {
             }}
           >
             {/* Size Header Row */}
-            <div className="p-4 border-b" style={{ borderColor: "var(--palette-accent-3)" }}>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            <div
+              className="p-4 border-b"
+              style={{ borderColor: "var(--palette-accent-3)" }}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
                 {/* Size Name */}
                 <div>
                   <label
@@ -348,7 +374,7 @@ export default function StepVariantsImproved() {
                       handleUpdateSizeRow(
                         row.id,
                         "regularPrice",
-                        parseFloat(e.target.value) || 0
+                        parseFloat(e.target.value) || 0,
                       )
                     }
                     style={{
@@ -375,7 +401,7 @@ export default function StepVariantsImproved() {
                       handleUpdateSizeRow(
                         row.id,
                         "offerPrice",
-                        parseFloat(e.target.value) || 0
+                        parseFloat(e.target.value) || 0,
                       )
                     }
                     style={{
@@ -389,12 +415,14 @@ export default function StepVariantsImproved() {
                 {/* Actions */}
                 <div className="flex gap-2">
                   {/* Color Dropdown */}
-                  <div className="relative flex-1">
+                  <div
+                    className="relative flex-1"
+                    ref={(el) => {
+                      if (el) dropdownRefs.current[row.id] = el;
+                    }}
+                  >
                     <button
                       type="button"
-                      ref={(el) => {
-                        if (el) dropdownRefs.current[row.id] = el;
-                      }}
                       onClick={() => toggleColorDropdown(row.id)}
                       className="w-full h-10 px-3 rounded-lg border flex items-center justify-between gap-2 transition-colors"
                       style={{
@@ -407,46 +435,82 @@ export default function StepVariantsImproved() {
                       <ChevronDown size={16} />
                     </button>
 
-                    {/* Dropdown Menu - Rendered via Portal */}
-                    {openColorDropdowns[row.id] &&
-                      typeof window !== "undefined" &&
-                      createPortal(
-                        <div
-                          className="rounded-lg border shadow-lg max-h-60 overflow-y-auto"
-                          style={{
-                            position: "absolute",
-                            top: dropdownPositions[row.id]?.top || 0,
-                            left: dropdownPositions[row.id]?.left || 0,
-                            width: dropdownPositions[row.id]?.width || "auto",
-                            backgroundColor: "var(--palette-bg)",
-                            borderColor: "var(--palette-accent-3)",
-                            zIndex: 9999,
-                          }}
-                        >
-                          {getAvailableColors(row.id).map((color) => (
-                            <button
-                              key={color}
-                              type="button"
-                              onClick={() => handleAddColor(row.id, color)}
-                              className="w-full px-3 py-2 text-left text-sm hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors flex items-center gap-2"
-                              style={{ color: "var(--palette-text)" }}
-                            >
-                              <div
-                                className="w-4 h-4 rounded-full border shrink-0"
-                                style={{
-                                  backgroundColor:
-                                    COLOR_OPTIONS.find((c) => c === color) === color
-                                      ? color.toLowerCase()
-                                      : "#ccc",
-                                  borderColor: "rgba(0,0,0,0.2)",
-                                }}
-                              />
-                              {color}
-                            </button>
-                          ))}
-                        </div>,
-                        document.body
-                      )}
+                    {/* Dropdown Menu - Inline */}
+                    {openColorDropdowns[row.id] && (
+                      <div
+                        className="rounded-lg border shadow-lg max-h-60 overflow-y-auto z-50 mt-1"
+                        style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          right: 0,
+                          backgroundColor: "var(--palette-bg)",
+                          borderColor: "var(--palette-accent-3)",
+                        }}
+                      >
+                        {getAvailableColors(row.id).map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddColor(row.id, color);
+                            }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors flex items-center gap-2"
+                            style={{ color: "var(--palette-text)" }}
+                          >
+                            <div
+                              className="w-4 h-4 rounded-full border shrink-0"
+                              style={{
+                                backgroundColor:
+                                  COLOR_OPTIONS.find((c) => c === color) ===
+                                  color
+                                    ? color.toLowerCase()
+                                    : "#ccc",
+                                borderColor: "rgba(0,0,0,0.2)",
+                              }}
+                            />
+                            {color}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Stock */}
+                  <div>
+                    <label
+                      className="text-xs font-semibold mb-1 block"
+                      style={{ color: "var(--palette-accent-3)" }}
+                    >
+                      Stock *
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={row.stock > 0 ? row.stock : ""}
+                      onChange={(e) =>
+                        handleUpdateSizeRow(
+                          row.id,
+                          "stock",
+                          Math.max(0, parseFloat(e.target.value) || 0),
+                        )
+                      }
+                      required
+                      className={row.stock <= 0 ? "border-red-500" : ""}
+                      style={{
+                        backgroundColor:
+                          row.stock <= 0
+                            ? "rgba(239, 68, 68, 0.1)"
+                            : "rgba(255, 255, 255, 0.05)",
+                        borderColor:
+                          row.stock <= 0
+                            ? "#ef4444"
+                            : "var(--palette-accent-3)",
+                        color: "var(--palette-text)",
+                      }}
+                    />
                   </div>
 
                   {/* Delete Size Button */}
@@ -466,10 +530,15 @@ export default function StepVariantsImproved() {
             {row.colors.length > 0 && (
               <div style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}>
                 {/* Table Header */}
-                <div className="px-4 py-2 grid grid-cols-12 gap-3 border-b text-xs font-semibold uppercase tracking-wider" style={{ borderColor: "var(--palette-accent-3)", color: "var(--palette-accent-3)" }}>
+                <div
+                  className="px-4 py-2 grid grid-cols-12 gap-3 border-b text-xs font-semibold uppercase tracking-wider"
+                  style={{
+                    borderColor: "var(--palette-accent-3)",
+                    color: "var(--palette-accent-3)",
+                  }}
+                >
                   <div className="col-span-3">Color</div>
-                  <div className="col-span-5">Image (Optional)</div>
-                  <div className="col-span-2">Stock *</div>
+                  <div className="col-span-7">Image (Optional)</div>
                   <div className="col-span-2 text-center">Actions</div>
                 </div>
 
@@ -493,13 +562,16 @@ export default function StepVariantsImproved() {
                             borderColor: "rgba(0,0,0,0.2)",
                           }}
                         />
-                        <span className="font-medium text-sm" style={{ color: "var(--palette-text)" }}>
+                        <span
+                          className="font-medium text-sm"
+                          style={{ color: "var(--palette-text)" }}
+                        >
                           {colorVar.color}
                         </span>
                       </div>
 
                       {/* Image Upload */}
-                      <div className="col-span-5">
+                      <div className="col-span-7">
                         {!colorVar.image?.url ? (
                           <div className="relative">
                             <input
@@ -508,7 +580,11 @@ export default function StepVariantsImproved() {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  handleUploadColorImage(row.id, colorIndex, file);
+                                  handleUploadColorImage(
+                                    row.id,
+                                    colorIndex,
+                                    file,
+                                  );
                                 }
                               }}
                               className="hidden"
@@ -539,7 +615,9 @@ export default function StepVariantsImproved() {
                             />
                             <button
                               type="button"
-                              onClick={() => handleRemoveColorImage(row.id, colorIndex)}
+                              onClick={() =>
+                                handleRemoveColorImage(row.id, colorIndex)
+                              }
                               className="p-1 hover:bg-red-500/20 rounded transition"
                               title="Remove image"
                             >
@@ -547,36 +625,6 @@ export default function StepVariantsImproved() {
                             </button>
                           </div>
                         )}
-                      </div>
-
-                      {/* Stock */}
-                      <div className="col-span-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          value={colorVar.stock > 0 ? colorVar.stock : ""}
-                          onChange={(e) =>
-                            handleUpdateColorVariant(
-                              row.id,
-                              colorIndex,
-                              "stock",
-                              Math.max(0, parseFloat(e.target.value) || 0)
-                            )
-                          }
-                          required
-                          className={colorVar.stock <= 0 ? "border-red-500" : ""}
-                          style={{
-                            backgroundColor: colorVar.stock <= 0
-                              ? "rgba(239, 68, 68, 0.1)"
-                              : "rgba(255, 255, 255, 0.05)",
-                            borderColor: colorVar.stock <= 0
-                              ? "#ef4444"
-                              : "var(--palette-accent-3)",
-                            color: "var(--palette-text)",
-                            height: "38px",
-                          }}
-                        />
                       </div>
 
                       {/* Remove Color Button */}
@@ -615,24 +663,30 @@ export default function StepVariantsImproved() {
         <div
           className="p-4 rounded-lg"
           style={{
-            backgroundColor: getMissingStockCount() > 0
-              ? "rgba(239, 68, 68, 0.1)"
-              : "rgba(238, 74, 35, 0.05)",
+            backgroundColor:
+              getMissingStockCount() > 0
+                ? "rgba(239, 68, 68, 0.1)"
+                : "rgba(238, 74, 35, 0.05)",
             border: "1px solid var(--palette-accent-3)",
           }}
         >
-          <p className="text-sm font-semibold" style={{ color: "var(--palette-text)" }}>
+          <p
+            className="text-sm font-semibold"
+            style={{ color: "var(--palette-text)" }}
+          >
             Summary: {sizeRows.length} size(s),{" "}
-            {sizeRows.reduce((acc, row) => acc + row.colors.length, 0)} color variant(s)
+            {sizeRows.reduce((acc, row) => acc + row.colors.length, 0)} color
+            variant(s)
           </p>
           {getMissingStockCount() > 0 && (
             <p className="text-sm text-red-600 mt-2 font-semibold flex items-center gap-2">
-              ⚠️ {getMissingStockCount()} color variant(s) missing stock - Stock is required for all variants
+              ⚠️ {getMissingStockCount()} size(s) missing stock - Stock is
+              required for all sizes
             </p>
           )}
-          {getMissingStockCount() === 0 && sizeRows.reduce((acc, row) => acc + row.colors.length, 0) > 0 && (
+          {getMissingStockCount() === 0 && (
             <p className="text-sm text-green-600 mt-2 flex items-center gap-2">
-              ✓ All variants have stock configured
+              ✓ All sizes have stock configured
             </p>
           )}
         </div>
