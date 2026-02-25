@@ -157,11 +157,33 @@ export default function StepVariantsImproved() {
 
     const newColor: ColorVariant = {
       color,
-      stock: 0,
+      stock: 0, // Default to 0, user must enter stock
     };
 
     handleUpdateSizeRow(rowId, "colors", [...row.colors, newColor]);
     setOpenColorDropdowns({ ...openColorDropdowns, [rowId]: false });
+  };
+
+  // Check if all colors have stock
+  const hasInvalidStock = () => {
+    for (const row of sizeRows) {
+      if (row.colors.length === 0) return true; // Size with no colors
+      for (const colorVar of row.colors) {
+        if (!colorVar.stock || colorVar.stock <= 0) return true;
+      }
+    }
+    return false;
+  };
+
+  // Get count of colors without stock
+  const getMissingStockCount = () => {
+    let count = 0;
+    for (const row of sizeRows) {
+      for (const colorVar of row.colors) {
+        if (!colorVar.stock || colorVar.stock <= 0) count++;
+      }
+    }
+    return count;
   };
 
   // Remove color from a size row
@@ -442,127 +464,135 @@ export default function StepVariantsImproved() {
 
             {/* Colors List for this Size */}
             {row.colors.length > 0 && (
-              <div className="p-4 space-y-3" style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}>
-                {row.colors.map((colorVar, colorIndex) => (
-                  <div
-                    key={colorIndex}
-                    className="flex flex-col md:flex-row gap-3 p-3 rounded-lg border"
-                    style={{
-                      borderColor: "var(--palette-accent-3)",
-                      backgroundColor: "rgba(255, 255, 255, 0.03)",
-                    }}
-                  >
-                    {/* Color Name */}
-                    <div className="flex items-center gap-2 min-w-[120px]">
-                      <div
-                        className="w-6 h-6 rounded-full border flex-shrink-0"
-                        style={{
-                          backgroundColor: colorVar.color.toLowerCase(),
-                          borderColor: "rgba(0,0,0,0.2)",
-                        }}
-                      />
-                      <span className="font-medium text-sm" style={{ color: "var(--palette-text)" }}>
-                        {colorVar.color}
-                      </span>
-                    </div>
+              <div style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}>
+                {/* Table Header */}
+                <div className="px-4 py-2 grid grid-cols-12 gap-3 border-b text-xs font-semibold uppercase tracking-wider" style={{ borderColor: "var(--palette-accent-3)", color: "var(--palette-accent-3)" }}>
+                  <div className="col-span-3">Color</div>
+                  <div className="col-span-2">Stock *</div>
+                  <div className="col-span-5">Image (Optional)</div>
+                  <div className="col-span-2 text-center">Actions</div>
+                </div>
 
-                    {/* Stock */}
-                    <div className="flex-1 max-w-[150px]">
-                      <label
-                        className="text-xs font-semibold mb-1 block"
-                        style={{ color: "var(--palette-accent-3)" }}
-                      >
-                        Stock *
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={colorVar.stock > 0 ? colorVar.stock : ""}
-                        onChange={(e) =>
-                          handleUpdateColorVariant(
-                            row.id,
-                            colorIndex,
-                            "stock",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                        style={{
-                          backgroundColor: "rgba(255, 255, 255, 0.05)",
-                          borderColor: "var(--palette-accent-3)",
-                          color: "var(--palette-text)",
-                        }}
-                      />
-                    </div>
+                {/* Color Rows */}
+                <div className="p-4 space-y-3">
+                  {row.colors.map((colorVar, colorIndex) => (
+                    <div
+                      key={colorIndex}
+                      className="grid grid-cols-12 gap-3 p-3 rounded-lg border items-center"
+                      style={{
+                        borderColor: "var(--palette-accent-3)",
+                        backgroundColor: "rgba(255, 255, 255, 0.03)",
+                      }}
+                    >
+                      {/* Color Name */}
+                      <div className="col-span-3 flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-full border flex-shrink-0"
+                          style={{
+                            backgroundColor: colorVar.color.toLowerCase(),
+                            borderColor: "rgba(0,0,0,0.2)",
+                          }}
+                        />
+                        <span className="font-medium text-sm" style={{ color: "var(--palette-text)" }}>
+                          {colorVar.color}
+                        </span>
+                      </div>
 
-                    {/* Image Upload */}
-                    <div className="flex-1">
-                      <label
-                        className="text-xs font-semibold mb-1 block"
-                        style={{ color: "var(--palette-accent-3)" }}
-                      >
-                        Image (Optional)
-                      </label>
-                      {!colorVar.image?.url ? (
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadColorImage(row.id, colorIndex, file);
-                              }
-                            }}
-                            className="hidden"
-                            id={`image-${row.id}-${colorIndex}`}
-                            disabled={isPending}
-                          />
-                          <label
-                            htmlFor={`image-${row.id}-${colorIndex}`}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:bg-white/5 transition"
-                            style={{
-                              borderColor: "var(--palette-accent-3)",
-                              color: "var(--palette-accent-3)",
-                            }}
-                          >
-                            <Upload size={16} />
-                            <span className="text-sm">
-                              {isPending ? "Uploading..." : "Upload"}
-                            </span>
-                          </label>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={colorVar.image.url}
-                            alt={colorVar.color}
-                            className="w-12 h-12 object-cover rounded border"
-                            style={{ borderColor: "var(--palette-accent-3)" }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveColorImage(row.id, colorIndex)}
-                            className="p-1 hover:bg-red-500/20 rounded transition"
-                          >
-                            <X size={16} className="text-red-400" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                      {/* Stock */}
+                      <div className="col-span-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          value={colorVar.stock > 0 ? colorVar.stock : ""}
+                          onChange={(e) =>
+                            handleUpdateColorVariant(
+                              row.id,
+                              colorIndex,
+                              "stock",
+                              Math.max(0, parseFloat(e.target.value) || 0)
+                            )
+                          }
+                          required
+                          className={colorVar.stock <= 0 ? "border-red-500" : ""}
+                          style={{
+                            backgroundColor: colorVar.stock <= 0
+                              ? "rgba(239, 68, 68, 0.1)"
+                              : "rgba(255, 255, 255, 0.05)",
+                            borderColor: colorVar.stock <= 0
+                              ? "#ef4444"
+                              : "var(--palette-accent-3)",
+                            color: "var(--palette-text)",
+                            height: "38px",
+                          }}
+                        />
+                      </div>
 
-                    {/* Remove Color Button */}
-                    <div className="flex items-end">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveColor(row.id, colorIndex)}
-                        className="p-2 rounded-lg hover:bg-red-500/20 transition"
-                        title="Remove this color"
-                      >
-                        <Trash2 size={16} className="text-red-400" />
-                      </button>
+                      {/* Image Upload */}
+                      <div className="col-span-5">
+                        {!colorVar.image?.url ? (
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadColorImage(row.id, colorIndex, file);
+                                }
+                              }}
+                              className="hidden"
+                              id={`image-${row.id}-${colorIndex}`}
+                              disabled={isPending}
+                            />
+                            <label
+                              htmlFor={`image-${row.id}-${colorIndex}`}
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:bg-white/5 transition"
+                              style={{
+                                borderColor: "var(--palette-accent-3)",
+                                color: "var(--palette-accent-3)",
+                              }}
+                            >
+                              <Upload size={16} />
+                              <span className="text-sm">
+                                {isPending ? "Uploading..." : "Upload Image"}
+                              </span>
+                            </label>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={colorVar.image.url}
+                              alt={colorVar.color}
+                              className="w-12 h-12 object-cover rounded border"
+                              style={{ borderColor: "var(--palette-accent-3)" }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveColorImage(row.id, colorIndex)}
+                              className="p-1 hover:bg-red-500/20 rounded transition"
+                              title="Remove image"
+                            >
+                              <X size={16} className="text-red-400" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Remove Color Button */}
+                      <div className="col-span-2 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveColor(row.id, colorIndex)}
+                          className="p-2 rounded-lg hover:bg-red-500/20 transition"
+                          title="Remove this color"
+                        >
+                          <Trash2 size={16} className="text-red-400" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -585,7 +615,9 @@ export default function StepVariantsImproved() {
         <div
           className="p-4 rounded-lg"
           style={{
-            backgroundColor: "rgba(238, 74, 35, 0.05)",
+            backgroundColor: getMissingStockCount() > 0
+              ? "rgba(239, 68, 68, 0.1)"
+              : "rgba(238, 74, 35, 0.05)",
             border: "1px solid var(--palette-accent-3)",
           }}
         >
@@ -593,6 +625,16 @@ export default function StepVariantsImproved() {
             Summary: {sizeRows.length} size(s),{" "}
             {sizeRows.reduce((acc, row) => acc + row.colors.length, 0)} color variant(s)
           </p>
+          {getMissingStockCount() > 0 && (
+            <p className="text-sm text-red-600 mt-2 font-semibold flex items-center gap-2">
+              ⚠️ {getMissingStockCount()} color variant(s) missing stock - Stock is required for all variants
+            </p>
+          )}
+          {getMissingStockCount() === 0 && sizeRows.reduce((acc, row) => acc + row.colors.length, 0) > 0 && (
+            <p className="text-sm text-green-600 mt-2 flex items-center gap-2">
+              ✓ All variants have stock configured
+            </p>
+          )}
         </div>
       )}
 
