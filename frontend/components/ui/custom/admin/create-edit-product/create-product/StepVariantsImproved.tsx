@@ -468,8 +468,8 @@ export default function StepVariantsImproved() {
                 {/* Table Header */}
                 <div className="px-4 py-2 grid grid-cols-12 gap-3 border-b text-xs font-semibold uppercase tracking-wider" style={{ borderColor: "var(--palette-accent-3)", color: "var(--palette-accent-3)" }}>
                   <div className="col-span-3">Color</div>
-                  <div className="col-span-2">Stock *</div>
                   <div className="col-span-5">Image (Optional)</div>
+                  <div className="col-span-2">Stock *</div>
                   <div className="col-span-2 text-center">Actions</div>
                 </div>
 
@@ -496,36 +496,6 @@ export default function StepVariantsImproved() {
                         <span className="font-medium text-sm" style={{ color: "var(--palette-text)" }}>
                           {colorVar.color}
                         </span>
-                      </div>
-
-                      {/* Stock */}
-                      <div className="col-span-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          value={colorVar.stock > 0 ? colorVar.stock : ""}
-                          onChange={(e) =>
-                            handleUpdateColorVariant(
-                              row.id,
-                              colorIndex,
-                              "stock",
-                              Math.max(0, parseFloat(e.target.value) || 0)
-                            )
-                          }
-                          required
-                          className={colorVar.stock <= 0 ? "border-red-500" : ""}
-                          style={{
-                            backgroundColor: colorVar.stock <= 0
-                              ? "rgba(239, 68, 68, 0.1)"
-                              : "rgba(255, 255, 255, 0.05)",
-                            borderColor: colorVar.stock <= 0
-                              ? "#ef4444"
-                              : "var(--palette-accent-3)",
-                            color: "var(--palette-text)",
-                            height: "38px",
-                          }}
-                        />
                       </div>
 
                       {/* Image Upload */}
@@ -577,6 +547,36 @@ export default function StepVariantsImproved() {
                             </button>
                           </div>
                         )}
+                      </div>
+
+                      {/* Stock */}
+                      <div className="col-span-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          value={colorVar.stock > 0 ? colorVar.stock : ""}
+                          onChange={(e) =>
+                            handleUpdateColorVariant(
+                              row.id,
+                              colorIndex,
+                              "stock",
+                              Math.max(0, parseFloat(e.target.value) || 0)
+                            )
+                          }
+                          required
+                          className={colorVar.stock <= 0 ? "border-red-500" : ""}
+                          style={{
+                            backgroundColor: colorVar.stock <= 0
+                              ? "rgba(239, 68, 68, 0.1)"
+                              : "rgba(255, 255, 255, 0.05)",
+                            borderColor: colorVar.stock <= 0
+                              ? "#ef4444"
+                              : "var(--palette-accent-3)",
+                            color: "var(--palette-text)",
+                            height: "38px",
+                          }}
+                        />
                       </div>
 
                       {/* Remove Color Button */}
