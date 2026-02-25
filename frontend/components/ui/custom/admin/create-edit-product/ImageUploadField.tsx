@@ -40,15 +40,21 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
         fromData.append("file", file);
         UploadThumbnail(fromData, {
           onSuccess: (data) => {
+            toast.dismiss(loadingUpload);
             if (data?.error) {
               toast.error(data.error.message);
+              return;
+            }
+            if (!data?.data?.url) {
+              toast.error("Upload failed - no URL returned");
+              return;
             }
             updateField("thumbnail", {
-              url: data?.data?.url as string,
-              key: data?.data?.key as string,
-              id: data?.data?.key as string,
+              url: data.data.url,
+              key: data.data.key,
+              id: data.data.key,
             });
-            toast.dismiss(loadingUpload);
+            toast.success("Thumbnail uploaded successfully");
           },
           onError: (error) => {
             toast.error(error.message || "Unknown error");
@@ -72,17 +78,23 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       });
       UploadMultipleImage(fromData, {
         onSuccess: (data) => {
+          toast.dismiss(loadingUpload);
           if (data?.error) {
             toast.error(data.error.message);
+            return;
           }
-          const dataReturn = data?.data?.map((item) => ({
+          if (!data?.data || !Array.isArray(data.data)) {
+            toast.error("Upload failed - no data returned");
+            return;
+          }
+          const dataReturn = data.data.map((item) => ({
             ...item,
             url: item.url,
             key: item.key,
             id: item.key,
           }));
           updateField("images", dataReturn);
-          toast.dismiss(loadingUpload);
+          toast.success(`Successfully uploaded ${dataReturn.length} image(s)`);
         },
         onError: (error) => {
           toast.error(error.message || "Unknown error");
