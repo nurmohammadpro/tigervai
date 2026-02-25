@@ -1,12 +1,13 @@
 // components/product/add-steps/StepVariantsImproved.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Upload, X, ChevronDown, Check } from "lucide-react";
+import { Plus, Trash2, Upload, X, ChevronDown } from "lucide-react";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
 import { useUploadSingleImage } from "@/lib/useHandelImageUpload";
+import { createPortal } from "react-dom";
 
 interface Variant {
   size: string;
@@ -60,6 +61,8 @@ export default function StepVariantsImproved() {
 
   // State for color dropdown
   const [openColorDropdowns, setOpenColorDropdowns] = useState<Record<string, boolean>>({});
+  const [dropdownPositions, setDropdownPositions] = useState<Record<string, { top: number; left: number; width: number }>>({});
+  const dropdownRefs = useRef<Record<string, HTMLButtonElement>>({});
 
   // Initialize sizeRows from existing variants on mount
   React.useEffect(() => {
@@ -214,11 +217,44 @@ export default function StepVariantsImproved() {
 
   // Toggle color dropdown
   const toggleColorDropdown = (rowId: string) => {
-    setOpenColorDropdowns({
-      ...openColorDropdowns,
-      [rowId]: !openColorDropdowns[rowId],
-    });
+    const isOpen = !openColorDropdowns[rowId];
+
+    // Close all other dropdowns first
+    setOpenColorDropdowns({ [rowId]: isOpen });
+
+    if (isOpen) {
+      // Calculate position for the dropdown
+      const button = dropdownRefs.current[rowId];
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        setDropdownPositions({
+          [rowId]: {
+            top: rect.bottom + window.scrollY + 4,
+            left: rect.left + window.scrollX,
+            width: rect.width,
+          },
+        });
+      }
+    }
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const openDropdownId = Object.keys(openColorDropdowns).find(id => openColorDropdowns[id]);
+
+      if (openDropdownId) {
+        const button = dropdownRefs.current[openDropdownId];
+        if (button && !button.contains(target)) {
+          setOpenColorDropdowns({ [openDropdownId]: false });
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openColorDropdowns]);
 
   return (
     <div className="space-y-4">
@@ -334,6 +370,9 @@ export default function StepVariantsImproved() {
                   <div className="relative flex-1">
                     <button
                       type="button"
+                      ref={(el) => {
+                        if (el) dropdownRefs.current[row.id] = el;
+                      }}
                       onClick={() => toggleColorDropdown(row.id)}
                       className="w-full h-10 px-3 rounded-lg border flex items-center justify-between gap-2 transition-colors"
                       style={{
@@ -346,38 +385,46 @@ export default function StepVariantsImproved() {
                       <ChevronDown size={16} />
                     </button>
 
-                    {/* Dropdown Menu */}
-                    {openColorDropdowns[row.id] && (
-                      <div
-                        className="absolute top-full left-0 right-0 mt-1 rounded-lg border shadow-lg z-10 max-h-60 overflow-y-auto"
-                        style={{
-                          backgroundColor: "var(--palette-bg)",
-                          borderColor: "var(--palette-accent-3)",
-                        }}
-                      >
-                        {getAvailableColors(row.id).map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            onClick={() => handleAddColor(row.id, color)}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors flex items-center gap-2"
-                            style={{ color: "var(--palette-text)" }}
-                          >
-                            <div
-                              className="w-4 h-4 rounded-full border"
-                              style={{
-                                backgroundColor:
-                                  COLOR_OPTIONS.find((c) => c === color) === color
-                                    ? color.toLowerCase()
-                                    : "#ccc",
-                                borderColor: "rgba(0,0,0,0.2)",
-                              }}
-                            />
-                            {color}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {/* Dropdown Menu - Rendered via Portal */}
+                    {openColorDropdowns[row.id] &&
+                      typeof window !== "undefined" &&
+                      createPortal(
+                        <div
+                          className="rounded-lg border shadow-lg max-h-60 overflow-y-auto"
+                          style={{
+                            position: "absolute",
+                            top: dropdownPositions[row.id]?.top || 0,
+                            left: dropdownPositions[row.id]?.left || 0,
+                            width: dropdownPositions[row.id]?.width || "auto",
+                            backgroundColor: "var(--palette-bg)",
+                            borderColor: "var(--palette-accent-3)",
+                            zIndex: 9999,
+                          }}
+                        >
+                          {getAvailableColors(row.id).map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => handleAddColor(row.id, color)}
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors flex items-center gap-2"
+                              style={{ color: "var(--palette-text)" }}
+                            >
+                              <div
+                                className="w-4 h-4 rounded-full border shrink-0"
+                                style={{
+                                  backgroundColor:
+                                    COLOR_OPTIONS.find((c) => c === color) === color
+                                      ? color.toLowerCase()
+                                      : "#ccc",
+                                  borderColor: "rgba(0,0,0,0.2)",
+                                }}
+                              />
+                              {color}
+                            </button>
+                          ))}
+                        </div>,
+                        document.body
+                      )}
                   </div>
 
                   {/* Delete Size Button */}
