@@ -128,11 +128,11 @@ export const useAddProductStore = create<AddProductState>((set, get) => ({
       color: variant.color && variant.color.trim() !== "" ? variant.color.trim() : undefined,
     }));
 
-    /* // Calculate average price
-    const avgPrice = calculateAveragePrice(variants); */
+    // Calculate average price from variants
+    const avgPrice = calculateAveragePrice(variants);
 
-/*     // Calculate average offer price
-    const avgOfferPrice = calculateAverageOfferPrice(variants); */
+    // Calculate average offer price from variants
+    const avgOfferPrice = calculateAverageOfferPrice(variants);
 
     // Calculate total stock
     const totalStock = calculateTotalStock(variants);
@@ -147,8 +147,10 @@ export const useAddProductStore = create<AddProductState>((set, get) => ({
     const cleanedData: any = {
       ...formData,
       variants: cleanedVariants,
+      price: avgPrice,
+      offerPrice: avgOfferPrice || 0,
       stock: totalStock,
-      hasOffer:(formData?.offerPrice ?? 0) > 0 ? true : false,
+      hasOffer: (avgOfferPrice ?? 0) > 0,
     };
 
     // Clean optional string fields that should be undefined if empty
