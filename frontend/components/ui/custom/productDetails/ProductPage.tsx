@@ -1169,9 +1169,9 @@ const ProductPage = ({ params }: { params: Product }) => {
                       }
                     }}
                     disabled={!selectedVariant || quantity <= 0}
-                    className="w-full py-2 rounded-full font-medium text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50"
+                    className="w-full px-1 py-2 rounded-full font-medium text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50"
                   >
-                    Order Now <span className="text-md">(অর্ডার করুন)</span>
+                    Order Now <span className="text-sm">(অর্ডার করুন)</span>
                   </button>
                 </div>
 
