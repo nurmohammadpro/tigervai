@@ -412,6 +412,40 @@ export default function StepVariantsImproved() {
                   />
                 </div>
 
+                {/* Stock */}
+                <div>
+                  <label
+                    className="text-xs font-semibold mb-1 block"
+                    style={{ color: "var(--palette-accent-3)" }}
+                  >
+                    Stock *
+                  </label>
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={row.stock > 0 ? row.stock : ""}
+                    onChange={(e) =>
+                      handleUpdateSizeRow(
+                        row.id,
+                        "stock",
+                        Math.max(0, parseFloat(e.target.value) || 0),
+                      )
+                    }
+                    required
+                    className={row.stock <= 0 ? "border-red-500" : ""}
+                    style={{
+                      backgroundColor:
+                        row.stock <= 0
+                          ? "rgba(239, 68, 68, 0.1)"
+                          : "rgba(255, 255, 255, 0.05)",
+                      borderColor:
+                        row.stock <= 0 ? "#ef4444" : "var(--palette-accent-3)",
+                      color: "var(--palette-text)",
+                    }}
+                  />
+                </div>
+
                 {/* Actions */}
                 <div className="flex gap-2">
                   {/* Color Dropdown */}
@@ -475,42 +509,6 @@ export default function StepVariantsImproved() {
                         ))}
                       </div>
                     )}
-                  </div>
-
-                  {/* Stock */}
-                  <div>
-                    <label
-                      className="text-xs font-semibold mb-1 block"
-                      style={{ color: "var(--palette-accent-3)" }}
-                    >
-                      Stock *
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      value={row.stock > 0 ? row.stock : ""}
-                      onChange={(e) =>
-                        handleUpdateSizeRow(
-                          row.id,
-                          "stock",
-                          Math.max(0, parseFloat(e.target.value) || 0),
-                        )
-                      }
-                      required
-                      className={row.stock <= 0 ? "border-red-500" : ""}
-                      style={{
-                        backgroundColor:
-                          row.stock <= 0
-                            ? "rgba(239, 68, 68, 0.1)"
-                            : "rgba(255, 255, 255, 0.05)",
-                        borderColor:
-                          row.stock <= 0
-                            ? "#ef4444"
-                            : "var(--palette-accent-3)",
-                        color: "var(--palette-text)",
-                      }}
-                    />
                   </div>
 
                   {/* Delete Size Button */}
