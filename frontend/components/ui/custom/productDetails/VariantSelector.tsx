@@ -819,7 +819,7 @@ export default function VariantSelector({
                 type="button"
                 disabled={quantity <= 1}
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="h-8 w-8 flex justify-center items-center font-bold text-gray-600 hover:bg-gray-100 rounded-l-full disabled:opacity-50 transition-colors"
+                className="h-8 w-8 flex justify-center items-center font-bold text-gray-600 bg-red-200 hover:bg-red-500 rounded-l-full disabled:opacity-50 transition-colors"
               >
                 <span className="text-lg">−</span>
               </button>
@@ -841,7 +841,7 @@ export default function VariantSelector({
                     Math.min(selectedVariant?.stock || 99, quantity + 1),
                   )
                 }
-                className="h-8 w-8 flex justify-center items-center font-bold text-white bg-red-500 <hover:bg-red-600</hover:bg-red-6> rounded-r-full disabled:opacity-50 transition-colors"
+                className="h-8 w-8 flex justify-center items-center font-bold text-white bg-red-200 hover:bg-red-500 <hover:bg-red-600</hover:bg-red-6> rounded-r-full disabled:opacity-50 transition-colors"
               >
                 <span className="text-lg">+</span>
               </button>
