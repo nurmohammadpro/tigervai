@@ -46,11 +46,13 @@ export const ImageUploadFieldUpdate: React.FC<ImageUploadFieldProps> = ({
             if (data?.error) {
               toast.error(data.error.message);
             }
-            updateField("thumbnail", {
+            const thumbnailData = {
               url: data?.data?.url as string,
               key: data?.data?.key as string,
               id: data?.data?.key as string,
-            });
+            };
+            updateField("thumbnail", thumbnailData);
+            onImagesSelected([thumbnailData]);
             toast.dismiss(loadingUpload);
           },
           onError: (error) => {
@@ -63,10 +65,18 @@ export const ImageUploadFieldUpdate: React.FC<ImageUploadFieldProps> = ({
       }
       const loadingUpload = toast.loading("Uploading Images...");
 
+      // Use functional update to get fresh formData and avoid stale closure
+      const currentImages = useEditProductStore.getState().formData?.images ?? [];
       const newFiles = Array.from(files).slice(
         0,
-        maxFiles - (isThumbnail ? 0 : formData?.images?.length ?? 0)
+        maxFiles - currentImages.length
       );
+
+      if (newFiles.length === 0) {
+        toast.error("Maximum number of images reached");
+        toast.dismiss(loadingUpload);
+        return;
+      }
 
       const fromData = new FormData();
 
@@ -85,8 +95,12 @@ export const ImageUploadFieldUpdate: React.FC<ImageUploadFieldProps> = ({
               key: item.key,
               id: item.key,
             })) ?? [];
-          const fullImages = [...(formData?.images ?? []), ...dataReturn];
+
+          // Get fresh images again to avoid race conditions
+          const freshImages = useEditProductStore.getState().formData?.images ?? [];
+          const fullImages = [...freshImages, ...dataReturn];
           updateField("images", fullImages);
+          onImagesSelected(fullImages);
           toast.dismiss(loadingUpload);
         },
         onError: (error) => {
@@ -100,8 +114,8 @@ export const ImageUploadFieldUpdate: React.FC<ImageUploadFieldProps> = ({
       isThumbnail,
       UploadThumbnail,
       updateField,
-      formData,
       UploadMultipleImage,
+      onImagesSelected,
     ]
   );
 
