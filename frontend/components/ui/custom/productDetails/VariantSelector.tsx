@@ -824,7 +824,8 @@ export default function VariantSelector({
               className="flex items-center gap-0 border-2 border-black rounded-full bg-white"
               style={{
                 opacity: (selectedVariant?.stock || 0) === 0 ? 0.5 : 1,
-                pointerEvents: (selectedVariant?.stock || 0) === 0 ? "none" : "auto",
+                pointerEvents:
+                  (selectedVariant?.stock || 0) === 0 ? "none" : "auto",
               }}
             >
               <button
@@ -835,12 +836,15 @@ export default function VariantSelector({
               >
                 <span className="text-lg">−</span>
               </button>
-              <span className="w-10 text-center text-foreground text-sm font-semibold">
+              <span className="w-10 px-4 md:px-6 text-center text-foreground text-sm font-semibold">
                 {quantity}
               </span>
               <button
                 type="button"
-                disabled={quantity >= (selectedVariant?.stock || 0) || (selectedVariant?.stock || 0) === 0}
+                disabled={
+                  quantity >= (selectedVariant?.stock || 0) ||
+                  (selectedVariant?.stock || 0) === 0
+                }
                 onClick={() =>
                   setQuantity(
                     Math.min(selectedVariant?.stock || 0, quantity + 1),
@@ -848,7 +852,8 @@ export default function VariantSelector({
                 }
                 className="h-8 w-8 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 style={{
-                  backgroundColor: quantity > 0 ? "var(--palette-btn)" : "#fca5a5",
+                  backgroundColor:
+                    quantity > 0 ? "var(--palette-btn)" : "#fca5a5",
                 }}
               >
                 <span className="text-lg">+</span>
