@@ -679,7 +679,7 @@ export default function VariantSelector({
                           : "rgba(0, 0, 0, 0.15)",
                         backgroundColor: "#ffffff",
                         color: isSelected
-                          ? "var(--palette-btn)"
+                          ? "var(--palette-text)"
                           : "var(--palette-text)",
                         minWidth: "45px",
                       }}
