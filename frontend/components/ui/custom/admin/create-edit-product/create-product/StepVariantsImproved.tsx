@@ -432,7 +432,7 @@ export default function StepVariantsImproved() {
                           right: 0,
                           backgroundColor: "var(--palette-bg)",
                           borderColor: "var(--palette-accent-3)",
-                          zIndex: 100,
+                          zIndex: 9999,
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
