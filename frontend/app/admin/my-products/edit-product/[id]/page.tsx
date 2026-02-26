@@ -38,6 +38,9 @@ import { updateProductAdmin } from "@/actions/product";
 import RichTextEditor from "@/components/ui/custom/addProduct/Description";
 import { ReactSortable } from "react-sortablejs";
 import StepVariantsImproved from "@/components/ui/custom/admin/create-edit-product/create-product/StepVariantsImproved";
+import { DeleteImage } from "@/actions/brand-category";
+import { useApiMutation } from "@/api-hook/react-query-wrapper";
+import { X } from "lucide-react";
 // Static product data for demo
 const STATIC_PRODUCTS: Record<string, any> = {
   "1": {
@@ -132,8 +135,36 @@ export default function EditProductPage() {
     undefined,
     "update-product"
   );
+
+  // Delete image mutation
+  const { mutate: deleteImageMutate, isPending: isDeletingImage } = useApiMutation(
+    DeleteImage,
+    undefined,
+    "DeleteImage"
+  );
+
   const handleSave = async () => {
     mutate({ id: productDetails?._id!, payload: formData });
+  };
+
+  // Handle image removal
+  const handleRemoveImage = (imageId: string) => {
+    if (!confirm("Are you sure you want to remove this image?")) return;
+
+    // Call API to delete image from server
+    deleteImageMutate(imageId, {
+      onSuccess: () => {
+        // Update local state by filtering out the removed image
+        const updatedImages = images.filter((img) => img.id !== imageId);
+        updateField("images", updatedImages);
+      },
+      onError: (error: any) => {
+        console.error("Failed to delete image:", error);
+        // Still remove from local state even if API fails
+        const updatedImages = images.filter((img) => img.id !== imageId);
+        updateField("images", updatedImages);
+      },
+    });
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -667,16 +698,42 @@ export default function EditProductPage() {
                   >
                     Product Thumbnail
                   </h3>
-                  {formData.thumbnail && (
-                    <img
-                      src={formData.thumbnail.url}
-                      alt="Thumbnail"
-                      className="w-24 h-24 object-cover rounded-lg mb-3"
-                    />
-                  )}
+                  <div className="flex items-start gap-4 mb-3">
+                    {formData.thumbnail ? (
+                      <div className="relative group">
+                        <img
+                          src={formData.thumbnail.url}
+                          alt="Thumbnail"
+                          className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm("Remove this thumbnail?")) {
+                              deleteImageMutate(formData.thumbnail!.id!, {
+                                onSuccess: () => {
+                                  updateField("thumbnail", null);
+                                },
+                              });
+                            }
+                          }}
+                          disabled={isDeletingImage}
+                          className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                          title="Remove thumbnail"
+                        >
+                          <X size={14} className="text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-sm">
+                        No thumbnail
+                      </div>
+                    )}
+                  </div>
                   <ImageUploadFieldUpdate
-                    label="Change Thumbnail"
+                    label={formData.thumbnail ? "Change Thumbnail" : "Upload Thumbnail"}
                     isThumbnail={true}
+                    maxFiles={1}
                     onImagesSelected={(images) => {
                       if (images.length > 0)
                         updateField("thumbnail", images[0]);
@@ -690,7 +747,7 @@ export default function EditProductPage() {
                     className="font-semibold mb-3"
                     style={{ color: "var(--palette-accent-1)" }}
                   >
-                    Product Images
+                    Product Images {images.length > 0 && `(${images.length}/5)`}
                   </h3>
                   {images.length > 0 && (
                     <div>
@@ -698,13 +755,13 @@ export default function EditProductPage() {
                         className="text-sm font-medium mb-3"
                         style={{ color: "var(--palette-accent-1)" }}
                       >
-                        Uploaded Images ({images.length}) - Drag to reorder
+                        Uploaded Images ({images.length}) - Drag to reorder, click × to remove
                       </p>
                       <ReactSortable
                         id="images-grid"
                         list={images}
                         setList={(newOrder) => updateField("images", newOrder)}
-                        className="grid grid-cols-4 gap-3"
+                        className="grid grid-cols-2 md:grid-cols-4 gap-3"
                         animation={200}
                         handle=".drag-handle"
                         itemClass="sortable-item"
@@ -714,43 +771,62 @@ export default function EditProductPage() {
                         {images.map((img, index) => (
                           <div
                             key={`${img.id || img.key}-${index}`}
-                            className="w-full h-24 relative sortable-item"
+                            className="w-full h-32 relative sortable-item"
                           >
                             <div
-                              className="w-full h-24 cursor-grab active:cursor-grabbing rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 border-2 border-transparent hover:border-blue-400 group relative drag-handle"
+                              className="w-full h-32 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 border-2 border-transparent hover:border-blue-400 group relative"
                               style={{
                                 touchAction: "none",
                                 userSelect: "none",
                               }}
                             >
-                              {/* Drag handle - unchanged */}
-                              <div className="absolute top-1 right-1 w-6 h-6 bg-blue-500/80 hover:bg-blue-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-10 cursor-grab active:cursor-grabbing">
-                                <svg
-                                  className="w-4 h-4 text-white"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 8h16M4 16h16"
-                                  />
-                                </svg>
+                              {/* Image */}
+                              <div className="drag-handle cursor-grab active:cursor-grabbing w-full h-24">
+                                <img
+                                  src={img.url}
+                                  alt={`Product image ${index + 1}`}
+                                  className="w-full h-24 object-cover"
+                                  draggable={false}
+                                />
                               </div>
 
-                              <img
-                                src={img.url}
-                                alt={`Product image ${index + 1}`}
-                                className="w-full h-full object-cover rounded-lg"
-                                draggable={false}
-                              />
+                              {/* Action buttons bar */}
+                              <div className="absolute top-0 right-0 flex gap-1 p-1">
+                                {/* Drag handle indicator */}
+                                <div
+                                  className="drag-handle w-7 h-7 bg-blue-500/90 hover:bg-blue-600 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing transition-all"
+                                  title="Drag to reorder"
+                                >
+                                  <svg
+                                    className="w-4 h-4 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 8h16M4 16h16"
+                                    />
+                                  </svg>
+                                </div>
 
-                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                <span className="text-white text-xs font-medium px-2 py-1 bg-black/50 rounded">
-                                  Drag ↕️
-                                </span>
+                                {/* Remove button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveImage(img.id!)}
+                                  disabled={isDeletingImage}
+                                  className="w-7 h-7 bg-red-500/90 hover:bg-red-600 rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title="Remove image"
+                                >
+                                  <X size={14} className="text-white" />
+                                </button>
+                              </div>
+
+                              {/* Image number indicator */}
+                              <div className="absolute bottom-0 left-0 bg-black/60 text-white text-xs px-2 py-1 rounded-tr-lg rounded-bl-lg">
+                                {index + 1}
                               </div>
                             </div>
                           </div>
@@ -759,9 +835,28 @@ export default function EditProductPage() {
                     </div>
                   )}
 
+                  {images.length >= 5 ? (
+                    <div
+                      className="mt-3 p-3 rounded-lg bg-yellow-50 border border-yellow-300"
+                      style={{ backgroundColor: "rgba(251, 191, 36, 0.1)" }}
+                    >
+                      <p className="text-sm text-yellow-800">
+                        ⚠️ Maximum number of images (5) reached. Remove some images to add more.
+                      </p>
+                    </div>
+                  ) : (
+                    <p
+                      className="text-sm mt-3"
+                      style={{ color: "var(--palette-accent-3)" }}
+                    >
+                      You can add {5 - images.length} more image{5 - images.length !== 1 ? "s" : ""}.
+                    </p>
+                  )}
+
                   <ImageUploadFieldUpdate
                     label="Add More Images"
                     isThumbnail={false}
+                    showPreviews={false}
                     onImagesSelected={(images) => {
                       updateField("images", images);
                     }}

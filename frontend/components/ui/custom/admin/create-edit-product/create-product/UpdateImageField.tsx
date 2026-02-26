@@ -17,6 +17,7 @@ interface ImageUploadFieldProps {
   maxFiles?: number;
   label?: string;
   isThumbnail?: boolean;
+  showPreviews?: boolean; // New prop to control preview display
 }
 
 export const ImageUploadFieldUpdate: React.FC<ImageUploadFieldProps> = ({
@@ -24,6 +25,7 @@ export const ImageUploadFieldUpdate: React.FC<ImageUploadFieldProps> = ({
   maxFiles = 5,
   label = "Upload Images",
   isThumbnail = false,
+  showPreviews = true,
 }) => {
   const [dragActive, setDragActive] = useState(false);
 
@@ -67,15 +69,24 @@ export const ImageUploadFieldUpdate: React.FC<ImageUploadFieldProps> = ({
 
       // Use functional update to get fresh formData and avoid stale closure
       const currentImages = useEditProductStore.getState().formData?.images ?? [];
-      const newFiles = Array.from(files).slice(
-        0,
-        maxFiles - currentImages.length
-      );
+      const availableSlots = maxFiles - currentImages.length;
+
+      if (availableSlots <= 0) {
+        toast.dismiss(loadingUpload);
+        toast.error(`Maximum ${maxFiles} images allowed. Remove some images first.`);
+        return;
+      }
+
+      const newFiles = Array.from(files).slice(0, availableSlots);
 
       if (newFiles.length === 0) {
-        toast.error("Maximum number of images reached");
         toast.dismiss(loadingUpload);
+        toast.error("No files to upload");
         return;
+      }
+
+      if (newFiles.length < files.length) {
+        toast.warning(`Only ${newFiles.length} of ${files.length} images will be uploaded (maximum ${maxFiles} total)`);
       }
 
       const fromData = new FormData();
@@ -223,61 +234,65 @@ export const ImageUploadFieldUpdate: React.FC<ImageUploadFieldProps> = ({
           </p>
         </label>
       </div>
-      {isThumbnail
-        ? formData.thumbnail && (
-            <div
-              className={`mt-4 grid gap-4 ${
-                isThumbnail ? "grid-cols-1" : "grid-cols-2 md:grid-cols-4"
-              }`}
-            >
-              <div
-                key={formData?.thumbnail?.id}
-                className="relative group rounded-lg overflow-hidden"
-                style={{ backgroundColor: "var(--palette-bg)" }}
-              >
-                <img
-                  src={formData?.thumbnail?.url}
-                  alt={`Preview ${formData?.thumbnail?.key}`}
-                  className="w-full h-32 object-cover"
-                />
-                <button
-                  onClick={() => removeImage(formData?.thumbnail?.id!)}
-                  className="absolute top-1 right-1 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X size={16} className="text-white" />
-                </button>
-              </div>
-            </div>
-          )
-        : (formData?.images?.length ?? 0) > 0 && (
-            <div
-              className={`mt-4 grid gap-4 ${
-                isThumbnail ? "grid-cols-1" : "grid-cols-2 md:grid-cols-4"
-              }`}
-            >
-              {formData?.images?.map((item, index) => (
-                <div
-                  key={index}
-                  className="relative group rounded-lg overflow-hidden"
-                  style={{ backgroundColor: "var(--palette-bg)" }}
-                >
-                  <img
-                    src={item.url}
-                    alt={`Preview ${index}`}
-                    className="w-full h-32 object-cover"
-                  />
-                  <button
-                    onClick={() => removeImage(item.id!)}
-                    className="absolute top-1 right-1 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X size={16} className="text-white" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
 
-      {/* Preview Grid */}
+      {/* Preview Grid - Only show if showPreviews is true */}
+      {showPreviews && (
+        <>
+          {isThumbnail
+            ? formData.thumbnail && (
+                <div
+                  className={`mt-4 grid gap-4 ${
+                    isThumbnail ? "grid-cols-1" : "grid-cols-2 md:grid-cols-4"
+                  }`}
+                >
+                  <div
+                    key={formData?.thumbnail?.id}
+                    className="relative group rounded-lg overflow-hidden"
+                    style={{ backgroundColor: "var(--palette-bg)" }}
+                  >
+                    <img
+                      src={formData?.thumbnail?.url}
+                      alt={`Preview ${formData?.thumbnail?.key}`}
+                      className="w-full h-32 object-cover"
+                    />
+                    <button
+                      onClick={() => removeImage(formData?.thumbnail?.id!)}
+                      className="absolute top-1 right-1 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={16} className="text-white" />
+                    </button>
+                  </div>
+                </div>
+              )
+            : (formData?.images?.length ?? 0) > 0 && (
+                <div
+                  className={`mt-4 grid gap-4 ${
+                    isThumbnail ? "grid-cols-1" : "grid-cols-2 md:grid-cols-4"
+                  }`}
+                >
+                  {formData?.images?.map((item, index) => (
+                    <div
+                      key={index}
+                      className="relative group rounded-lg overflow-hidden"
+                      style={{ backgroundColor: "var(--palette-bg)" }}
+                    >
+                      <img
+                        src={item.url}
+                        alt={`Preview ${index}`}
+                        className="w-full h-32 object-cover"
+                      />
+                      <button
+                        onClick={() => removeImage(item.id!)}
+                        className="absolute top-1 right-1 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={16} className="text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+        </>
+      )}
     </div>
   );
 };
