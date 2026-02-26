@@ -830,11 +830,11 @@ export default function VariantSelector({
                 type="button"
                 disabled={quantity <= 0 || (selectedVariant?.stock || 0) === 0}
                 onClick={() => setQuantity(Math.max(0, quantity - 1))}
-                className="h-8 w-8 py-4 flex justify-center items-center font-bold text-gray-600 bg-red-200 hover:bg-red-500 rounded-l-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="h-10 w-12 py-4 flex justify-center items-center font-bold text-gray-600 bg-red-200 hover:bg-red-500 rounded-l-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <span className="text-xl font-semibold px-4">−</span>
+                <span className="text-xl font-semibold">−</span>
               </button>
-              <span className="w-10 px-6 md:px-10 text-center text-foreground text-sm font-semibold">
+              <span className="w-10 px-8 md:px-12 text-center text-foreground text-sm font-semibold">
                 {quantity}
               </span>
               <button
@@ -848,13 +848,13 @@ export default function VariantSelector({
                     Math.min(selectedVariant?.stock || 0, quantity + 1),
                   )
                 }
-                className="h-8 w-8 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 style={{
                   backgroundColor:
                     quantity > 0 ? "var(--palette-btn)" : "#fca5a5",
                 }}
               >
-                <span className="text-xl font-semibold px-4">+</span>
+                <span className="text-xl font-semibold">+</span>
               </button>
             </div>
           </div>
