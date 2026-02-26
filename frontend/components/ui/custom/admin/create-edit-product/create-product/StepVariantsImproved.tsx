@@ -275,7 +275,7 @@ export default function StepVariantsImproved() {
           >
             {/* Size Header Row */}
             <div
-              className="p-4 border-b"
+              className="p-2 pb-6"
               style={{ borderColor: "var(--palette-accent-3)" }}
             >
               <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
@@ -533,15 +533,17 @@ export default function StepVariantsImproved() {
       </div>
 
       {/* Add New Size Button */}
-      <Button
-        type="button"
-        onClick={handleAddSizeRow}
-        className="flex items-center gap-2 text-white w-full"
-        style={{ backgroundColor: "var(--palette-btn)" }}
-      >
-        <Plus size={18} />
-        Add New Size
-      </Button>
+      <div className="mt-4">
+        <Button
+          type="button"
+          onClick={handleAddSizeRow}
+          className="flex items-center gap-2 text-white w-full"
+          style={{ backgroundColor: "var(--palette-btn)" }}
+        >
+          <Plus size={18} />
+          Add New Size
+        </Button>
+      </div>
 
       {/* Summary */}
       {sizeRows.length > 0 && (
