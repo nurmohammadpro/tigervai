@@ -655,17 +655,20 @@ export default function VariantSelector({
                 {colors.map((color) => {
                   const isAvailable = isColorAvailable(color);
                   const isSelected = selectedColor === color;
-                  const colorValue = getColorFromName(color);
+                  const colorVariant = variants.find(
+                    (v) => v.color === color && v.size === selectedSize,
+                  );
+                  const isOutOfStock = colorVariant?.stock === 0;
 
                   return (
                     <button
                       key={color}
                       onClick={() => isAvailable && handleColorSelect(color)}
-                      disabled={!isAvailable}
+                      disabled={!isAvailable || isOutOfStock}
                       className={`
                         relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
                         ${
-                          !isAvailable
+                          !isAvailable || isOutOfStock
                             ? "opacity-20 cursor-not-allowed grayscale"
                             : "cursor-pointer hover:scale-105 active:scale-95"
                         }
@@ -674,12 +677,10 @@ export default function VariantSelector({
                         borderColor: isSelected
                           ? "var(--palette-btn)"
                           : "rgba(0, 0, 0, 0.15)",
-                        backgroundColor: isSelected
-                          ? "var(--palette-btn)"
-                          : colorValue,
+                        backgroundColor: "#ffffff",
                         color: isSelected
-                          ? "#ffffff"
-                          : getContrastColor(colorValue),
+                          ? "var(--palette-btn)"
+                          : "var(--palette-text)",
                         minWidth: "45px",
                       }}
                       title={color}
@@ -694,21 +695,24 @@ export default function VariantSelector({
         )}
 
         {/* Inline Stock Display - Between Color and Size */}
-        {selectedVariant && selectedVariant.stock && (
+        {selectedVariant && (
           <div className="mb-3">
             <span
               className="text-xs font-semibold"
               style={{
                 color:
-                  selectedVariant.stock <= 3
+                  (selectedVariant.stock || 0) === 0
                     ? "#ef4444"
-                    : selectedVariant.stock <= 5
-                      ? "#f97316"
-                      : "#22c55e",
+                    : (selectedVariant.stock || 0) <= 3
+                      ? "#ef4444"
+                      : (selectedVariant.stock || 0) <= 5
+                        ? "#f97316"
+                        : "#22c55e",
               }}
             >
-              Stock: {selectedVariant.stock}{" "}
-              {selectedVariant.stock === 1 ? "item" : "items"}
+              {(selectedVariant.stock || 0) === 0
+                ? "Out of Stock"
+                : `Stock: ${selectedVariant.stock} ${selectedVariant.stock === 1 ? "item" : "items"}`}
             </span>
           </div>
         )}
@@ -726,16 +730,18 @@ export default function VariantSelector({
               {sizes.map((size) => {
                 const isAvailable = isSizeAvailable(size);
                 const isSelected = selectedSize === size;
+                const sizeVariant = variants.find((v) => v.size === size);
+                const isOutOfStock = sizeVariant?.stock === 0;
 
                 return (
                   <button
                     key={size}
                     onClick={() => isAvailable && handleSizeSelect(size)}
-                    disabled={!isAvailable}
+                    disabled={!isAvailable || isOutOfStock}
                     className={`
                         relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
                         ${
-                          !isAvailable
+                          !isAvailable || isOutOfStock
                             ? "opacity-20 cursor-not-allowed grayscale"
                             : "cursor-pointer hover:scale-105 active:scale-95"
                         }
@@ -813,35 +819,37 @@ export default function VariantSelector({
               )}
             </div>
 
-            {/* Quantity Selector */}
-            <div className="flex items-center gap-0 border-2 border-black rounded-full bg-white">
+            {/* Quantity Selector - Disabled when out of stock */}
+            <div
+              className="flex items-center gap-0 border-2 border-black rounded-full bg-white"
+              style={{
+                opacity: (selectedVariant?.stock || 0) === 0 ? 0.5 : 1,
+                pointerEvents: (selectedVariant?.stock || 0) === 0 ? "none" : "auto",
+              }}
+            >
               <button
                 type="button"
-                disabled={quantity <= 1}
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="h-8 w-8 flex justify-center items-center font-bold text-gray-600 bg-red-200 hover:bg-red-500 rounded-l-full disabled:opacity-50 transition-colors"
+                disabled={quantity <= 0 || (selectedVariant?.stock || 0) === 0}
+                onClick={() => setQuantity(Math.max(0, quantity - 1))}
+                className="h-8 w-8 flex justify-center items-center font-bold text-gray-600 bg-red-200 hover:bg-red-500 rounded-l-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <span className="text-lg">−</span>
               </button>
-              <input
-                type="text"
-                value={quantity}
-                onChange={(e) =>
-                  setQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                }
-                className="w-10 text-center border-none outline-none text-foreground text-sm font-semibold"
-                min={1}
-                max={selectedVariant?.stock || 99}
-              />
+              <span className="w-10 text-center text-foreground text-sm font-semibold">
+                {quantity}
+              </span>
               <button
                 type="button"
-                disabled={quantity >= (selectedVariant?.stock || 99)}
+                disabled={quantity >= (selectedVariant?.stock || 0) || (selectedVariant?.stock || 0) === 0}
                 onClick={() =>
                   setQuantity(
-                    Math.min(selectedVariant?.stock || 99, quantity + 1),
+                    Math.min(selectedVariant?.stock || 0, quantity + 1),
                   )
                 }
-                className="h-8 w-8 flex justify-center items-center font-bold text-white bg-red-200 hover:bg-red-500 <hover:bg-red-600</hover:bg-red-6> rounded-r-full disabled:opacity-50 transition-colors"
+                className="h-8 w-8 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                style={{
+                  backgroundColor: quantity > 0 ? "var(--palette-btn)" : "#fca5a5",
+                }}
               >
                 <span className="text-lg">+</span>
               </button>
