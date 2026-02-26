@@ -275,7 +275,7 @@ export default function StepVariantsImproved() {
           >
             {/* Size Header Row */}
             <div
-              className="p-2 pb-6"
+              className="p-2 pb-24"
               style={{ borderColor: "var(--palette-accent-3)" }}
             >
               <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
