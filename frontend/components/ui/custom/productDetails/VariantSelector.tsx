@@ -836,7 +836,7 @@ export default function VariantSelector({
               >
                 <span className="text-lg px-6">−</span>
               </button>
-              <span className="w-10 px-8 md:px-12 text-center text-foreground text-sm font-semibold">
+              <span className="w-10 px-6 md:px-10 py-2 text-center text-foreground text-sm font-semibold">
                 {quantity}
               </span>
               <button
