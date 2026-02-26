@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
+import { useEditProductStore } from "@/zustan-hook/editProductStore";
 
 interface Variant {
   size: string;
@@ -32,9 +33,21 @@ interface SizeRow {
   colors: string; // Comma-separated string
 }
 
-export default function StepVariantsImproved() {
-  const { formData, updateField } = useAddProductStore();
-  const variants = (formData.variants as Variant[]) || [];
+interface StepVariantsImprovedProps {
+  mode?: "add" | "edit";
+}
+
+export default function StepVariantsImproved({
+  mode = "add",
+}: StepVariantsImprovedProps) {
+  // Use the appropriate store based on mode
+  const addStore = useAddProductStore();
+  const editStore = useEditProductStore();
+
+  const { formData, updateField } =
+    mode === "add" ? addStore : editStore;
+
+  const variants = (formData?.variants as Variant[]) || [];
 
   // State for table-like input
   const [sizeRows, setSizeRows] = useState<SizeRow[]>([]);

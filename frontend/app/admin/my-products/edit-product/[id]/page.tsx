@@ -10,9 +10,6 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
-  Pen,
-  Upload,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -28,12 +25,6 @@ import {
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEditProductStore } from "@/zustan-hook/editProductStore";
-import { ImageUploadField } from "@/components/ui/custom/admin/create-edit-product/ImageUploadField";
-import {
-  calculateAverageOfferPrice,
-  calculateAveragePrice,
-  calculateTotalStock,
-} from "@/lib/calculation-helper";
 import {
   useApiMutation,
   useQueryWrapper,
@@ -46,7 +37,7 @@ import { ImageUploadFieldUpdate } from "@/components/ui/custom/admin/create-edit
 import { updateProductAdmin } from "@/actions/product";
 import RichTextEditor from "@/components/ui/custom/addProduct/Description";
 import { ReactSortable } from "react-sortablejs";
-import { useUploadSingleImage } from "@/lib/useHandelImageUpload";
+import StepVariantsImproved from "@/components/ui/custom/admin/create-edit-product/create-product/StepVariantsImproved";
 // Static product data for demo
 const STATIC_PRODUCTS: Record<string, any> = {
   "1": {
@@ -97,20 +88,6 @@ const BRANDS = [
   { id: "brand4", name: "Zara" },
   { id: "brand5", name: "Fossil" },
 ];
-interface Variant {
-  size: string;
-  color: string;
-  price: number;
-  stock: number;
-  discountPrice?: number;
-  sku?: string;
-  recommended?: string;
-  image?: {
-    url: string;
-    key: string;
-    id: string;
-  };
-}
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -126,14 +103,6 @@ export default function EditProductPage() {
     media: false,
     shipping: false,
     additional: false,
-  });
-  const [newVariant, setNewVariant] = useState<Variant>({
-    size: "",
-    color: "",
-    price: 0,
-    stock: 0,
-    recommended: "",
-    discountPrice: 0,
   });
   const { data: productDetails, isPending } = useQueryWrapper<Product>(
     [productId],
@@ -174,33 +143,6 @@ export default function EditProductPage() {
     }));
   };
 
-  const handleAddVariant = () => {
-    if (!newVariant.size || !newVariant.color || newVariant.price <= 0) {
-      alert("Please fill all required variant fields");
-      return;
-    }
-
-    const variants = (formData?.variants as any[]) || [];
-    updateField("variants", [...variants, newVariant]);
-    setNewVariant({
-      size: "",
-      color: "",
-      price: 0,
-      stock: 0,
-      recommended: "",
-      discountPrice: 0,
-      image: { url: "", key: "", id: "" },
-    });
-  };
-
-  const handleRemoveVariant = (index: number) => {
-    const variants = (formData?.variants as any[]) || [];
-    updateField(
-      "variants",
-      variants.filter((_, i) => i !== index)
-    );
-  };
-
   const handleAddSpec = () => {
     if (!newSpec.key || !newSpec.value) {
       alert("Please fill both key and value");
@@ -216,30 +158,6 @@ export default function EditProductPage() {
 
     setNewSpec({ key: "", value: "" });
   };
-  const { mutate: uploadImage, isPending: isImageUploading } =
-    useUploadSingleImage();
-  const handelUploadImage = (file: File) => {
-    const fromData = new FormData();
-    fromData.append("file", file);
-    uploadImage(fromData, {
-      onSuccess: (data) => {
-        setNewVariant({
-          ...newVariant,
-          image: {
-            url: data?.data?.url as string,
-            key: data?.data?.key as string,
-            id: data?.data?.key as string,
-          },
-        });
-      },
-    });
-  };
-  const handleRemoveImage = () => {
-    setNewVariant({
-      ...newVariant,
-      image: undefined,
-    });
-  };
 
   const handleRemoveSpec = (key: string) => {
     const specifications =
@@ -251,10 +169,6 @@ export default function EditProductPage() {
 
   // Calculate auto values
   const variants = (formData?.variants as any[]) || [];
-  const avgPrice = variants.length > 0 ? calculateAveragePrice(variants) : 0;
-  const avgOfferPrice =
-    variants.length > 0 ? calculateAverageOfferPrice(variants) : null;
-  const totalStock = variants.length > 0 ? calculateTotalStock(variants) : 0;
 
   if (!formData) {
     return (
@@ -699,7 +613,7 @@ export default function EditProductPage() {
               className="w-full p-4 flex justify-between items-center hover:bg-white/5 transition"
             >
               <h2 className="text-xl font-bold flex items-center gap-2">
-                📦 Variants ({variants.length})
+                📦 Variants
               </h2>
               {expandedSections.variants ? (
                 <ChevronUp size={20} />
@@ -713,398 +627,7 @@ export default function EditProductPage() {
                 className="p-4 border-t"
                 style={{ borderColor: "var(--palette-accent-3)" }}
               >
-                <div className="space-y-4">
-                  {/* Add Variant Form */}
-                  <div
-                    className="p-4 rounded-lg border"
-                    style={{
-                      borderColor: "var(--palette-accent-3)",
-                      backgroundColor: "rgba(255, 255, 255, 0.02)",
-                    }}
-                  >
-                    <h3
-                      className="font-semibold mb-4"
-                      style={{ color: "var(--palette-accent-1)" }}
-                    >
-                      Add New Variant
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                      <div>
-                        <label
-                          className="text-xs font-semibold mb-1 block"
-                          style={{ color: "var(--palette-accent-3)" }}
-                        >
-                          Size
-                        </label>
-                        <Input
-                          placeholder="M, L, etc"
-                          value={newVariant.size}
-                          onChange={(e) =>
-                            setNewVariant({
-                              ...newVariant,
-                              size: e.target.value,
-                            })
-                          }
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            borderColor: "var(--palette-accent-3)",
-                            color: "var(--palette-text)",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          className="text-xs font-semibold mb-1 block"
-                          style={{ color: "var(--palette-accent-3)" }}
-                        >
-                          Color
-                        </label>
-                        <Input
-                          placeholder="Red, Blue"
-                          value={newVariant.color}
-                          onChange={(e) =>
-                            setNewVariant({
-                              ...newVariant,
-                              color: e.target.value,
-                            })
-                          }
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            borderColor: "var(--palette-accent-3)",
-                            color: "var(--palette-text)",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          className="text-xs font-semibold mb-1 block"
-                          style={{ color: "var(--palette-accent-3)" }}
-                        >
-                          Price
-                        </label>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          value={newVariant.price}
-                          onChange={(e) =>
-                            setNewVariant({
-                              ...newVariant,
-                              price: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            borderColor: "var(--palette-accent-3)",
-                            color: "var(--palette-text)",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          className="text-xs font-semibold mb-1 block"
-                          style={{ color: "var(--palette-accent-3)" }}
-                        >
-                          Discount Price
-                        </label>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          value={newVariant.discountPrice}
-                          onChange={(e) =>
-                            setNewVariant({
-                              ...newVariant,
-                              discountPrice: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            borderColor: "var(--palette-accent-3)",
-                            color: "var(--palette-text)",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          className="text-xs font-semibold mb-1 block"
-                          style={{ color: "var(--palette-accent-3)" }}
-                        >
-                          Stock
-                        </label>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          value={newVariant.stock}
-                          onChange={(e) =>
-                            setNewVariant({
-                              ...newVariant,
-                              stock: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            borderColor: "var(--palette-accent-3)",
-                            color: "var(--palette-text)",
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          className="text-xs font-semibold mb-1 block"
-                          style={{ color: "var(--palette-accent-3)" }}
-                        >
-                          Recommended (Optional)
-                        </label>
-                        <Input
-                          placeholder="e.g., Use this variant"
-                          value={newVariant.recommended || ""}
-                          onChange={(e) =>
-                            setNewVariant({
-                              ...newVariant,
-                              recommended: e.target.value,
-                            })
-                          }
-                          style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            borderColor: "var(--palette-accent-3)",
-                            color: "var(--palette-text)",
-                          }}
-                        />
-                      </div>
-
-                      <div className="mb-4">
-                        <label
-                          className="text-xs font-semibold mb-2 block"
-                          style={{ color: "var(--palette-accent-3)" }}
-                        >
-                          Variant Image (Optional)
-                        </label>
-
-                        {!newVariant.image?.url ? (
-                          <div
-                            className="relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-white/5 transition-colors"
-                            style={{ borderColor: "var(--palette-accent-3)" }}
-                          >
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handelUploadImage(file);
-                                }
-                              }}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              disabled={isImageUploading}
-                            />
-                            <div className="flex flex-col items-center gap-2">
-                              <Upload
-                                size={32}
-                                style={{ color: "var(--palette-accent-3)" }}
-                              />
-                              <p
-                                className="text-sm font-medium"
-                                style={{ color: "var(--palette-accent-3)" }}
-                              >
-                                {isImageUploading
-                                  ? "Uploading..."
-                                  : "Click to upload variant image"}
-                              </p>
-                              <p
-                                className="text-xs"
-                                style={{
-                                  color: "var(--palette-accent-3)",
-                                  opacity: 0.7,
-                                }}
-                              >
-                                PNG, JPG, WEBP up to 5MB
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div
-                            className="relative rounded-lg border p-2"
-                            style={{
-                              borderColor: "var(--palette-accent-3)",
-                              backgroundColor: "rgba(255, 255, 255, 0.05)",
-                            }}
-                          >
-                            <div className="relative w-full h-32">
-                              <img
-                                src={newVariant.image.url}
-                                alt="Variant preview"
-                                className="w-full h-full object-cover rounded"
-                              />
-                              <button
-                                onClick={handleRemoveImage}
-                                className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 rounded-full transition"
-                                type="button"
-                              >
-                                <X size={16} className="text-white" />
-                              </button>
-                            </div>
-                            <p
-                              className="text-xs mt-2 text-center"
-                              style={{ color: "var(--palette-accent-3)" }}
-                            >
-                              Image uploaded ✓
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      onClick={handleAddVariant}
-                      className="flex items-center gap-2 text-white"
-                      style={{ backgroundColor: "var(--palette-btn)" }}
-                    >
-                      <Plus size={18} />
-                      Add Variant
-                    </Button>
-                  </div>
-
-                  {/* Variants List */}
-                  {variants.length > 0 && (
-                    <div>
-                      <h3
-                        className="font-semibold mb-3"
-                        style={{ color: "var(--palette-accent-1)" }}
-                      >
-                        Added Variants ({variants.length})
-                      </h3>
-                      <div className="space-y-2">
-                        {variants.map((variant, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center p-3 rounded-lg gap-3"
-                            style={{
-                              borderColor: "var(--palette-accent-3)",
-                              backgroundColor: "rgba(255, 255, 255, 0.02)",
-                              border: "1px solid",
-                            }}
-                          >
-                            {/* Variant Image Preview */}
-                            {variant.image?.url && (
-                              <div className="flex-shrink-0">
-                                <img
-                                  src={variant.image.url}
-                                  alt={`${variant.size} ${variant.color}`}
-                                  className="w-16 h-16 object-cover rounded border"
-                                  style={{
-                                    borderColor: "var(--palette-accent-3)",
-                                  }}
-                                />
-                              </div>
-                            )}
-
-                            <div className="flex-1">
-                              <p className="font-medium">
-                                {variant.size} - {variant.color}
-                              </p>
-                              <p
-                                className="text-sm"
-                                style={{ color: "var(--palette-accent-3)" }}
-                              >
-                                ৳{variant.price}
-                                {variant.discountPrice &&
-                                  ` → ৳${variant.discountPrice}`}{" "}
-                                | Stock: {variant.stock}
-                                {variant.sku && ` | SKU: ${variant.sku}`}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setNewVariant({
-                                  color: variant?.color,
-                                  price: variant?.price,
-                                  size: variant?.size,
-                                  stock: variant?.stock,
-                                  recommended: variant?.recommended,
-                                  discountPrice: variant?.discountPrice,
-                                  sku: variant?.sku,
-                                  image: variant?.image,
-                                });
-                                handleRemoveVariant(index);
-                              }}
-                              className="p-2 hover:bg-red-500/20 rounded transition"
-                            >
-                              <Pen size={18} className="text-red-400" />
-                            </button>
-                            <button
-                              onClick={() => handleRemoveVariant(index)}
-                              className="p-2 hover:bg-red-500/20 rounded transition"
-                            >
-                              <Trash2 size={18} className="text-red-400" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Auto-Calculated Prices */}
-                  <div
-                    className="p-4 rounded-lg"
-                    style={{
-                      backgroundColor: "rgba(255, 107, 122, 0.1)",
-                      borderColor: "var(--palette-btn)",
-                      border: "1px solid",
-                    }}
-                  >
-                    <h3
-                      className="font-semibold mb-3"
-                      style={{ color: "var(--palette-accent-1)" }}
-                    >
-                      Auto-Calculated Prices
-                    </h3>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span style={{ color: "var(--palette-accent-3)" }}>
-                          Avg Price:
-                        </span>
-                        <Input
-                          type="number"
-                          value={formData?.price}
-                          onChange={(e) =>
-                            updateField("price", parseInt(e.target.value))
-                          }
-                        />
-                        {/* <p className="font-semibold text-lg">
-                          ৳{formData?.price}
-                        </p> */}
-                      </div>
-                      {formData?.offerPrice && (
-                        <div>
-                          <span style={{ color: "var(--palette-accent-3)" }}>
-                            Avg Offer:
-                          </span>
-                          <Input
-                            type="number"
-                            value={formData?.offerPrice}
-                            onChange={(e) =>
-                              updateField(
-                                "offerPrice",
-                                parseInt(e.target.value)
-                              )
-                            }
-                          />
-                          {/*    <p
-                            className="font-semibold text-lg"
-                            style={{ color: "var(--palette-btn)" }}
-                          >
-                            ৳{avgOfferPrice}
-                          </p> */}
-                        </div>
-                      )}
-                      <div>
-                        <span style={{ color: "var(--palette-accent-3)" }}>
-                          Total Stock:
-                        </span>
-                        <p className="font-semibold text-lg">{totalStock}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <StepVariantsImproved mode="edit" />
               </div>
             )}
           </div>
