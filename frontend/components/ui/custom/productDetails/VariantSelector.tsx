@@ -750,10 +750,8 @@ export default function VariantSelector({
                       borderColor: isSelected
                         ? "var(--palette-btn)"
                         : "rgba(0, 0, 0, 0.15)",
-                      backgroundColor: isSelected
-                        ? "var(--palette-btn)"
-                        : "#ffffff",
-                      color: isSelected ? "#ffffff" : "var(--palette-text)",
+                      backgroundColor: "#ffffff",
+                      color: "var(--palette-text)",
                       minWidth: "45px",
                     }}
                   >
