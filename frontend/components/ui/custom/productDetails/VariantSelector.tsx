@@ -834,9 +834,9 @@ export default function VariantSelector({
                 onClick={() => setQuantity(Math.max(0, quantity - 1))}
                 className="h-8 w-8 flex justify-center items-center font-bold text-gray-600 bg-red-200 hover:bg-red-500 rounded-l-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <span className="text-lg">−</span>
+                <span className="text-lg px-2">−</span>
               </button>
-              <span className="w-10 px-4 md:px-6 text-center text-foreground text-sm font-semibold">
+              <span className="w-10 px-8 md:px-12 text-center text-foreground text-sm font-semibold">
                 {quantity}
               </span>
               <button
@@ -856,7 +856,7 @@ export default function VariantSelector({
                     quantity > 0 ? "var(--palette-btn)" : "#fca5a5",
                 }}
               >
-                <span className="text-lg">+</span>
+                <span className="text-lg px-2">+</span>
               </button>
             </div>
           </div>
