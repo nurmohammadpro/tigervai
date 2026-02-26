@@ -1,10 +1,10 @@
 // components/product/add-steps/StepVariantsImproved.tsx
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, X, ChevronDown } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
 
 interface Variant {
@@ -22,47 +22,15 @@ interface Variant {
   };
 }
 
-// Color group
-interface ColorVariant {
-  color: string;
-}
-
-// Size row with multiple colors
+// Size row with comma-separated colors
 interface SizeRow {
   id: string;
   size: string;
   regularPrice: number;
   offerPrice: number;
   stock: number;
-  colors: ColorVariant[];
+  colors: string; // Comma-separated string
 }
-
-// Common color options for dropdown
-const COLOR_OPTIONS = [
-  "Red",
-  "Blue",
-  "Green",
-  "Yellow",
-  "Black",
-  "White",
-  "Pink",
-  "Purple",
-  "Orange",
-  "Brown",
-  "Gray",
-  "Beige",
-  "Navy",
-  "Turquoise",
-  "Maroon",
-  "Lavender",
-  "Teal",
-  "Cream",
-  "Gold",
-  "Silver",
-  "Coral",
-  "Peach",
-  "Magenta",
-];
 
 export default function StepVariantsImproved() {
   const { formData, updateField } = useAddProductStore();
@@ -70,14 +38,6 @@ export default function StepVariantsImproved() {
 
   // State for table-like input
   const [sizeRows, setSizeRows] = useState<SizeRow[]>([]);
-
-  // State for color dropdown
-  const [openColorDropdowns, setOpenColorDropdowns] = useState<
-    Record<string, boolean>
-  >({});
-  const dropdownRefs = useRef<
-    Record<string, HTMLButtonElement | HTMLDivElement>
-  >({});
 
   // Initialize sizeRows from existing variants on mount
   React.useEffect(() => {
@@ -96,15 +56,18 @@ export default function StepVariantsImproved() {
       const rows: SizeRow[] = [];
       groupedBySize.forEach((variantsOfSize, size) => {
         const firstVariant = variantsOfSize[0];
+        // Extract colors and join them with commas
+        const colors = variantsOfSize
+          .map((v) => v.color)
+          .filter(Boolean)
+          .join(", ");
         rows.push({
           id: `size-${size}-${Date.now()}`,
           size,
           regularPrice: firstVariant.price,
           offerPrice: firstVariant.discountPrice || 0,
           stock: firstVariant.stock,
-          colors: variantsOfSize.map((v) => ({
-            color: v.color || "",
-          })),
+          colors,
         });
       });
       setSizeRows(rows);
@@ -117,8 +80,14 @@ export default function StepVariantsImproved() {
       // Flatten sizeRows back to variants array
       const flatVariants: Variant[] = [];
       sizeRows.forEach((row) => {
+        // Parse comma-separated colors
+        const colorList = row.colors
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
+
         // If no colors, create a single variant with just size
-        if (row.colors.length === 0) {
+        if (colorList.length === 0) {
           flatVariants.push({
             size: row.size,
             price: row.regularPrice,
@@ -126,10 +95,11 @@ export default function StepVariantsImproved() {
             stock: row.stock,
           });
         } else {
-          row.colors.forEach((colorVar) => {
+          // Create a variant for each color
+          colorList.forEach((color) => {
             flatVariants.push({
               size: row.size,
-              color: colorVar.color || undefined,
+              color,
               price: row.regularPrice,
               discountPrice: row.offerPrice || undefined,
               stock: row.stock,
@@ -149,7 +119,7 @@ export default function StepVariantsImproved() {
       regularPrice: 0,
       offerPrice: 0,
       stock: 0,
-      colors: [],
+      colors: "",
     };
     setSizeRows([...sizeRows, newRow]);
   };
@@ -172,25 +142,6 @@ export default function StepVariantsImproved() {
     );
   };
 
-  // Add color to a size row
-  const handleAddColor = (rowId: string, color: string) => {
-    const row = sizeRows.find((r) => r.id === rowId);
-    if (!row) return;
-
-    // Check if color already exists
-    if (row.colors.some((c) => c.color === color)) {
-      alert("This color is already added for this size");
-      return;
-    }
-
-    const newColor: ColorVariant = {
-      color,
-    };
-
-    handleUpdateSizeRow(rowId, "colors", [...row.colors, newColor]);
-    setOpenColorDropdowns({ ...openColorDropdowns, [rowId]: false });
-  };
-
   // Get count of sizes without stock
   const getMissingStockCount = () => {
     let count = 0;
@@ -199,52 +150,6 @@ export default function StepVariantsImproved() {
     }
     return count;
   };
-
-  // Remove color from a size row
-  const handleRemoveColor = (rowId: string, colorIndex: number) => {
-    const row = sizeRows.find((r) => r.id === rowId);
-    if (!row) return;
-
-    const newColors = row.colors.filter((_, i) => i !== colorIndex);
-    handleUpdateSizeRow(rowId, "colors", newColors);
-  };
-
-  // Get available colors for dropdown (exclude already added colors)
-  const getAvailableColors = (rowId: string) => {
-    const row = sizeRows.find((r) => r.id === rowId);
-    if (!row) return COLOR_OPTIONS;
-    return COLOR_OPTIONS.filter(
-      (c) => !row.colors.some((rc) => rc.color === c),
-    );
-  };
-
-  // Toggle color dropdown
-  const toggleColorDropdown = (rowId: string) => {
-    const isOpen = !openColorDropdowns[rowId];
-    // Close all other dropdowns first
-    setOpenColorDropdowns({});
-    setOpenColorDropdowns({ [rowId]: isOpen });
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      const openDropdownId = Object.keys(openColorDropdowns).find(
-        (id) => openColorDropdowns[id],
-      );
-
-      if (openDropdownId) {
-        const container = dropdownRefs.current[openDropdownId];
-        if (container && !container.contains(target)) {
-          setOpenColorDropdowns({ [openDropdownId]: false });
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openColorDropdowns]);
 
   return (
     <div className="space-y-4">
@@ -267,267 +172,161 @@ export default function StepVariantsImproved() {
         {sizeRows.map((row) => (
           <div
             key={row.id}
-            className="rounded-lg border overflow-hidden"
+            className="rounded-lg border p-4"
             style={{
               borderColor: "var(--palette-accent-3)",
               backgroundColor: "rgba(255, 255, 255, 0.02)",
             }}
           >
-            {/* Size Header Row */}
-            <div
-              className="p-2 pb-24"
-              style={{ borderColor: "var(--palette-accent-3)" }}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
-                {/* Size Name */}
-                <div>
-                  <label
-                    className="text-xs font-semibold mb-1 block"
-                    style={{ color: "var(--palette-accent-3)" }}
-                  >
-                    Size *
-                  </label>
-                  <Input
-                    placeholder="e.g., M, L, XL"
-                    value={row.size}
-                    onChange={(e) =>
-                      handleUpdateSizeRow(row.id, "size", e.target.value)
-                    }
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      borderColor: "var(--palette-accent-3)",
-                      color: "var(--palette-text)",
-                    }}
-                  />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+              {/* Size Name */}
+              <div>
+                <label
+                  className="text-xs font-semibold mb-1 block"
+                  style={{ color: "var(--palette-accent-3)" }}
+                >
+                  Size *
+                </label>
+                <Input
+                  placeholder="e.g., M, L, XL"
+                  value={row.size}
+                  onChange={(e) =>
+                    handleUpdateSizeRow(row.id, "size", e.target.value)
+                  }
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    borderColor: "var(--palette-accent-3)",
+                    color: "var(--palette-text)",
+                  }}
+                />
+              </div>
 
-                {/* Regular Price */}
-                <div>
-                  <label
-                    className="text-xs font-semibold mb-1 block"
-                    style={{ color: "var(--palette-accent-3)" }}
-                  >
-                    Regular Price *
-                  </label>
-                  <Input
-                    type="number"
-                    placeholder="500"
-                    value={row.regularPrice > 0 ? row.regularPrice : ""}
-                    onChange={(e) =>
-                      handleUpdateSizeRow(
-                        row.id,
-                        "regularPrice",
-                        parseFloat(e.target.value) || 0,
-                      )
-                    }
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      borderColor: "var(--palette-accent-3)",
-                      color: "var(--palette-text)",
-                    }}
-                  />
-                </div>
+              {/* Regular Price */}
+              <div>
+                <label
+                  className="text-xs font-semibold mb-1 block"
+                  style={{ color: "var(--palette-accent-3)" }}
+                >
+                  Regular Price *
+                </label>
+                <Input
+                  type="number"
+                  placeholder="500"
+                  value={row.regularPrice > 0 ? row.regularPrice : ""}
+                  onChange={(e) =>
+                    handleUpdateSizeRow(
+                      row.id,
+                      "regularPrice",
+                      parseFloat(e.target.value) || 0,
+                    )
+                  }
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    borderColor: "var(--palette-accent-3)",
+                    color: "var(--palette-text)",
+                  }}
+                />
+              </div>
 
-                {/* Offer Price */}
-                <div>
-                  <label
-                    className="text-xs font-semibold mb-1 block"
-                    style={{ color: "var(--palette-accent-3)" }}
-                  >
-                    Offer Price (Optional)
-                  </label>
-                  <Input
-                    type="number"
-                    placeholder="450"
-                    value={row.offerPrice > 0 ? row.offerPrice : ""}
-                    onChange={(e) =>
-                      handleUpdateSizeRow(
-                        row.id,
-                        "offerPrice",
-                        parseFloat(e.target.value) || 0,
-                      )
-                    }
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      borderColor: "var(--palette-accent-3)",
-                      color: "var(--palette-text)",
-                    }}
-                  />
-                </div>
+              {/* Offer Price */}
+              <div>
+                <label
+                  className="text-xs font-semibold mb-1 block"
+                  style={{ color: "var(--palette-accent-3)" }}
+                >
+                  Offer Price (Optional)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="450"
+                  value={row.offerPrice > 0 ? row.offerPrice : ""}
+                  onChange={(e) =>
+                    handleUpdateSizeRow(
+                      row.id,
+                      "offerPrice",
+                      parseFloat(e.target.value) || 0,
+                    )
+                  }
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    borderColor: "var(--palette-accent-3)",
+                    color: "var(--palette-text)",
+                  }}
+                />
+              </div>
 
-                {/* Stock */}
-                <div>
-                  <label
-                    className="text-xs font-semibold mb-1 block"
-                    style={{ color: "var(--palette-accent-3)" }}
-                  >
-                    Stock *
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="0"
-                    value={row.stock > 0 ? row.stock : ""}
-                    onChange={(e) =>
-                      handleUpdateSizeRow(
-                        row.id,
-                        "stock",
-                        Math.max(0, parseFloat(e.target.value) || 0),
-                      )
-                    }
-                    required
-                    className={row.stock <= 0 ? "border-red-500" : ""}
-                    style={{
-                      backgroundColor:
-                        row.stock <= 0
-                          ? "rgba(239, 68, 68, 0.1)"
-                          : "rgba(255, 255, 255, 0.05)",
-                      borderColor:
-                        row.stock <= 0 ? "#ef4444" : "var(--palette-accent-3)",
-                      color: "var(--palette-text)",
-                    }}
-                  />
-                </div>
+              {/* Stock */}
+              <div>
+                <label
+                  className="text-xs font-semibold mb-1 block"
+                  style={{ color: "var(--palette-accent-3)" }}
+                >
+                  Stock *
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={row.stock > 0 ? row.stock : ""}
+                  onChange={(e) =>
+                    handleUpdateSizeRow(
+                      row.id,
+                      "stock",
+                      Math.max(0, parseFloat(e.target.value) || 0),
+                    )
+                  }
+                  required
+                  className={row.stock <= 0 ? "border-red-500" : ""}
+                  style={{
+                    backgroundColor:
+                      row.stock <= 0
+                        ? "rgba(239, 68, 68, 0.1)"
+                        : "rgba(255, 255, 255, 0.05)",
+                    borderColor:
+                      row.stock <= 0 ? "#ef4444" : "var(--palette-accent-3)",
+                    color: "var(--palette-text)",
+                  }}
+                />
+              </div>
 
-                {/* Color */}
-                <div>
-                  <label
-                    className="text-xs font-semibold mb-1 block"
-                    style={{ color: "var(--palette-accent-3)" }}
-                  >
-                    Color
-                  </label>
-                  <div
-                    className="relative"
-                    ref={(el) => {
-                      if (el) dropdownRefs.current[row.id] = el;
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleColorDropdown(row.id);
-                      }}
-                      className="w-full h-10 px-3 rounded-lg border flex items-center justify-between gap-2 transition-colors"
-                      style={{
-                        backgroundColor: "rgba(255, 255, 255, 0.05)",
-                        borderColor: "var(--palette-accent-3)",
-                        color: "var(--palette-text)",
-                      }}
-                    >
-                      <span className="text-sm">Select Color</span>
-                      <ChevronDown size={16} />
-                    </button>
+              {/* Colors (Comma-separated) */}
+              <div>
+                <label
+                  className="text-xs font-semibold mb-1 block"
+                  style={{ color: "var(--palette-accent-3)" }}
+                >
+                  Colors (Optional)
+                </label>
+                <Input
+                  placeholder="Red, Blue, Green"
+                  value={row.colors}
+                  onChange={(e) =>
+                    handleUpdateSizeRow(row.id, "colors", e.target.value)
+                  }
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    borderColor: "var(--palette-accent-3)",
+                    color: "var(--palette-text)",
+                  }}
+                />
+              </div>
 
-                    {/* Dropdown Menu */}
-                    {openColorDropdowns[row.id] && (
-                      <div
-                        className="rounded-lg border shadow-lg max-h-60 overflow-y-auto"
-                        style={{
-                          position: "absolute",
-                          top: "calc(100% + 4px)",
-                          left: 0,
-                          right: 0,
-                          backgroundColor: "var(--palette-bg)",
-                          borderColor: "var(--palette-accent-3)",
-                          zIndex: 9999,
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {getAvailableColors(row.id).map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleAddColor(row.id, color);
-                            }}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors flex items-center gap-2"
-                            style={{ color: "var(--palette-text)" }}
-                          >
-                            <div
-                              className="w-4 h-4 rounded-full border shrink-0"
-                              style={{
-                                backgroundColor:
-                                  COLOR_OPTIONS.find((c) => c === color) ===
-                                  color
-                                    ? color.toLowerCase()
-                                    : "#ccc",
-                                borderColor: "rgba(0,0,0,0.2)",
-                              }}
-                            />
-                            {color}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Delete Size Button */}
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSizeRow(row.id)}
-                    className="h-10 px-3 rounded-lg hover:bg-red-500/20 transition flex items-center justify-center"
-                    title="Remove this size"
-                    style={{
-                      border: "1px solid rgba(239, 68, 68, 0.3)",
-                      color: "#ef4444",
-                    }}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
+              {/* Delete Size Button */}
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSizeRow(row.id)}
+                  className="h-10 px-3 rounded-lg hover:bg-red-500/20 transition flex items-center justify-center"
+                  title="Remove this size"
+                  style={{
+                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    color: "#ef4444",
+                  }}
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
             </div>
-
-            {/* Colors List for this Size */}
-            {row.colors.length > 0 && (
-              <div style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}>
-                {/* Color Rows */}
-                <div className="p-4 flex flex-wrap gap-2">
-                  {row.colors.map((colorVar, colorIndex) => (
-                    <div
-                      key={colorIndex}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border"
-                      style={{
-                        borderColor: "var(--palette-accent-3)",
-                        backgroundColor: "rgba(255, 255, 255, 0.03)",
-                      }}
-                    >
-                      {/* Color Name */}
-                      <div
-                        className="w-5 h-5 rounded-full border shrink-0"
-                        style={{
-                          backgroundColor: colorVar.color.toLowerCase(),
-                          borderColor: "rgba(0,0,0,0.2)",
-                        }}
-                      />
-                      <span
-                        className="font-medium text-sm"
-                        style={{ color: "var(--palette-text)" }}
-                      >
-                        {colorVar.color}
-                      </span>
-
-                      {/* Remove Color Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveColor(row.id, colorIndex)}
-                        className="p-1 rounded hover:bg-red-500/20 transition"
-                        title="Remove this color"
-                      >
-                        <X size={14} className="text-red-400" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         ))}
       </div>
@@ -562,8 +361,16 @@ export default function StepVariantsImproved() {
             style={{ color: "var(--palette-text)" }}
           >
             Summary: {sizeRows.length} size(s),{" "}
-            {sizeRows.reduce((acc, row) => acc + row.colors.length, 0)} color
-            variant(s)
+            {sizeRows.reduce(
+              (acc, row) =>
+                acc +
+                row.colors
+                  .split(",")
+                  .map((c) => c.trim())
+                  .filter(Boolean).length,
+              0,
+            )}{" "}
+            color variant(s)
           </p>
           {getMissingStockCount() > 0 && (
             <p className="text-sm text-red-600 mt-2 font-semibold flex items-center gap-2">
