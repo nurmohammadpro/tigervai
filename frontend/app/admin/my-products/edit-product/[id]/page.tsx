@@ -10,6 +10,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -39,8 +40,6 @@ import RichTextEditor from "@/components/ui/custom/addProduct/Description";
 import { ReactSortable } from "react-sortablejs";
 import StepVariantsImproved from "@/components/ui/custom/admin/create-edit-product/create-product/StepVariantsImproved";
 import { DeleteImage } from "@/actions/brand-category";
-import { useApiMutation } from "@/api-hook/react-query-wrapper";
-import { X } from "lucide-react";
 // Static product data for demo
 const STATIC_PRODUCTS: Record<string, any> = {
   "1": {
