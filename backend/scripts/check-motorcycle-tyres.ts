@@ -13,13 +13,10 @@ async function checkMotorcycleTyres() {
     await mongoose.connect(MONGODB_URL);
     console.log('✅ Connected successfully!\n');
 
-    // Get the database
-    const db = mongoose.connection.db;
-
-    // Create models
-    const CategoryModel = db.model('Category', CategorySchema);
-    const ProductModel = db.model('Product', ProductSchema);
-    const ShortProductModel = db.model('ShortProduct', ShortProductSchema);
+    // Create models using mongoose.model() not db.model()
+    const CategoryModel = mongoose.model('Category', CategorySchema);
+    const ProductModel = mongoose.model('Product', ProductSchema);
+    const ShortProductModel = mongoose.model('ShortProduct', ShortProductSchema);
 
     console.log('='.repeat(70));
     console.log('📦 CHECKING FOR MOTORCYCLE TYRE CATEGORIES');
@@ -39,7 +36,7 @@ async function checkMotorcycleTyres() {
       console.log('❌ No motorcycle/tyre categories found!');
       console.log('   Suggestion: You need to create a "Motorcycle Tyre" category.\n');
     } else {
-      categories.forEach((cat, index) => {
+      categories.forEach((cat: any, index: number) => {
         console.log(`\n${index + 1}. Category: "${cat.name}"`);
         console.log(`   ID: ${cat._id}`);
         console.log(`   Logo: ${cat.logoUrl || 'No logo'}`);
@@ -47,10 +44,10 @@ async function checkMotorcycleTyres() {
         console.log(`   📁 Subcategories: ${cat.sub?.length || 0}`);
 
         if (cat.sub && cat.sub.length > 0) {
-          cat.sub.forEach((sub, i) => {
+          cat.sub.forEach((sub: any, i: number) => {
             console.log(`      ${i + 1}. ${sub.SubMain} (${sub.subCategory?.length || 0} items)`);
             if (sub.subCategory && sub.subCategory.length > 0) {
-              sub.subCategory.slice(0, 3).forEach((item) => {
+              sub.subCategory.slice(0, 3).forEach((item: string) => {
                 console.log(`         - ${item}`);
               });
               if (sub.subCategory.length > 3) {
@@ -84,7 +81,7 @@ async function checkMotorcycleTyres() {
     if (products.length === 0) {
       console.log('❌ No motorcycle/tyre products found in Product collection!');
     } else {
-      products.forEach((prod, index) => {
+      products.forEach((prod: any, index: number) => {
         console.log(`\n${index + 1}. Product: "${prod.name}"`);
         console.log(`   Slug: ${prod.slug}`);
         console.log(`   💰 Price: ${prod.price} ${prod.offerPrice ? `(Offer: ${prod.offerPrice})` : ''}`);
@@ -106,7 +103,7 @@ async function checkMotorcycleTyres() {
     if (shortProducts.length === 0) {
       console.log('❌ No motorcycle/tyre products found in ShortProduct collection!');
     } else {
-      shortProducts.forEach((prod, index) => {
+      shortProducts.forEach((prod: any, index: number) => {
         console.log(`\n${index + 1}. ShortProduct: "${prod.name}"`);
         console.log(`   Slug: ${prod.slug}`);
         console.log(`   💰 Price: ${prod.price} ${prod.offerPrice ? `(Offer: ${prod.offerPrice})` : ''}`);
@@ -127,9 +124,9 @@ async function checkMotorcycleTyres() {
     const totalProducts = products.length;
     const totalShortProducts = shortProducts.length;
 
-    const activeProducts = products.filter(p => p.isActive).length;
-    const inactiveProducts = products.filter(p => !p.isActive).length;
-    const topCategories = categories.filter(c => c.isTop).length;
+    const activeProducts = products.filter((p: any) => p.isActive).length;
+    const inactiveProducts = products.filter((p: any) => !p.isActive).length;
+    const topCategories = categories.filter((c: any) => c.isTop).length;
 
     console.log(`\n📊 Statistics:`);
     console.log(`   Categories: ${totalCategories}`);
