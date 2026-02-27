@@ -296,7 +296,7 @@ export class ProductService {
     if(!updateProduct) throw new HttpException('Short product not found', 404);
     const updateMili = this.convertToMiliProduct(updateProduct)
     this.logger.log('🟡 Product updated-admin',updateMili);
-    await this.melieSeach.update(updateProduct._id.toString(),updateMili);
+    await this.melieSeach.updateProduct(updateMili);
     return { message: 'Product updated by admin', data: updated };
   }
 
@@ -344,7 +344,7 @@ export class ProductService {
        if(!updateProduct) throw new HttpException('Short product not found', 404);
     const updateMili = this.convertToMiliProduct(updateProduct)
     this.logger.log('🟡 Product updated',updateMili);
-    await this.melieSeach.update(updateProduct._id.toString(),updateMili);
+    await this.melieSeach.updateProduct(updateMili);
 
     return {
       message: 'Product updated by vendor',

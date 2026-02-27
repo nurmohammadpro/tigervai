@@ -2,11 +2,16 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateMeilisearchDto, SearchProductsDto } from './dto/create-meilisearch.dto';
 import { UpdateMeilisearchDto } from './dto/update-meilisearch.dto';
 import { Index, MeiliSearch } from 'meilisearch';
+import { TenantConnectionService } from 'lib/connection/mongooseConnection.service';
+import { ShortProduct, ShortProductSchema } from 'src/product/entities/short-product.schema';
+import { globalProducts } from 'lib/global-db/globaldb';
 @Injectable()
 export class MeilisearchService implements OnModuleInit{
     private readonly logger = new Logger(MeilisearchService.name);
   private client: MeiliSearch;
   private index:Index<CreateMeilisearchDto>;
+
+  constructor(private tenant: TenantConnectionService) {}
 
   async onModuleInit() {
     try{
@@ -22,12 +27,20 @@ export class MeilisearchService implements OnModuleInit{
 
     await this.setupIndex();
      this.logger.log('✅ MeiliSearch connected successfully',h.status);
-    
+
     }catch(error){
       this.logger.error('❌ Could not connect to MeiliSearch', error);
 
     }
-    
+
+  }
+
+  private shortProductModel() {
+    return this.tenant.getModel<any>(
+      globalProducts,
+      ShortProduct.name,
+      ShortProductSchema,
+    );
   }
 
   private async setupIndex() {
@@ -98,7 +111,7 @@ export class MeilisearchService implements OnModuleInit{
     limit = 20,
     page = 1,  // ✅ Add page parameter (default: 1)
     minPrice,
-    maxPrice, 
+    maxPrice,
     minRating,   // ✅ new
     maxRating,
   } = dto;
@@ -113,7 +126,7 @@ export class MeilisearchService implements OnModuleInit{
   if (subMain) filters.push(`subMain = "${subMain}"`);
   if (main) filters.push(`main = "${main}"`);
   if (hasOffer !== undefined) filters.push(`hasOffer = ${hasOffer}`);
-    
+
   // ✅ Add price range filter
   if (minPrice !== undefined) filters.push(`price >= ${minPrice}`);
   if (maxPrice !== undefined) filters.push(`price <= ${maxPrice}`);
@@ -123,6 +136,7 @@ export class MeilisearchService implements OnModuleInit{
   if (maxRating !== undefined) filters.push(`rating <= ${maxRating}`);
   const filterStr = filters.length ? filters.join(' AND ') : undefined;
 
+  // Step 1: Search Meilisearch to get matching product IDs
   const result = await this.index.search(q, {
     filter: filterStr,
     limit,
@@ -131,12 +145,55 @@ export class MeilisearchService implements OnModuleInit{
     facets: ['category', 'brandName', 'main', 'hasOffer',"rating"],
   });
 
+  // Step 2: Extract product IDs from Meilisearch results
+  const productIds = result.hits.map((hit: any) => hit.id);
+
+  // Step 3: Fetch fresh data from MongoDB using the IDs
+  const ShortProductModel = this.shortProductModel();
+  const mongoProducts = await ShortProductModel.find({
+    _id: { $in: productIds },
+    isActive: true
+  }).lean();
+
+  // Step 4: Create a map of MongoDB products by ID for quick lookup
+  const productMap = new Map(
+    mongoProducts.map((p: any) => [p._id.toString(), p])
+  );
+
+  // Step 5: Replace Meilisearch hits with fresh MongoDB data, maintaining the sort order
+  const items = result.hits.map((hit: any) => {
+    const freshProduct = productMap.get(hit.id);
+    if (freshProduct) {
+      // Return fresh MongoDB data with Meilisearch metadata
+      return {
+        id: freshProduct._id.toString(),
+        name: freshProduct.name,
+        thumbnail: freshProduct.thumbnail,
+        main: freshProduct.main,
+        category: freshProduct.category,
+        subMain: freshProduct.subMain,
+        price: freshProduct.price ?? 0,
+        offerPrice: freshProduct.offerPrice,
+        hasOffer: freshProduct.hasOffer,
+        isDigital: freshProduct.isDigital,
+        brandId: freshProduct.brandId,
+        brandName: freshProduct.brandName,
+        slug: freshProduct.slug,
+        isAdminCreated: freshProduct.isAdminCreated,
+        stock: freshProduct.stock ?? 0,
+        rating: freshProduct.rating || 0,
+        createdAt: freshProduct.createdAt?.toString() || Date.now().toString(),
+      };
+    }
+    return hit; // Fallback to Meilisearch data if not found in MongoDB
+  });
+
   // ✅ Calculate total pages
   const totalPages = Math.ceil(result.estimatedTotalHits / limit);
 
   return {
     total: result.estimatedTotalHits,
-    items: result.hits,
+    items,
     facets: result.facetDistribution || {},
     pagination: {
       currentPage: page,
