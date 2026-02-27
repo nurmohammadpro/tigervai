@@ -97,7 +97,7 @@ export class MeilisearchService implements OnModuleInit{
     return this.index.deleteDocument(id);
   }
 
-  /** 🔍 Search documents with DTO */
+  /** 🔍 Search documents with DTO - Using MongoDB directly */
   async search(dto: SearchProductsDto) {
   const {
     q = '',
@@ -109,92 +109,118 @@ export class MeilisearchService implements OnModuleInit{
     sortBy = 'createdAt',
     sortOrder = 'desc',
     limit = 20,
-    page = 1,  // ✅ Add page parameter (default: 1)
+    page = 1,
     minPrice,
     maxPrice,
-    minRating,   // ✅ new
+    minRating,
     maxRating,
   } = dto;
 
-  // ✅ Calculate offset based on page number
-  const offset = (page - 1) * limit;
-
-  const filters: string[] = [];
-
-  if (category) filters.push(`category = "${category}"`);
-  if (brandName) filters.push(`brandName = "${brandName}"`);
-  if (subMain) filters.push(`subMain = "${subMain}"`);
-  if (main) filters.push(`main = "${main}"`);
-  if (hasOffer !== undefined) filters.push(`hasOffer = ${hasOffer}`);
-
-  // ✅ Add price range filter
-  if (minPrice !== undefined) filters.push(`price >= ${minPrice}`);
-  if (maxPrice !== undefined) filters.push(`price <= ${maxPrice}`);
-
-    // ✅ Rating range filter
-  if (minRating !== undefined) filters.push(`rating >= ${minRating}`);
-  if (maxRating !== undefined) filters.push(`rating <= ${maxRating}`);
-  const filterStr = filters.length ? filters.join(' AND ') : undefined;
-
-  // Step 1: Search Meilisearch to get matching product IDs
-  const result = await this.index.search(q, {
-    filter: filterStr,
-    limit,
-    offset,  // ✅ Add offset for pagination
-    sort: sortBy ? [`${sortBy}:${sortOrder}`] : undefined,
-    facets: ['category', 'brandName', 'main', 'hasOffer',"rating"],
-  });
-
-  // Step 2: Extract product IDs from Meilisearch results
-  const productIds = result.hits.map((hit: any) => hit.id);
-
-  // Step 3: Fetch fresh data from MongoDB using the IDs
   const ShortProductModel = this.shortProductModel();
-  const mongoProducts = await ShortProductModel.find({
-    _id: { $in: productIds },
-    isActive: true
-  }).lean();
 
-  // Step 4: Create a map of MongoDB products by ID for quick lookup
-  const productMap = new Map(
-    mongoProducts.map((p: any) => [p._id.toString(), p])
-  );
+  // Build MongoDB query
+  const filter: any = { isActive: true };
 
-  // Step 5: Replace Meilisearch hits with fresh MongoDB data, maintaining the sort order
-  const items = result.hits.map((hit: any) => {
-    const freshProduct = productMap.get(hit.id);
-    if (freshProduct) {
-      // Return fresh MongoDB data with Meilisearch metadata
-      return {
-        id: freshProduct._id.toString(),
-        name: freshProduct.name,
-        thumbnail: freshProduct.thumbnail,
-        main: freshProduct.main,
-        category: freshProduct.category,
-        subMain: freshProduct.subMain,
-        price: freshProduct.price ?? 0,
-        offerPrice: freshProduct.offerPrice,
-        hasOffer: freshProduct.hasOffer,
-        isDigital: freshProduct.isDigital,
-        brandId: freshProduct.brandId,
-        brandName: freshProduct.brandName,
-        slug: freshProduct.slug,
-        isAdminCreated: freshProduct.isAdminCreated,
-        stock: freshProduct.stock ?? 0,
-        rating: freshProduct.rating || 0,
-        createdAt: freshProduct.createdAt?.toString() || Date.now().toString(),
-      };
-    }
-    return hit; // Fallback to Meilisearch data if not found in MongoDB
+  // Text search
+  if (q) {
+    filter.$or = [
+      { name: { $regex: q, $options: 'i' } },
+      { brandName: { $regex: q, $options: 'i' } },
+      { category: { $regex: q, $options: 'i' } },
+      { main: { $regex: q, $options: 'i' } },
+      { subMain: { $regex: q, $options: 'i' } },
+    ];
+  }
+
+  // Filter by category
+  if (category) filter.category = category;
+  if (brandName) filter.brandName = brandName;
+  if (main) filter.main = main;
+  if (subMain) filter.subMain = subMain;
+  if (hasOffer !== undefined) filter.hasOffer = hasOffer;
+
+  // Price range filter
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    filter.price = {};
+    if (minPrice !== undefined) filter.price.$gte = minPrice;
+    if (maxPrice !== undefined) filter.price.$lte = maxPrice;
+  }
+
+  // Rating range filter
+  if (minRating !== undefined || maxRating !== undefined) {
+    filter.rating = {};
+    if (minRating !== undefined) filter.rating.$gte = minRating;
+    if (maxRating !== undefined) filter.rating.$lte = maxRating;
+  }
+
+  // Calculate skip for pagination
+  const skip = (page - 1) * limit;
+
+  // Build sort object
+  const sortObj: any = {};
+  if (sortBy) {
+    sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  }
+
+  // Execute queries in parallel
+  const [total, products] = await Promise.all([
+    ShortProductModel.countDocuments(filter),
+    ShortProductModel
+      .find(filter)
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit)
+      .lean()
+  ]);
+
+  // Build facets from the results
+  const facets: any = {
+    category: {},
+    brandName: {},
+    main: {},
+    hasOffer: {},
+    rating: {},
+  };
+
+  // Aggregate facet counts from current page results
+  products.forEach((product: any) => {
+    facets.category[product.category] = (facets.category[product.category] || 0) + 1;
+    facets.brandName[product.brandName] = (facets.brandName[product.brandName] || 0) + 1;
+    facets.main[product.main] = (facets.main[product.main] || 0) + 1;
+    facets.hasOffer[product.hasOffer ? 'true' : 'false'] = (facets.hasOffer[product.hasOffer ? 'true' : 'false'] || 0) + 1;
+
+    const ratingRange = Math.floor(product.rating || 0);
+    facets.rating[ratingRange.toString()] = (facets.rating[ratingRange.toString()] || 0) + 1;
   });
 
-  // ✅ Calculate total pages
-  const totalPages = Math.ceil(result.estimatedTotalHits / limit);
+  // Format products for response
+  const items = products.map((product: any) => ({
+    id: product._id.toString(),
+    name: product.name,
+    thumbnail: product.thumbnail,
+    main: product.main,
+    category: product.category,
+    subMain: product.subMain,
+    price: product.price ?? 0,
+    offerPrice: product.offerPrice,
+    hasOffer: product.hasOffer,
+    isDigital: product.isDigital,
+    brandId: product.brandId,
+    brandName: product.brandName,
+    slug: product.slug,
+    isAdminCreated: product.isAdminCreated,
+    stock: product.stock ?? 0,
+    rating: product.rating || 0,
+    createdAt: product.createdAt?.toString() || Date.now().toString(),
+  }));
+
+  // Calculate total pages
+  const totalPages = Math.ceil(total / limit);
 
   return {
-    total: result.estimatedTotalHits,
+    total,
     items,
-    facets: result.facetDistribution || {},
+    facets,
     pagination: {
       currentPage: page,
       pageSize: limit,
