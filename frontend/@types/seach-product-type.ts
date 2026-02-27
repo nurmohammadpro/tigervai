@@ -23,6 +23,11 @@ export interface ProductItem {
   stock: number;
   rating: number;
   createdAt: string; // timestamp as string in your example
+  // ✅ Price range fields for consistent display
+  minPrice: number;
+  maxPrice: number;
+  minOriginalPrice: number;
+  maxOriginalPrice: number;
 }
 
 export interface Facets {

@@ -30,6 +30,11 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   __v: number;
+  // ✅ Price range fields for consistent display
+  minPrice: number;
+  maxPrice: number;
+  minOriginalPrice: number;
+  maxOriginalPrice: number;
 }
 
 export interface ProductApiResponse {

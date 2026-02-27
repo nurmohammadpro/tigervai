@@ -134,8 +134,16 @@ export class ProductService {
       price: v.price,
       discountPrice: v.discountPrice,
       stock: v.stock,
-    
+
     })) || [];
+
+    // ✅ Calculate price range from variants for consistent display
+    const priceRange = ProductHelper.calculatePriceRange(
+      product.variants || [],
+      product.price,
+      product.offerPrice,
+      product.hasOffer
+    );
 
     return {
       name: product.name,
@@ -154,6 +162,11 @@ export class ProductService {
       isAdminCreated: product.isAdminCreated,
       stock: totalStock || product.stock,
       variants: shortVariants,
+      // ✅ Add price range fields
+      minPrice: priceRange.minPrice,
+      maxPrice: priceRange.maxPrice,
+      minOriginalPrice: priceRange.minOriginalPrice,
+      maxOriginalPrice: priceRange.maxOriginalPrice,
     };
   }
   private convertToMiliProduct(product:ShortProductDocument){
@@ -175,7 +188,12 @@ export class ProductService {
       id: product._id.toString(),
       rating:0,
       createdAt:Date.now().toString(),
-     
+      // ✅ Add price range fields for search
+      minPrice: product.minPrice ?? product.price ?? 0,
+      maxPrice: product.maxPrice ?? product.price ?? 0,
+      minOriginalPrice: product.minOriginalPrice ?? product.price ?? 0,
+      maxOriginalPrice: product.maxOriginalPrice ?? product.price ?? 0,
+
 
   }
   }

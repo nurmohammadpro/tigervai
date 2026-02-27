@@ -159,6 +159,11 @@ export function SearchClient({ data }: SearchClientProps) {
                 slug: product.slug,
                 stock: product.stock,
                 rating: product.rating,
+                // ✅ Add price range fields
+                minPrice: product.minPrice ?? product.offerPrice ?? product.price ?? 0,
+                maxPrice: product.maxPrice ?? product.offerPrice ?? product.price ?? 0,
+                minOriginalPrice: product.minOriginalPrice ?? product.price ?? 0,
+                maxOriginalPrice: product.maxOriginalPrice ?? product.price ?? 0,
               }}
             />
           ))}

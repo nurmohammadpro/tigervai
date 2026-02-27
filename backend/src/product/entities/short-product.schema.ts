@@ -84,6 +84,19 @@ export class ShortProduct {
   vendorId:mongoose.Schema.Types.ObjectId
     @Prop({ type: [ShortProductVariant], default: [] })
   variants: ShortProductVariant[];
+
+  // ✅ Price range fields for consistent display across search and detail pages
+  @Prop({ default: 0 })
+  minPrice: number;
+
+  @Prop({ default: 0 })
+  maxPrice: number;
+
+  @Prop({ default: 0 })
+  minOriginalPrice: number;
+
+  @Prop({ default: 0 })
+  maxOriginalPrice: number;
 }
 
 export const ShortProductSchema = SchemaFactory.createForClass(ShortProduct);

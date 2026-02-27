@@ -41,4 +41,62 @@ export class ProductHelper {
     if (!price || price <= 0) return false;
     return offerPrice < price;
   }
+
+  /**
+   * Calculate price range from variants for consistent display
+   * Returns { minPrice, maxPrice, minOriginalPrice, maxOriginalPrice, hasDiscount }
+   * Considers both variant-level discountPrice and product-level offerPrice
+   */
+  static calculatePriceRange(variants: any[], productPrice?: number, productOfferPrice?: number, productHasOffer?: boolean): {
+    minPrice: number;
+    maxPrice: number;
+    minOriginalPrice: number;
+    maxOriginalPrice: number;
+    hasDiscount: boolean;
+  } {
+    if (!variants || variants.length === 0) {
+      return {
+        minPrice: productPrice || 0,
+        maxPrice: productPrice || 0,
+        minOriginalPrice: productPrice || 0,
+        maxOriginalPrice: productPrice || 0,
+        hasDiscount: !!productHasOffer && !!productOfferPrice && productOfferPrice < (productPrice || 0),
+      };
+    }
+
+    // Calculate current price for each variant (considering variant discountPrice and product offerPrice)
+    const currentPrices = variants.map(v => {
+      // If variant has discountPrice, use it
+      if (v.discountPrice && v.discountPrice > 0) {
+        return v.discountPrice;
+      }
+      // If product has offerPrice, calculate proportional discount
+      if (productHasOffer && productOfferPrice && productOfferPrice > 0 && productPrice && productPrice > 0) {
+        const discountRatio = productOfferPrice / productPrice;
+        return Math.round(v.price * discountRatio);
+      }
+      // No discount
+      return v.price;
+    });
+
+    const originalPrices = variants.map(v => v.price);
+
+    const minPrice = Math.min(...currentPrices);
+    const maxPrice = Math.max(...currentPrices);
+    const minOriginalPrice = Math.min(...originalPrices);
+    const maxOriginalPrice = Math.max(...originalPrices);
+
+    // Check if any variant has a discount
+    const hasVariantDiscount = currentPrices.some((price, i) => price < originalPrices[i]);
+    const hasProductOffer = !!productHasOffer && !!productOfferPrice && productOfferPrice > 0;
+    const hasDiscount = hasVariantDiscount || hasProductOffer;
+
+    return {
+      minPrice,
+      maxPrice,
+      minOriginalPrice,
+      maxOriginalPrice,
+      hasDiscount,
+    };
+  }
 }

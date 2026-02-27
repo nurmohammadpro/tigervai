@@ -24,8 +24,18 @@ export function ProductCard({
 }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
   const router = useRouter();
-  const discount = product?.offerPrice
-    ? Math.round(((product.price - product.offerPrice) / product.price) * 100)
+
+  // ✅ Use price range fields for consistent display
+  // For backward compatibility, fall back to old price/offerPrice fields
+  const minPrice = product?.minPrice ?? product?.offerPrice ?? product?.price ?? 0;
+  const maxPrice = product?.maxPrice ?? product?.offerPrice ?? product?.price ?? 0;
+  const minOriginalPrice = product?.minOriginalPrice ?? product?.price ?? 0;
+  const maxOriginalPrice = product?.maxOriginalPrice ?? product?.price ?? 0;
+  const hasDiscount = product?.hasOffer && minPrice < minOriginalPrice;
+
+  // Calculate discount percentage from price range
+  const discount = hasDiscount && minOriginalPrice > 0
+    ? Math.round(((minOriginalPrice - minPrice) / minOriginalPrice) * 100)
     : 0;
 
   const isOutOfStock = product?.stock === 0;
@@ -117,17 +127,18 @@ export function ProductCard({
 
           {/* Price Section */}
           <div className="">
-            <div className="flex items-baseline gap-2">
-              {product.hasOffer && product.offerPrice && (
-                <span className="text-xs sm:text-sm  text-muted-foreground line-through">
-                  TK {product?.price?.toLocaleString()}
+            <div className="flex items-baseline gap-2 flex-wrap">
+              {hasDiscount && (
+                <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                  TK {minOriginalPrice.toLocaleString()}
+                  {minOriginalPrice !== maxOriginalPrice &&
+                    ` - ${maxOriginalPrice.toLocaleString()}`}
                 </span>
               )}
               <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-palette-btn">
                 <span>TK </span>
-                {product?.offerPrice
-                  ? product?.offerPrice?.toLocaleString()
-                  : product?.price?.toLocaleString()}
+                {minPrice.toLocaleString()}
+                {minPrice !== maxPrice && ` - ${maxPrice.toLocaleString()}`}
               </span>
             </div>
           </div>
@@ -183,16 +194,16 @@ export function ProductCard({
             </h4>
 
             {/* Price */}
-            <div className="mt-auto flex items-baseline gap-1.5">
+            <div className="mt-auto flex items-baseline gap-1.5 flex-wrap">
               <p className="text-red-500 font-bold text-xs sm:text-sm md:text-base">
-                ৳
-                {product?.offerPrice
-                  ? product?.offerPrice?.toLocaleString()
-                  : product?.price?.toLocaleString()}
+                ৳{minPrice.toLocaleString()}
+                {minPrice !== maxPrice && ` - ${maxPrice.toLocaleString()}`}
               </p>
-              {product.hasOffer && product.offerPrice && (
+              {hasDiscount && (
                 <span className="text-[10px] sm:text-xs text-gray-400 line-through">
-                  ৳{product?.price?.toLocaleString()}
+                  ৳{minOriginalPrice.toLocaleString()}
+                  {minOriginalPrice !== maxOriginalPrice &&
+                    ` - ${maxOriginalPrice.toLocaleString()}`}
                 </span>
               )}
             </div>

@@ -18,7 +18,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "migrate:fix-hasoffer": "ts-node -r tsconfig-paths/register scripts/fix-hasoffer.ts"
+    "migrate:fix-hasoffer": "ts-node -r tsconfig-paths/register scripts/fix-hasoffer.ts",
+    "migrate:price-ranges": "ts-node -r tsconfig-paths/register scripts/migrate-price-ranges.ts",
+    "check-db": "ts-node -r tsconfig-paths/register scripts/check-databases.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.922.0",
