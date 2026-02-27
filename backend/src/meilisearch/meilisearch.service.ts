@@ -212,6 +212,11 @@ export class MeilisearchService implements OnModuleInit{
     stock: product.stock ?? 0,
     rating: product.rating || 0,
     createdAt: product.createdAt?.toString() || Date.now().toString(),
+    // ✅ Add price range fields for consistent display
+    minPrice: product.minPrice ?? product.offerPrice ?? product.price ?? 0,
+    maxPrice: product.maxPrice ?? product.offerPrice ?? product.price ?? 0,
+    minOriginalPrice: product.minOriginalPrice ?? product.price ?? 0,
+    maxOriginalPrice: product.maxOriginalPrice ?? product.price ?? 0,
   }));
 
   // Calculate total pages
