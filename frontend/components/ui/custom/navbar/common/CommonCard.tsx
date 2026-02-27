@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { WishlistButton } from "./WishlistButton";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,48 @@ interface ProductCardProps {
   variant?: "default" | "compact" | "featured";
 }
 
+// Helper function to calculate price range from variants (same logic as backend)
+function calculatePriceRange(
+  variants: Product['variants'] | undefined,
+  productPrice: number,
+  productOfferPrice?: number,
+  productHasOffer?: boolean
+) {
+  if (!variants || variants.length === 0) {
+    return {
+      minPrice: productPrice,
+      maxPrice: productPrice,
+      minOriginalPrice: productPrice,
+      maxOriginalPrice: productPrice,
+      hasDiscount: !!productHasOffer && !!productOfferPrice && productOfferPrice < productPrice,
+    };
+  }
+
+  // Calculate current price for each variant
+  const currentPrices = variants.map(v => {
+    if (v.discountPrice && v.discountPrice > 0) {
+      return v.discountPrice;
+    }
+    if (productHasOffer && productOfferPrice && productOfferPrice > 0 && productPrice > 0) {
+      const discountRatio = productOfferPrice / productPrice;
+      return Math.round(v.price * discountRatio);
+    }
+    return v.price;
+  });
+
+  const originalPrices = variants.map(v => v.price);
+
+  const minPrice = Math.min(...currentPrices);
+  const maxPrice = Math.max(...currentPrices);
+  const minOriginalPrice = Math.min(...originalPrices);
+  const maxOriginalPrice = Math.max(...originalPrices);
+
+  const hasVariantDiscount = currentPrices.some((price, i) => price < originalPrices[i]);
+  const hasDiscount = hasVariantDiscount || (!!productHasOffer && !!productOfferPrice && productOfferPrice > 0);
+
+  return { minPrice, maxPrice, minOriginalPrice, maxOriginalPrice, hasDiscount };
+}
+
 export function ProductCard({
   product,
   variant = "default",
@@ -25,13 +67,35 @@ export function ProductCard({
   const [imageError, setImageError] = useState(false);
   const router = useRouter();
 
-  // ✅ Use price range fields for consistent display
-  // For backward compatibility, fall back to old price/offerPrice fields
-  const minPrice = product?.minPrice ?? product?.offerPrice ?? product?.price ?? 0;
-  const maxPrice = product?.maxPrice ?? product?.offerPrice ?? product?.price ?? 0;
-  const minOriginalPrice = product?.minOriginalPrice ?? product?.price ?? 0;
-  const maxOriginalPrice = product?.maxOriginalPrice ?? product?.price ?? 0;
-  const hasDiscount = product?.hasOffer && minPrice < minOriginalPrice;
+  // ✅ Calculate price range - use new fields if available, otherwise calculate from variants
+  const priceInfo = useMemo(() => {
+    // If new price range fields exist and have valid values, use them
+    if (
+      product.minPrice !== undefined &&
+      product.maxPrice !== undefined &&
+      product.minOriginalPrice !== undefined &&
+      product.maxOriginalPrice !== undefined &&
+      product.minPrice > 0
+    ) {
+      return {
+        minPrice: product.minPrice,
+        maxPrice: product.maxPrice,
+        minOriginalPrice: product.minOriginalPrice,
+        maxOriginalPrice: product.maxOriginalPrice,
+        hasDiscount: product.hasOffer && product.minPrice < product.minOriginalPrice,
+      };
+    }
+
+    // Otherwise, calculate from variants (for backward compatibility with existing products)
+    return calculatePriceRange(
+      product.variants,
+      product.price,
+      product.offerPrice,
+      product.hasOffer
+    );
+  }, [product]);
+
+  const { minPrice, maxPrice, minOriginalPrice, maxOriginalPrice, hasDiscount } = priceInfo;
 
   // Calculate discount percentage from price range
   const discount = hasDiscount && minOriginalPrice > 0

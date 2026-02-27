@@ -8,7 +8,9 @@ import { ProductResponse } from "@/@types/seach-product-type";
 
 async function fetchProducts(params: any) {
   const data = await GetRequestNormal<ProductResponse>(
-    `/meilisearch/get-all-product?${toBackendParams(params)}`
+    `/meilisearch/get-all-product?${toBackendParams(params)}`,
+    60, // Revalidate every 60 seconds
+    "products" // Cache tag for selective revalidation
   );
   return data;
 }

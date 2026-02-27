@@ -14,7 +14,9 @@ export async function generateMetadata({
 
   try {
     const product = await GetRequestNormal<Product>(
-      `/product/get-product?slug=${slug}`
+      `/product/get-product?slug=${slug}`,
+      60,
+      ["products", `product-${slug}`]
     );
 
     if (!product) {
@@ -138,7 +140,8 @@ const ProductDetailsPage = async ({
   const { slug } = await params;
   const product = await GetRequestNormal<Product>(
     `/product/get-product?slug=${slug}`,
-    100
+    60, // Revalidate every 60 seconds
+    ["products", `product-${slug}`] // Cache tags for selective revalidation
   );
 
   console.log("Product details:", product);
