@@ -24,7 +24,7 @@ import { ViewProductModal } from "@/components/ui/custom/admin/create-edit-produ
 import { useQueryWrapper } from "@/api-hook/react-query-wrapper";
 import { Product, ProductApiResponse } from "@/@types/short-product";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCommonMutationApi } from "@/api-hook/mutation-common";
+import { deleteProduct } from "@/actions/product";
 import {
   Dialog,
   DialogClose,
@@ -35,6 +35,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 // Static product data
 const STATIC_PRODUCTS = [
@@ -175,41 +176,36 @@ export default function ProductManagementPage() {
     setIsViewModalOpen(true);
   };
   const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDeleteSuccess = useCallback((data: any) => {
-    queryClient.invalidateQueries({
-      queryKey: ["products"],
-      exact: false,
-    });
-    setIsDeleteModalOpen(false);
-  }, [queryClient]);
-
-  const handleDeleteError = useCallback((error: Error) => {
-    console.error('Delete failed:', error);
-    setIsDeleteModalOpen(false);
-  }, []);
-
-  const { mutate, isPending } = useCommonMutationApi({
-    url: "/product",
-    method: "DELETE",
-    successMessage: "Product deleted successfully",
-    onSuccess: handleDeleteSuccess,
-    onError: handleDeleteError,
-  });
-  const handleDeleteProduct = (productId: string) => {
-    mutate(productId);
+  const confirmDelete = async () => {
+    if (productToDelete) {
+      setIsDeleting(true);
+      try {
+        const result = await deleteProduct(productToDelete);
+        if (result.error) {
+          toast.error(result.error.message || "Failed to delete product");
+        } else {
+          toast.success("Product deleted successfully");
+          queryClient.invalidateQueries({
+            queryKey: ["products"],
+            exact: false,
+          });
+          setIsDeleteModalOpen(false);
+        }
+      } catch (error) {
+        toast.error("An error occurred while deleting");
+        console.error('Delete failed:', error);
+      } finally {
+        setIsDeleting(false);
+        setProductToDelete(null);
+      }
+    }
   };
 
   const openDeleteDialog = (productId: string) => {
     setProductToDelete(productId);
     setIsDeleteModalOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (productToDelete) {
-      mutate(productToDelete);
-      setProductToDelete(null);
-    }
   };
 
   const total = data?.total || 0;
@@ -549,10 +545,10 @@ export default function ProductManagementPage() {
             </DialogClose>
             <Button
               onClick={confirmDelete}
-              disabled={isPending}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              {isPending ? "Deleting..." : "Delete"}
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
