@@ -31,19 +31,23 @@ export default function LoginPage() {
       if (data?.data) {
         toast.success("Login successful!");
         resetForm();
-        if (data?.data?.user?.role === "admin") {
-          setOpen(false);
+        const role = data?.data?.user?.role;
+        setOpen(false);
 
+        // Redirect based on role
+        if (role === "admin") {
           return router.push("/admin/analytics");
         }
-        if (data?.data?.user?.role === "user") {
-          setOpen(false);
-          return router.push("/user/profile");
+        if (role === "vendor") {
+          return router.push("/my-products");
         }
+        if (role === "editor" || role === "manager") {
+          return router.push("/admin/analytics");
+        }
+        // Default for regular users
+        return router.push("/user/profile");
       }
       toast.error(data?.error?.message || "Login failed");
-
-      // Redirect to dashboard or home
     },
     onError: (error) => {
       console.error("Login failed:", error);

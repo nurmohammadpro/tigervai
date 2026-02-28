@@ -15,8 +15,27 @@ function LoginWithGoogle() {
     mutationKey: ["loginWithGoogle"],
     mutationFn: (idToken: string) => loginWithGoogle(idToken),
     onSuccess: (data) => {
-      if (data?.error) toast.error(data?.error?.message || "Login failed");
-      return router.push("/user/profile");
+      if (data?.error) {
+        toast.error(data?.error?.message || "Login failed");
+        return;
+      }
+      if (data?.data) {
+        toast.success("Login successful!");
+        const role = data?.data?.user?.role;
+
+        // Redirect based on role
+        if (role === "admin") {
+          return router.push("/admin/analytics");
+        }
+        if (role === "vendor") {
+          return router.push("/my-products");
+        }
+        if (role === "editor" || role === "manager") {
+          return router.push("/admin/analytics");
+        }
+        // Default for regular users
+        return router.push("/user/profile");
+      }
     },
     onError: (error) => {
       console.error("Login failed:", error);
