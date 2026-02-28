@@ -224,7 +224,7 @@ export class ProductService {
     if (dto.variants && dto.variants.length > 0) {
       finalPrice = ProductHelper.calculateAveragePrice(dto.variants);
       finalStock = ProductHelper.calculateTotalStock(dto.variants);
-      finalOfferPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) || dto.offerPrice ?? 0;
+      finalOfferPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) ?? dto.offerPrice ?? 0;
     }
 
     // ✅ Automatically calculate hasOffer based on offerPrice
