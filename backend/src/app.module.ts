@@ -20,8 +20,8 @@ import { CartModule } from './cart/cart.module';
   }),
   JwtModule.register({
     global: true,
-        secret: process.env.jwt ,
-    signOptions: { expiresIn: '5d' },
+    secret: process.env.ACCESS_TOKEN || 'fallback-secret-key-change-in-production',
+    signOptions: { expiresIn: '60d' },
   }),
      MongooseModule.forRoot(process.env.MONGODB_URL as string, {
       bufferCommands: false,
