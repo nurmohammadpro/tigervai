@@ -216,18 +216,18 @@ export class ProductService {
 
     const isAdmin = role === UserRole.ADMIN;
 
-    // ✅ NEW: Calculate averages from variants if provided
+    // ✅ Calculate averages from variants if provided
     let finalPrice = dto.price ?? 0;
     let finalStock = dto.stock;
     let finalOfferPrice = dto.offerPrice ?? 0;
 
-  /*   if (dto.variants && dto.variants.length > 0) {
+    if (dto.variants && dto.variants.length > 0) {
       finalPrice = ProductHelper.calculateAveragePrice(dto.variants);
       finalStock = ProductHelper.calculateTotalStock(dto.variants);
-      finalOfferPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) || dto.offerPrice;
-    } */
+      finalOfferPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) || dto.offerPrice ?? 0;
+    }
 
-    // ✅ NEW: Automatically calculate hasOffer based on offerPrice
+    // ✅ Automatically calculate hasOffer based on offerPrice
     const finalHasOffer = ProductHelper.calculateHasOffer(finalPrice, finalOfferPrice);
 
     const newProduct = await ProductModel.create({
@@ -278,20 +278,19 @@ export class ProductService {
     const ProductModel = this.productModel();
  this.logger.log('🟡 Updating product image',dto.thumbnail);
     // ✅ Calculate new averages if variants changed
-   /*  let updateData = { ...dto };
+    let updateData = { ...dto };
     if (dto.variants && dto.variants.length > 0) {
       updateData.price = ProductHelper.calculateAveragePrice(dto.variants);
       updateData.stock = ProductHelper.calculateTotalStock(dto.variants);
       updateData.offerPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) || dto.offerPrice;
-    } */
+    }
 
-    // ✅ NEW: Automatically calculate hasOffer if price or offerPrice is being updated
-    let updateData = { ...dto };
-    if (dto.price !== undefined || dto.offerPrice !== undefined) {
+    // ✅ Automatically calculate hasOffer if price or offerPrice is being updated
+    if (dto.price !== undefined || dto.offerPrice !== undefined || dto.variants) {
       const product = await ProductModel.findById(productId);
       if (product) {
-        const price = dto.price ?? product.price;
-        const offerPrice = dto.offerPrice ?? product.offerPrice;
+        const price = updateData.price ?? dto.price ?? product.price;
+        const offerPrice = updateData.offerPrice ?? dto.offerPrice ?? product.offerPrice;
         updateData.hasOffer = ProductHelper.calculateHasOffer(price, offerPrice);
       }
     }
@@ -332,18 +331,17 @@ export class ProductService {
     }
 
     // ✅ Calculate new averages if variants changed
-   /*  let updateData = { ...dto };
+    let updateData = { ...dto };
     if (dto.variants && dto.variants.length > 0) {
       updateData.price = ProductHelper.calculateAveragePrice(dto.variants);
       updateData.stock = ProductHelper.calculateTotalStock(dto.variants);
       updateData.offerPrice = ProductHelper.calculateAverageOfferPrice(dto.variants) || dto.offerPrice;
-    } */
+    }
 
-    // ✅ NEW: Automatically calculate hasOffer if price or offerPrice is being updated
-    let updateData = { ...dto };
-    if (dto.price !== undefined || dto.offerPrice !== undefined) {
-      const price = dto.price ?? product.price;
-      const offerPrice = dto.offerPrice ?? product.offerPrice;
+    // ✅ Automatically calculate hasOffer if price or offerPrice is being updated
+    if (dto.price !== undefined || dto.offerPrice !== undefined || dto.variants) {
+      const price = updateData.price ?? dto.price ?? product.price;
+      const offerPrice = updateData.offerPrice ?? dto.offerPrice ?? product.offerPrice;
       updateData.hasOffer = ProductHelper.calculateHasOffer(price, offerPrice);
     }
 
