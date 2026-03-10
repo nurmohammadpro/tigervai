@@ -47,6 +47,7 @@ import ShortDescription from "./ShortDiscription";
 import pb from "@/lib/poacktbase";
 import { Spinner } from "../../spinner";
 import VariantSelector from "./VariantSelector";
+import TyreVariantSelector from "./TyreVariantSelector";
 
 interface ProductVariantCardsProps {
   product: Product;
