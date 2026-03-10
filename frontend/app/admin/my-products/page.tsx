@@ -182,18 +182,40 @@ export default function ProductManagementPage() {
     if (productToDelete) {
       setIsDeleting(true);
       try {
+        // Optimistically update the cache
+        queryClient.setQueryData(
+          ["products", page, limit, sortBy, sortOrder],
+          (old: ProductApiResponse | undefined) => {
+            if (!old) return old;
+            return {
+              ...old,
+              data: old.data.filter((product) => product._id !== productToDelete),
+              total: old.total - 1,
+              totalPages: Math.ceil((old.total - 1) / limit),
+            };
+          }
+        );
+
         const result = await deleteProduct(productToDelete);
         if (result.error) {
+          // Revert optimistic update on error
+          queryClient.invalidateQueries({
+            queryKey: ["products", page, limit, sortBy, sortOrder],
+          });
           toast.error(result.error.message || "Failed to delete product");
         } else {
           toast.success("Product deleted successfully");
-          queryClient.invalidateQueries({
+          // Invalidate and refetch to ensure fresh data
+          await queryClient.invalidateQueries({
             queryKey: ["products"],
-            exact: false,
           });
           setIsDeleteModalOpen(false);
         }
       } catch (error) {
+        // Revert optimistic update on error
+        queryClient.invalidateQueries({
+          queryKey: ["products", page, limit, sortBy, sortOrder],
+        });
         toast.error("An error occurred while deleting");
         console.error('Delete failed:', error);
       } finally {
