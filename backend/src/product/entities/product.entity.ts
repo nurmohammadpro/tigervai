@@ -96,6 +96,16 @@ class ProductVariant {
 
   @Prop({ default: true })
   isAvailable: boolean;
+
+  // Tyre-specific fields
+  @Prop()
+  season?: string;
+
+  @Prop()
+  loadIndex?: string;
+
+  @Prop()
+  speedRating?: string;
 }
 
 @Schema({ timestamps: true, autoIndex: true })

@@ -31,6 +31,10 @@ export interface ProductVariant {
   sku?: string;
   isAvailable?: boolean;
   recommended?: string;
+  // Tyre-specific fields
+  season?: string;
+  loadIndex?: string;
+  speedRating?: string;
 }
 
 export interface CreateProduct {

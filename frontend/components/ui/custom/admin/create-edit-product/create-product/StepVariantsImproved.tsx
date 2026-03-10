@@ -21,6 +21,10 @@ interface Variant {
     key: string;
     id: string;
   };
+  // Tyre-specific fields
+  season?: string;
+  loadIndex?: string;
+  speedRating?: string;
 }
 
 // Size row with comma-separated colors
@@ -31,14 +35,20 @@ interface SizeRow {
   offerPrice: number;
   stock: number;
   colors: string; // Comma-separated string
+  // Tyre-specific fields
+  season?: string;
+  loadIndex?: string;
+  speedRating?: string;
 }
 
 interface StepVariantsImprovedProps {
   mode?: "add" | "edit";
+  productType?: "tyre" | "clothing" | "electronics" | "accessories" | "general";
 }
 
 export default function StepVariantsImproved({
   mode = "add",
+  productType = "clothing",
 }: StepVariantsImprovedProps) {
   // Use the appropriate store based on mode
   const addStore = useAddProductStore();
@@ -93,19 +103,27 @@ export default function StepVariantsImproved({
       // Flatten sizeRows back to variants array
       const flatVariants: Variant[] = [];
       sizeRows.forEach((row) => {
-        // Parse comma-separated colors
-        const colorList = row.colors
-          .split(",")
-          .map((c) => c.trim())
-          .filter(Boolean);
+        // Parse comma-separated colors (only for clothing)
+        const colorList = productType === "tyre"
+          ? []
+          : row.colors
+            .split(",")
+            .map((c) => c.trim())
+            .filter(Boolean);
 
-        // If no colors, create a single variant with just size
+        // If no colors (or tyre type), create a single variant with just size
         if (colorList.length === 0) {
           flatVariants.push({
             size: row.size,
             price: row.regularPrice,
             discountPrice: row.offerPrice || undefined,
             stock: row.stock,
+            // Add tyre-specific fields if present
+            ...(productType === "tyre" && {
+              season: row.season,
+              loadIndex: row.loadIndex,
+              speedRating: row.speedRating,
+            }),
           });
         } else {
           // Create a variant for each color
@@ -122,7 +140,7 @@ export default function StepVariantsImproved({
       });
       updateField("variants", flatVariants);
     }
-  }, [sizeRows]);
+  }, [sizeRows, productType]);
 
   // Add a new size row
   const handleAddSizeRow = () => {
@@ -133,6 +151,12 @@ export default function StepVariantsImproved({
       offerPrice: 0,
       stock: 0,
       colors: "",
+      // Initialize tyre-specific fields
+      ...(productType === "tyre" && {
+        season: "",
+        loadIndex: "",
+        speedRating: "",
+      }),
     };
     setSizeRows([...sizeRows, newRow]);
   };
@@ -172,11 +196,12 @@ export default function StepVariantsImproved({
           className="font-semibold mb-1"
           style={{ color: "var(--palette-accent-1)" }}
         >
-          Product Variants
+          {productType === "tyre" ? "Tyre Variants" : "Product Variants"}
         </h3>
         <p className="text-sm" style={{ color: "var(--palette-accent-3)" }}>
-          Add sizes with pricing, stock, and optional colors for your product
-          variants.
+          {productType === "tyre"
+            ? "Add tyre sizes with pricing, stock, and specifications."
+            : "Add sizes with pricing, stock, and optional colors for your product variants."}
         </p>
       </div>
 
@@ -191,17 +216,17 @@ export default function StepVariantsImproved({
               backgroundColor: "rgba(255, 255, 255, 0.02)",
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-1 md:grid-cols-7" : "grid-cols-1 md:grid-cols-6"}`}>
               {/* Size Name */}
               <div>
                 <label
                   className="text-xs font-semibold mb-1 block"
                   style={{ color: "var(--palette-accent-3)" }}
                 >
-                  Size *
+                  {productType === "tyre" ? "Tyre Size *" : "Size *"}
                 </label>
                 <Input
-                  placeholder="e.g., M, L, XL"
+                  placeholder={productType === "tyre" ? "e.g., 175/65 R14" : "e.g., M, L, XL"}
                   value={row.size}
                   onChange={(e) =>
                     handleUpdateSizeRow(row.id, "size", e.target.value)
@@ -302,27 +327,97 @@ export default function StepVariantsImproved({
                 />
               </div>
 
-              {/* Colors (Comma-separated) */}
-              <div>
-                <label
-                  className="text-xs font-semibold mb-1 block"
-                  style={{ color: "var(--palette-accent-3)" }}
-                >
-                  Colors (Optional)
-                </label>
-                <Input
-                  placeholder="Red, Blue, Green"
-                  value={row.colors}
-                  onChange={(e) =>
-                    handleUpdateSizeRow(row.id, "colors", e.target.value)
-                  }
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.05)",
-                    borderColor: "var(--palette-accent-3)",
-                    color: "var(--palette-text)",
-                  }}
-                />
-              </div>
+              {/* Colors (Comma-separated) - Only show for non-tyre products */}
+              {productType !== "tyre" && (
+                <div>
+                  <label
+                    className="text-xs font-semibold mb-1 block"
+                    style={{ color: "var(--palette-accent-3)" }}
+                  >
+                    Colors (Optional)
+                  </label>
+                  <Input
+                    placeholder="Red, Blue, Green"
+                    value={row.colors}
+                    onChange={(e) =>
+                      handleUpdateSizeRow(row.id, "colors", e.target.value)
+                    }
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      borderColor: "var(--palette-accent-3)",
+                      color: "var(--palette-text)",
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Tyre-specific fields: Season */}
+              {productType === "tyre" && (
+                <>
+                  <div>
+                    <label
+                      className="text-xs font-semibold mb-1 block"
+                      style={{ color: "var(--palette-accent-3)" }}
+                    >
+                      Season (Optional)
+                    </label>
+                    <Input
+                      placeholder="e.g., Summer"
+                      value={row.season || ""}
+                      onChange={(e) =>
+                        handleUpdateSizeRow(row.id, "season", e.target.value)
+                      }
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        borderColor: "var(--palette-accent-3)",
+                        color: "var(--palette-text)",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      className="text-xs font-semibold mb-1 block"
+                      style={{ color: "var(--palette-accent-3)" }}
+                    >
+                      Load Index (Optional)
+                    </label>
+                    <Input
+                      placeholder="e.g., 91"
+                      value={row.loadIndex || ""}
+                      onChange={(e) =>
+                        handleUpdateSizeRow(row.id, "loadIndex", e.target.value)
+                      }
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        borderColor: "var(--palette-accent-3)",
+                        color: "var(--palette-text)",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      className="text-xs font-semibold mb-1 block"
+                      style={{ color: "var(--palette-accent-3)" }}
+                    >
+                      Speed Rating (Optional)
+                    </label>
+                    <Input
+                      placeholder="e.g., H"
+                      value={row.speedRating || ""}
+                      onChange={(e) =>
+                        handleUpdateSizeRow(row.id, "speedRating", e.target.value)
+                      }
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        borderColor: "var(--palette-accent-3)",
+                        color: "var(--palette-text)",
+                      }}
+                    />
+                  </div>
+                </>
+              )}
 
               {/* Delete Size Button */}
               <div className="flex items-end">
@@ -353,7 +448,7 @@ export default function StepVariantsImproved({
           style={{ backgroundColor: "var(--palette-btn)" }}
         >
           <Plus size={18} />
-          Add New Size
+          {productType === "tyre" ? "Add New Tyre Size" : "Add New Size"}
         </Button>
       </div>
 
@@ -373,17 +468,23 @@ export default function StepVariantsImproved({
             className="text-sm font-semibold"
             style={{ color: "var(--palette-text)" }}
           >
-            Summary: {sizeRows.length} size(s),{" "}
-            {sizeRows.reduce(
-              (acc, row) =>
-                acc +
-                row.colors
-                  .split(",")
-                  .map((c) => c.trim())
-                  .filter(Boolean).length,
-              0,
-            )}{" "}
-            color variant(s)
+            {productType === "tyre" ? (
+              <>Summary: {sizeRows.length} tyre size(s)</>
+            ) : (
+              <>
+                Summary: {sizeRows.length} size(s),{" "}
+                {sizeRows.reduce(
+                  (acc, row) =>
+                    acc +
+                    row.colors
+                      .split(",")
+                      .map((c) => c.trim())
+                      .filter(Boolean).length,
+                  0
+                )}{" "}
+                color variant(s)
+              </>
+            )}
           </p>
           {getMissingStockCount() > 0 && (
             <p className="text-sm text-red-600 mt-2 font-semibold flex items-center gap-2">
@@ -410,7 +511,9 @@ export default function StepVariantsImproved({
           }}
         >
           <p style={{ color: "var(--palette-accent-3)" }}>
-            No variants added yet. Click "Add New Size" to get started.
+            {productType === "tyre"
+              ? 'No tyre sizes added yet. Click "Add New Tyre Size" to get started.'
+              : 'No variants added yet. Click "Add New Size" to get started.'}
           </p>
         </div>
       )}

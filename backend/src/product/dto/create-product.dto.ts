@@ -69,12 +69,12 @@ class BrandInfoDto {
 
 // ✅ NEW VARIANT DTO
 class ProductVariantDto {
-  @ApiProperty({ description: 'Variant size (e.g., S, M, L, XL)' })
+  @ApiProperty({ description: 'Variant size (e.g., S, M, L, XL or 175/65 R14 for tyres)' })
   @IsString()
   size: string;
 
   @ApiProperty({
-    description: 'Variant color (optional for tyres)',
+    description: 'Variant color (optional for clothing, not used for tyres)',
     required: false,
   })
   @IsOptional()
@@ -119,6 +119,22 @@ class ProductVariantDto {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isAvailable?: boolean;
+
+  // Tyre-specific fields
+  @ApiProperty({ description: 'Tyre season (e.g., Summer, Winter, All-Season)', required: false })
+  @IsOptional()
+  @IsString()
+  season?: string;
+
+  @ApiProperty({ description: 'Tyre load index (e.g., 91, 95)', required: false })
+  @IsOptional()
+  @IsString()
+  loadIndex?: string;
+
+  @ApiProperty({ description: 'Tyre speed rating (e.g., H, V, W)', required: false })
+  @IsOptional()
+  @IsString()
+  speedRating?: string;
 }
 
 export class CreateProductDto {

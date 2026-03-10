@@ -104,7 +104,7 @@ const FORM_SECTIONS = {
 export default function AddProductPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { resetForm, calculateAndFinalize } = useAddProductStore();
+  const { resetForm, calculateAndFinalize, updateField } = useAddProductStore();
   const [selectedProductType, setSelectedProductType] = useState<string | null>(
     null
   );
@@ -112,6 +112,13 @@ export default function AddProductPage() {
     new Set(["basic"])
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update productType in store when selected
+  React.useEffect(() => {
+    if (selectedProductType) {
+      updateField("productType", selectedProductType);
+    }
+  }, [selectedProductType, updateField]);
 
   const { mutate, isPending } = useApiMutation(
     postNewProduct,
@@ -431,7 +438,7 @@ export default function AddProductPage() {
                     style={{ borderColor: "var(--palette-accent-3)" }}
                   >
                     {section.id === "basic" && <StepBasicInfo />}
-                    {section.id === "variants" && <StepVariants />}
+                    {section.id === "variants" && <StepVariants productType={selectedProductType as any} />}
                     {section.id === "media" && <StepMedia />}
                     {section.id === "shipping" && <StepShipping />}
                   </div>
