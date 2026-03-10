@@ -129,7 +129,29 @@ export default function AddProductPage() {
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
+
+      // Validate required fields before submitting
       const finalData = calculateAndFinalize();
+
+      // Check required fields
+      if (!finalData.name || finalData.name.trim() === "") {
+        alert("Please enter a product name");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!finalData.category?.main || finalData.category.main.trim() === "") {
+        alert("Please select a main category");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!finalData.variants || finalData.variants.length === 0) {
+        alert("Please add at least one variant (size)");
+        setIsSubmitting(false);
+        return;
+      }
+
       console.log("Submitting product data:", finalData);
       mutate(finalData, {
         onSuccess: (data) => {

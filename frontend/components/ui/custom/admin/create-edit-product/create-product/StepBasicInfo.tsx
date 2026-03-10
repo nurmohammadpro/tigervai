@@ -74,7 +74,6 @@ export default function StepBasicInfo() {
   const findOneSubCategory = findOneSub?.sub?.find(
     (item) => item?.SubMain === formData.category?.subMain
   );
-  console.log("findOneSubCategory", findOneSubCategory, "su");
   return (
     <div className="space-y-6">
       {/* Product Name */}
