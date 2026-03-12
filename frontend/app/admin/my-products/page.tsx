@@ -245,26 +245,15 @@ export default function ProductManagementPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Product Management</h1>
-          <div className="flex gap-3">
-            <Link href="/admin/my-products/add-tyre">
-              <Button
-                className="flex items-center gap-2 text-white"
-                style={{ backgroundColor: "#342f2c" }}
-              >
-                <span>🛞</span>
-                Add Tyre Product
-              </Button>
-            </Link>
-            <Link href="/admin/my-products/add-product">
-              <Button
-                className="flex items-center gap-2 text-white"
-                style={{ backgroundColor: "var(--palette-btn)" }}
-              >
-                <Plus size={20} />
-                Add Product
-              </Button>
-            </Link>
-          </div>
+          <Link href="/admin/my-products/add-product">
+            <Button
+              className="flex items-center gap-2 text-white"
+              style={{ backgroundColor: "var(--palette-btn)" }}
+            >
+              <Plus size={20} />
+              Add New Product
+            </Button>
+          </Link>
         </div>
 
         {/* Filters - Fixed positioning */}

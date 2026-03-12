@@ -48,7 +48,6 @@ import pb from "@/lib/poacktbase";
 import { Spinner } from "../../spinner";
 import VariantSelector from "./VariantSelector";
 import TyreVariantSelector from "./TyreVariantSelector";
-import TyreProductPage from "./TyreProductPage";
 
 interface ProductVariantCardsProps {
   product: Product;
@@ -665,17 +664,11 @@ const VariantCard: React.FC<VariantCardProps> = ({
 };
 
 const ProductPage = ({ params }: { params: Product }) => {
-  // Auto-detect tyre products and use dedicated TyreProductPage
-  // Detection by: productType === "tyre" OR category contains "Tyre" OR variants have tyre-specific fields
+  // Detect if this is a tyre product by category
   const isTyreProduct =
-    params.productType === "tyre" ||
     params.category?.main?.includes("Tyre") ||
     params.category?.category?.includes("Tyre") ||
     params.variants?.some((v) => v.variantType && ["front", "rear", "combo"].includes(v.variantType));
-
-  if (isTyreProduct) {
-    return <TyreProductPage product={params} />;
-  }
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("Details");
@@ -1071,12 +1064,21 @@ const ProductPage = ({ params }: { params: Product }) => {
             {/* Variant Selector with New Compact Design */}
             {params?.variants && params.variants.length > 0 && (
               <div className="space-y-4">
-                <VariantSelector
-                  variants={params.variants}
-                  onVariantSelect={setSelectedVariant}
-                  selectedVariant={selectedVariant}
-                  productInfo={{
-                    hasOffer: params.hasOffer || false,
+                {isTyreProduct ? (
+                  <TyreVariantSelector
+                    product={params}
+                    quantity={quantity}
+                    setQuantity={setQuantity}
+                    selectedVariant={selectedVariant}
+                    setSelectedVariant={setSelectedVariant}
+                  />
+                ) : (
+                  <VariantSelector
+                    variants={params.variants}
+                    onVariantSelect={setSelectedVariant}
+                    selectedVariant={selectedVariant}
+                    productInfo={{
+                      hasOffer: params.hasOffer || false,
                     offerPrice: params.offerPrice,
                     price: params.price || 0,
                   }}
