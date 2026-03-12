@@ -78,8 +78,11 @@ export default function AddTyreProductPage() {
           resetForm();
           router.push("/admin/my-products");
         },
-        onError: (error) => {
+        onError: (error: any) {
           console.error("Error creating tyre product:", error);
+          // Show detailed error message
+          const errorMessage = error?.response?.data?.message || error?.message || "Failed to create tyre product";
+          alert(errorMessage);
           setIsSubmitting(false);
         },
         onSettled: () => {

@@ -177,6 +177,16 @@ export const useAddTyreProductStore = create<AddTyreProductState>((set, get) => 
       throw new Error("Please add at least one tyre variant (front, rear, or combo)");
     }
 
+    // Validate thumbnail is present
+    if (!formData.thumbnail || !formData.thumbnail.url) {
+      throw new Error("Please upload a product thumbnail image");
+    }
+
+    // Validate category
+    if (!formData.category?.main) {
+      throw new Error("Please select a tyre type (Car Tyre or Motorcycle Tyre)");
+    }
+
     // Convert tyre variants to standard product variants
     const standardVariants = tyreVariants.map((tv) => ({
       size: `${tv.type} - ${tv.size}`, // Include type in size for identification
@@ -220,6 +230,14 @@ export const useAddTyreProductStore = create<AddTyreProductState>((set, get) => 
       // Always admin created for tyres
       isAdminCreated: true,
     };
+
+    // Ensure category has all required fields
+    if (!cleanedData.category.subMain) {
+      cleanedData.category.subMain = "General";
+    }
+    if (!cleanedData.category.category) {
+      cleanedData.category.category = "All";
+    }
 
     // Clean optional string fields
     const optionalStringFields = [
