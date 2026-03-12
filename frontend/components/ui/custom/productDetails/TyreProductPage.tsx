@@ -1,7 +1,7 @@
 // components/ui/custom/productDetails/TyreProductPage.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Heart,
   Share2,
@@ -29,17 +29,13 @@ type TyreVariantType = "front" | "rear" | "combo";
 export default function TyreProductPage({ product }: TyreProductPageProps) {
   const router = useRouter();
   const { addToCart } = useCartStore();
-  const { addToWish, removeFromWish, wishItems } = useWishHook();
+  const { wishList, toggleWishList } = useWishHook();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [variantQuantities, setVariantQuantities] = useState<VariantQuantity>({});
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
   // Check if product is wishlisted
-  useEffect(() => {
-    const wished = wishItems.some((item) => item.productId === product._id);
-    setIsWishlisted(wished);
-  }, [wishItems, product._id]);
+  const isWishlisted = wishList?.cartProducts?.some((item) => item.productId === product._id) || false;
 
   // Get all images (thumbnail + additional images)
   const allImages = [
@@ -148,22 +144,8 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
 
   // Toggle wishlist
   const toggleWishlist = () => {
-    if (isWishlisted) {
-      removeFromWish(product._id);
-      toast.success("Removed from wishlist");
-    } else {
-      addToWish({
-        productId: product._id,
-        name: product.name,
-        price: product.offerPrice || product.price,
-        image: product.thumbnail?.url || product.images?.[0]?.url || "",
-        slug: product.slug || "",
-        stock: product.stock,
-        brand: product.brand?.name || "",
-      });
-      toast.success("Added to wishlist");
-    }
-    setIsWishlisted(!isWishlisted);
+    toggleWishList({ productId: product._id });
+    toast.success(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
   };
 
   return (
