@@ -36,9 +36,11 @@ interface SizeRow {
   stock: number;
   colors: string; // Comma-separated string
   // Tyre-specific fields
+  variantType?: "front" | "rear" | "combo" | "standard";
   season?: string;
   loadIndex?: string;
   speedRating?: string;
+  compatibleModels?: string;
 }
 
 interface StepVariantsImprovedProps {
@@ -84,6 +86,14 @@ export default function StepVariantsImproved({
           .map((v) => v.color)
           .filter(Boolean)
           .join(", ");
+        // Extract variantType from size if it's a tyre (e.g., "front - 110/70 R17")
+        let variantType: "front" | "rear" | "combo" | "standard" = "standard";
+        if (productType === "tyre") {
+          const sizePart = size.toLowerCase().split(" - ")[0];
+          if (sizePart === "front" || sizePart === "rear" || sizePart === "combo") {
+            variantType = sizePart as "front" | "rear" | "combo";
+          }
+        }
         rows.push({
           id: `size-${size}-${Date.now()}`,
           size,
@@ -91,11 +101,16 @@ export default function StepVariantsImproved({
           offerPrice: firstVariant.discountPrice || 0,
           stock: firstVariant.stock,
           colors,
+          variantType,
+          season: firstVariant.season,
+          loadIndex: firstVariant.loadIndex,
+          speedRating: firstVariant.speedRating,
+          compatibleModels: firstVariant.recommended,
         });
       });
       setSizeRows(rows);
     }
-  }, [variants]);
+  }, [variants, productType]);
 
   // Update formData.variants when sizeRows change
   React.useEffect(() => {
@@ -114,15 +129,20 @@ export default function StepVariantsImproved({
         // If no colors (or tyre type), create a single variant with just size
         if (colorList.length === 0) {
           flatVariants.push({
-            size: row.size,
+            // For tyres, prefix size with variant type for display
+            size: productType === "tyre" && row.variantType && row.variantType !== "standard"
+              ? `${row.variantType} - ${row.size}`
+              : row.size,
             price: row.regularPrice,
             discountPrice: row.offerPrice || undefined,
             stock: row.stock,
             // Add tyre-specific fields if present
             ...(productType === "tyre" && {
+              variantType: row.variantType || "standard",
               season: row.season,
               loadIndex: row.loadIndex,
               speedRating: row.speedRating,
+              recommended: row.compatibleModels,
             }),
           });
         } else {
@@ -151,11 +171,13 @@ export default function StepVariantsImproved({
       offerPrice: 0,
       stock: 0,
       colors: "",
+      variantType: productType === "tyre" ? "front" : "standard",
       // Initialize tyre-specific fields
       ...(productType === "tyre" && {
         season: "",
         loadIndex: "",
         speedRating: "",
+        compatibleModels: "",
       }),
     };
     setSizeRows([...sizeRows, newRow]);
@@ -216,7 +238,37 @@ export default function StepVariantsImproved({
               backgroundColor: "rgba(255, 255, 255, 0.02)",
             }}
           >
-            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-1 md:grid-cols-7" : "grid-cols-1 md:grid-cols-6"}`}>
+            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-1 md:grid-cols-9" : "grid-cols-1 md:grid-cols-6"}`}>
+              {/* Variant Type (for tyres) */}
+              {productType === "tyre" && (
+                <div>
+                  <label
+                    className="text-xs font-semibold mb-1 block"
+                    style={{ color: "var(--palette-accent-3)" }}
+                  >
+                    Type *
+                  </label>
+                  <select
+                    value={row.variantType || "front"}
+                    onChange={(e) =>
+                      handleUpdateSizeRow(row.id, "variantType", e.target.value as "front" | "rear" | "combo" | "standard")
+                    }
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      borderColor: "var(--palette-accent-3)",
+                      color: "var(--palette-text)",
+                      width: "100%",
+                      padding: "8px",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    <option value="front">Front</option>
+                    <option value="rear">Rear</option>
+                    <option value="combo">Combo</option>
+                  </select>
+                </div>
+              )}
+
               {/* Size Name */}
               <div>
                 <label
@@ -408,6 +460,27 @@ export default function StepVariantsImproved({
                       value={row.speedRating || ""}
                       onChange={(e) =>
                         handleUpdateSizeRow(row.id, "speedRating", e.target.value)
+                      }
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        borderColor: "var(--palette-accent-3)",
+                        color: "var(--palette-text)",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      className="text-xs font-semibold mb-1 block"
+                      style={{ color: "var(--palette-accent-3)" }}
+                    >
+                      Compatible Models (Optional)
+                    </label>
+                    <Input
+                      placeholder="e.g., KTM Duke 125, Yamaha R15"
+                      value={row.compatibleModels || ""}
+                      onChange={(e) =>
+                        handleUpdateSizeRow(row.id, "compatibleModels", e.target.value)
                       }
                       style={{
                         backgroundColor: "rgba(255, 255, 255, 0.05)",

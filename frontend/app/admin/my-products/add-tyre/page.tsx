@@ -3,8 +3,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ChevronDown, ChevronUp, Circle } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAddTyreProductStore } from "@/zustand-hook/addTyreProductStore";
 import StepTyreBasicInfo from "@/components/ui/custom/admin/create-edit-product/tyre-product/StepTyreBasicInfo";
@@ -119,7 +118,7 @@ export default function AddTyreProductPage() {
       <div className="max-w-5xl mx-auto">
         {/* Sticky Header */}
         <div
-          className="sticky top-0 z-10 rounded-xl border p-4 mb-6"
+          className="rounded-xl border p-4 mb-6"
           style={{
             backgroundColor: "rgba(43, 39, 44, 0.95)",
             borderColor: "var(--palette-accent-3)",
