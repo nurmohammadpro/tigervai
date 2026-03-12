@@ -4,9 +4,11 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload, X } from "lucide-react";
 import { useAddProductStore } from "@/zustan-hook/addProductStore";
 import { useEditProductStore } from "@/zustan-hook/editProductStore";
+import { useUploadSingleImage } from "@/lib/useHandelImageUpload";
+import { toast } from "sonner";
 
 interface Variant {
   size: string;
@@ -41,6 +43,12 @@ interface SizeRow {
   loadIndex?: string;
   speedRating?: string;
   compatibleModels?: string;
+  // Variant-specific image
+  image?: {
+    url: string;
+    key: string;
+    id: string;
+  };
 }
 
 interface StepVariantsImprovedProps {
@@ -60,6 +68,49 @@ export default function StepVariantsImproved({
     mode === "add" ? addStore : editStore;
 
   const variants = (formData?.variants as Variant[]) || [];
+  const { mutate: uploadVariantImage } = useUploadSingleImage();
+
+  // Handle variant image upload
+  const handleVariantImageUpload = (rowId: string, file: File) => {
+    const loadingToast = toast.loading("Uploading variant image...");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    uploadVariantImage(formData, {
+      onSuccess: (data) => {
+        toast.dismiss(loadingToast);
+        if (data?.error) {
+          toast.error(data.error.message);
+          return;
+        }
+        if (!data?.data?.url) {
+          toast.error("Upload failed - no URL returned");
+          return;
+        }
+
+        const imageData = {
+          url: data.data.url,
+          key: data.data.key,
+          id: data.data.key,
+        };
+
+        setSizeRows(sizeRows.map(row =>
+          row.id === rowId ? { ...row, image: imageData } : row
+        ));
+        toast.success("Variant image uploaded successfully");
+      },
+      onError: (error) => {
+        toast.dismiss(loadingToast);
+        toast.error(error.message || "Failed to upload image");
+      },
+    });
+  };
+
+  const handleRemoveVariantImage = (rowId: string) => {
+    setSizeRows(sizeRows.map(row =>
+      row.id === rowId ? { ...row, image: undefined } : row
+    ));
+  };
 
   // State for table-like input
   const [sizeRows, setSizeRows] = useState<SizeRow[]>([]);
@@ -106,6 +157,7 @@ export default function StepVariantsImproved({
           loadIndex: firstVariant.loadIndex,
           speedRating: firstVariant.speedRating,
           compatibleModels: firstVariant.recommended,
+          image: firstVariant.image,
         });
       });
       setSizeRows(rows);
@@ -136,6 +188,8 @@ export default function StepVariantsImproved({
             price: row.regularPrice,
             discountPrice: row.offerPrice || undefined,
             stock: row.stock,
+            // Add image if present
+            ...(row.image && { image: row.image }),
             // Add tyre-specific fields if present
             ...(productType === "tyre" && {
               variantType: row.variantType || "standard",
@@ -238,7 +292,7 @@ export default function StepVariantsImproved({
               backgroundColor: "rgba(255, 255, 255, 0.02)",
             }}
           >
-            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-1 md:grid-cols-9" : "grid-cols-1 md:grid-cols-6"}`}>
+            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-1 md:grid-cols-10" : "grid-cols-1 md:grid-cols-6"}`}>
               {/* Variant Type (for tyres) */}
               {productType === "tyre" && (
                 <div>
@@ -490,6 +544,57 @@ export default function StepVariantsImproved({
                     />
                   </div>
                 </>
+              )}
+
+              {/* Variant Image Upload (for tyres) */}
+              {productType === "tyre" && (
+                <div>
+                  <label
+                    className="text-xs font-semibold mb-1 block"
+                    style={{ color: "var(--palette-accent-3)" }}
+                  >
+                    Variant Image (Optional)
+                  </label>
+                  {row.image ? (
+                    <div className="relative group">
+                      <img
+                        src={row.image.url}
+                        alt={`${row.variantType} variant`}
+                        className="w-full h-10 object-cover rounded border"
+                        style={{ borderColor: "var(--palette-accent-3)" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVariantImage(row.id)}
+                        className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove image"
+                      >
+                        <X size={12} className="text-white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      className={`flex flex-col items-center justify-center gap-1 h-10 rounded border cursor-pointer transition-colors ${
+                        true ? "hover:border-[var(--palette-btn)]" : ""
+                      }`}
+                      style={{
+                        borderColor: "var(--palette-accent-3)",
+                        backgroundColor: "rgba(255, 255, 255, 0.02)",
+                      }}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleVariantImageUpload(row.id, file);
+                        }}
+                      />
+                      <Upload size={14} style={{ color: "var(--palette-accent-3)" }} />
+                    </label>
+                  )}
+                </div>
               )}
 
               {/* Delete Size Button */}

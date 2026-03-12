@@ -502,6 +502,7 @@ export default function AddProductPage() {
                   <>
                     <li>Enter tyre sizes like: 175/65 R14, 195/65 R15</li>
                     <li>No need to add colors for tyres</li>
+                    <li>You can upload separate images for Front, Rear, and Combo variants</li>
                     <li>Include brand and model in the product name</li>
                   </>
                 )}

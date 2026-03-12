@@ -63,6 +63,12 @@ const sampleMotorcycleTyreProduct = {
       recommended: 'KTM Duke 125, KTM RC 125, Yamaha R15 V3, Yamaha MT-15',
       variantType: 'front',
       isAvailable: true,
+      // Variant-specific image
+      image: {
+        url: 'https://placehold.co/400x400/2563eb/white?text=FRONT+110%2F70+R17',
+        key: 'front-variant-110-70-r17',
+        id: 'front-variant-001',
+      },
     },
     {
       size: 'rear - 140/60 R17',
@@ -75,6 +81,12 @@ const sampleMotorcycleTyreProduct = {
       recommended: 'KTM Duke 125, KTM RC 125, Yamaha R15 V3, Yamaha MT-15',
       variantType: 'rear',
       isAvailable: true,
+      // Variant-specific image
+      image: {
+        url: 'https://placehold.co/400x400/dc2626/white?text=REAR+140%2F60+R17',
+        key: 'rear-variant-140-60-r17',
+        id: 'rear-variant-001',
+      },
     },
     {
       size: 'combo - Front + Rear Set',
@@ -85,6 +97,12 @@ const sampleMotorcycleTyreProduct = {
       recommended: 'KTM Duke 125, KTM RC 125, Yamaha R15 V3, Yamaha MT-15',
       variantType: 'combo',
       isAvailable: true,
+      // Variant-specific image
+      image: {
+        url: 'https://placehold.co/400x400/16a34a/white?text=COMBO+SET',
+        key: 'combo-variant-set',
+        id: 'combo-variant-001',
+      },
     },
   ],
 
