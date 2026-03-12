@@ -96,7 +96,7 @@ export default function StepTyreBasicInfo() {
                 {cat}
               </SelectItem>
             ))}
-          )}
+          </SelectContent>
         </Select>
       </div>
 
