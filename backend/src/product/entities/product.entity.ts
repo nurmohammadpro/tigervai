@@ -99,6 +99,9 @@ class ProductVariant {
 
   // Tyre-specific fields
   @Prop()
+  variantType?: 'front' | 'rear' | 'combo';
+
+  @Prop()
   season?: string;
 
   @Prop()
