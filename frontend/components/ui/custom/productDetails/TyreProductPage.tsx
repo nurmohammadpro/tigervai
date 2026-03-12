@@ -45,9 +45,22 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
 
   // Group variants by type (front, rear, combo)
   const variantsByType = product.variants?.reduce((acc, variant, index) => {
-    // Extract variant type from size (e.g., "front - 110/70 R17")
-    const sizeParts = variant.size?.split(" - ") || [];
-    const type = (sizeParts[0] || "front").toLowerCase() as TyreVariantType;
+    // First try to get type from variantType field (new tyre products)
+    let type = variant.variantType as TyreVariantType;
+
+    // If not available, extract from size (e.g., "front - 110/70 R17")
+    if (!type) {
+      const sizeParts = variant.size?.split(" - ") || [];
+      const sizeType = sizeParts[0]?.toLowerCase();
+      if (sizeType === "front" || sizeType === "rear" || sizeType === "combo") {
+        type = sizeType as TyreVariantType;
+      }
+    }
+
+    // Default to "front" if no type found
+    if (!type) {
+      type = "front";
+    }
 
     if (!acc[type]) {
       acc[type] = [];
@@ -252,6 +265,9 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
                       const priceInfo = getVariantPrice(variant);
                       const isOutOfStock = (variant.stock || 0) === 0;
 
+                      // Clean up size display - remove type prefix if present
+                      const displaySize = variant.size?.replace(/^(front|rear|combo)\s*-\s*/i, "") || variant.size || "N/A";
+
                       return (
                         <div
                           key={variant.originalIndex}
@@ -260,8 +276,8 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
                           } ${isOutOfStock ? "opacity-60" : ""}`}
                         >
                           <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <h4 className="font-semibold text-sm">{variant.size?.replace("front - ", "")}</h4>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm">{displaySize}</h4>
                               {variant.recommended && (
                                 <p className="text-xs text-gray-500 mt-1">{variant.recommended}</p>
                               )}
@@ -342,6 +358,9 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
                       const priceInfo = getVariantPrice(variant);
                       const isOutOfStock = (variant.stock || 0) === 0;
 
+                      // Clean up size display - remove type prefix if present
+                      const displaySize = variant.size?.replace(/^(front|rear|combo)\s*-\s*/i, "") || variant.size || "N/A";
+
                       return (
                         <div
                           key={variant.originalIndex}
@@ -350,8 +369,8 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
                           } ${isOutOfStock ? "opacity-60" : ""}`}
                         >
                           <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <h4 className="font-semibold text-sm">{variant.size?.replace("rear - ", "")}</h4>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm">{displaySize}</h4>
                               {variant.recommended && (
                                 <p className="text-xs text-gray-500 mt-1">{variant.recommended}</p>
                               )}
@@ -432,6 +451,9 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
                       const priceInfo = getVariantPrice(variant);
                       const isOutOfStock = (variant.stock || 0) === 0;
 
+                      // Clean up size display - remove type prefix if present
+                      const displaySize = variant.size?.replace(/^(front|rear|combo)\s*-\s*/i, "") || variant.size || "N/A";
+
                       return (
                         <div
                           key={variant.originalIndex}
@@ -440,9 +462,9 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
                           } ${isOutOfStock ? "opacity-60" : ""}`}
                         >
                           <div className="flex justify-between items-start mb-2">
-                            <div>
+                            <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <h4 className="font-bold text-sm">{variant.size?.replace("combo - ", "")}</h4>
+                                <h4 className="font-bold text-sm">{displaySize}</h4>
                                 <span className="text-xs bg-amber-500 text-white px-2 py-0.5 rounded-full font-semibold">
                                   SAVE MONEY
                                 </span>
@@ -489,6 +511,92 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
                                   onClick={() => handleQuantityChange(variant, 1)}
                                   disabled={qty >= (variant.stock || 999)}
                                   className="w-8 h-8 flex items-center justify-center bg-amber-500 text-white rounded disabled:opacity-50"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {isOutOfStock && (
+                            <div className="mt-2 py-1 px-2 bg-red-50 border border-red-200 rounded text-xs text-red-600 text-center">
+                              Out of Stock
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Fallback: Show all variants if no categorized variants found */}
+              {(!variantsByType.front || variantsByType.front.length === 0) &&
+               (!variantsByType.rear || variantsByType.rear.length === 0) &&
+               (!variantsByType.combo || variantsByType.combo.length === 0) &&
+               product.variants && product.variants.length > 0 && (
+                <div>
+                  <h3 className="font-bold text-lg mb-3">Available Options</h3>
+                  <div className="space-y-3">
+                    {product.variants.map((variant, index) => {
+                      const key = `${product._id}-${index}`;
+                      const qty = variantQuantities[key] || 0;
+                      const priceInfo = getVariantPrice(variant);
+                      const isOutOfStock = (variant.stock || 0) === 0;
+                      const displaySize = variant.size || `Option ${index + 1}`;
+
+                      return (
+                        <div
+                          key={index}
+                          className={`border rounded-lg p-4 bg-white ${
+                            qty > 0 ? "border-primary shadow-md" : "border-gray-200"
+                          } ${isOutOfStock ? "opacity-60" : ""}`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm">{displaySize}</h4>
+                              {variant.color && (
+                                <span className="text-xs text-gray-500">Color: {variant.color}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 mb-3">
+                            {priceInfo.hasDiscount ? (
+                              <>
+                                <span className="text-sm line-through text-gray-400">
+                                  Tk {priceInfo.originalPrice.toLocaleString()}
+                                </span>
+                                <span className="text-lg font-bold text-green-600">
+                                  Tk {priceInfo.currentPrice.toLocaleString()}
+                                </span>
+                                <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                                  {priceInfo.discountPercentage}% off
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-lg font-bold">
+                                Tk {priceInfo.currentPrice.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Stock: {variant.stock || 0}</span>
+                            {!isOutOfStock && (
+                              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                                <button
+                                  onClick={() => handleQuantityChange({ ...variant, originalIndex: index }, -1)}
+                                  disabled={qty === 0}
+                                  className="w-8 h-8 flex items-center justify-center bg-white rounded shadow-sm disabled:opacity-50"
+                                >
+                                  −
+                                </button>
+                                <span className="w-8 text-center font-semibold">{qty}</span>
+                                <button
+                                  onClick={() => handleQuantityChange({ ...variant, originalIndex: index }, 1)}
+                                  disabled={qty >= (variant.stock || 999)}
+                                  className="w-8 h-8 flex items-center justify-center bg-amber-400 rounded shadow-sm disabled:opacity-50"
                                 >
                                   +
                                 </button>
