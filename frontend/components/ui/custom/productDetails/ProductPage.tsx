@@ -15,7 +15,7 @@ import {
   X,
   CircleX,
 } from "lucide-react";
-import { Product, ReviewStats } from "@/@types/fullProduct";
+import { Product, ReviewStats, ProductVariant } from "@/@types/fullProduct";
 import { useQueryState } from "nuqs";
 import { CartItem, useCartStore } from "@/zustan-hook/cart";
 import { toast } from "sonner";
@@ -403,7 +403,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
             key={size}
             product={product}
             size={size}
-            variants={variants}
+            variants={variants || []}
             image={getSizeImage(size)}
             colors={getColorsForSize(size)}
             variantQuantities={variantQuantities}
@@ -455,7 +455,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
 interface VariantCardProps {
   product: Product;
   size: string;
-  variants: NonNullable<Product["variants"]>;
+  variants: ProductVariant[];
   colors: (string | undefined)[];
   image?: string;
   variantQuantities: VariantQuantity;
@@ -550,7 +550,7 @@ const VariantCard: React.FC<VariantCardProps> = ({
       <div className="flex min-h-[110px]">
         {/* Variant image on the left taking full height */}
         {image && (
-          <div className="w-24 flex-shrink-0">
+          <div className="w-24 shrink-0">
             <img
               src={image}
               alt={`${product.name} - ${size}`}
@@ -668,7 +668,10 @@ const ProductPage = ({ params }: { params: Product }) => {
   const isTyreProduct =
     params.category?.main?.includes("Tyre") ||
     params.category?.category?.includes("Tyre") ||
-    params.variants?.some((v) => v.variantType && ["front", "rear", "combo"].includes(v.variantType));
+    params.variants?.some(
+      (v) =>
+        v.variantType && ["front", "rear", "combo"].includes(v.variantType),
+    );
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("Details");
@@ -1074,17 +1077,18 @@ const ProductPage = ({ params }: { params: Product }) => {
                   />
                 ) : (
                   <VariantSelector
-                    variants={params.variants}
+                    variants={params.variants || []}
                     onVariantSelect={setSelectedVariant}
                     selectedVariant={selectedVariant}
                     productInfo={{
                       hasOffer: params.hasOffer || false,
-                    offerPrice: params.offerPrice,
-                    price: params.price || 0,
-                  }}
-                  quantity={quantity}
-                  setQuantity={setQuantity}
-                />
+                      offerPrice: params.offerPrice,
+                      price: params.price || 0,
+                    }}
+                    quantity={quantity}
+                    setQuantity={setQuantity}
+                  />
+                )}
 
                 {/* Action Buttons */}
                 <div className="grid grid-cols-2 gap-3">
@@ -1225,7 +1229,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                       key={index}
                       className="flex items-start gap-3 p-4 bg-palette-btn/5 rounded-lg border border-palette-btn/10"
                     >
-                      <Award className="w-5 h-5 text-palette-btn mt-0.5 flex-shrink-0" />
+                      <Award className="w-5 h-5 text-palette-btn mt-0.5 shrink-0" />
                       <div className="min-w-0">
                         <h5 className="font-semibold text-palette-text text-sm sm:text-base">
                           {feature?.name ?? "Feature"}
@@ -1246,7 +1250,7 @@ const ProductPage = ({ params }: { params: Product }) => {
             <div className="space-y-1 border-t border-gray-200 pt-6">
               {params?.warrantyPeriod && (
                 <div className="flex items-start gap-3 px-3 py-0.5 rounded-lg">
-                  <Shield className="w-5 h-5 text-palette-btn mt-1 flex-shrink-0" />
+                  <Shield className="w-5 h-5 text-palette-btn mt-1 shrink-0" />
                   <div className="min-w-0">
                     <p className="font-semibold text-palette-text text-sm sm:text-base">
                       Warranty
