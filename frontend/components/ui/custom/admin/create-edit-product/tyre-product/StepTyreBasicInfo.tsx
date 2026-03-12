@@ -16,7 +16,7 @@ import { useQueryWrapper } from "@/api-hook/react-query-wrapper";
 import { BrandResponse, CategoryResponse } from "@/@types/category-brand";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import RichTextEditor from "../../addProduct/Description";
+import RichTextEditor from "@/components/ui/custom/addProduct/Description";
 
 // Tyre-specific categories
 const TYRE_MAIN_CATEGORIES = ["Car Tyre", "Motorcycle Tyre"];
