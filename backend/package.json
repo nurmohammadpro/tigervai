@@ -23,7 +23,7 @@
     "check-db": "ts-node -r tsconfig-paths/register scripts/check-databases.ts",
     "migrate:add-tyre-categories": "ts-node -r tsconfig-paths/register src/scripts/add-tyre-categories.ts",
     "migrate:tyre-categories": "npx ts-node -P tsconfig.json src/scripts/add-tyre-categories-simple.ts",
-    "add-sample-tyre": "ts-node -r tsconfig-paths/register src/scripts/add-sample-motorcycle-tyre.ts"
+    "add-sample-tyre": "npx ts-node -P tsconfig.json src/scripts/add-sample-motorcycle-tyre.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.922.0",

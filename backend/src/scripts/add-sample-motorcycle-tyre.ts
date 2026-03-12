@@ -1,13 +1,12 @@
-// scripts/add-sample-motorcycle-tyre.ts
 /**
- * Script to add a sample motorcycle tyre product
- * Run with: npm run script:add-sample-tyre
+ * Standalone script to add a sample motorcycle tyre product
+ * Run with: npx ts-node -P tsconfig.json src/scripts/add-sample-motorcycle-tyre.ts
  */
 
-import mongoose from 'mongoose';
-import { Product } from '../src/product/entities/product.entity';
-import { ConfigService } from '@nestjs/config';
-import { connect } from 'mongoose';
+import { MongoClient, ObjectId } from 'mongodb';
+
+const MONGODB_URL = 'mongodb://localhost:27017/?tls=false';
+const DB_NAME = 'tiger-vendor';
 
 // Sample motorcycle tyre product
 const sampleMotorcycleTyreProduct = {
@@ -15,11 +14,13 @@ const sampleMotorcycleTyreProduct = {
   description: '<p>High-performance motorcycle tyre designed for urban commuting. Excellent wet and dry grip with long-lasting tread life.</p><p><strong>Features:</strong></p><ul><li>Urban commuting design</li><li>Excellent wet grip</li><li>Long tread life</li><li>Low rolling resistance</li></ul>',
   shortDescription: 'Premium city tyre for everyday commuting with excellent wet grip',
   price: 5700,
-  stock: 21,
+  stock: 37,
   offerPrice: 5400,
   hasOffer: true,
   isAdminCreated: true,
   isActive: true,
+  isDeleted: false,
+  isDigital: false,
 
   // Category - Motorcycle Tyre
   category: {
@@ -79,13 +80,17 @@ const sampleMotorcycleTyreProduct = {
       size: 'combo - Front + Rear Set',
       price: 11900,
       discountPrice: 10900,
-      stock: 8,
+      stock: 10,
       season: 'All-Season',
       recommended: 'KTM Duke 125, KTM RC 125, Yamaha R15 V3, Yamaha MT-15',
       variantType: 'combo',
       isAvailable: true,
     },
   ],
+
+  // Empty arrays for other fields
+  colorsImage: [],
+  features: [],
 
   // Specifications
   specifications: {
@@ -111,39 +116,55 @@ const sampleMotorcycleTyreProduct = {
 
   // Type
   productType: 'tyre',
+
+  // Timestamps
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 async function addSampleMotorcycleTyre() {
+  let client: MongoClient | undefined = undefined;
+
   try {
-    // Connect to MongoDB
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/tiger-vai';
-    await connect(mongoUri);
+    client = new MongoClient(MONGODB_URL);
+    await client.connect();
     console.log('✅ Connected to MongoDB');
 
+    const db = client.db(DB_NAME);
+    const collection = db.collection('products');
+
     // Check if product already exists
-    const existingProduct = await mongoose.connection.db.collection('products').findOne({
+    const existingProduct = await collection.findOne({
       slug: sampleMotorcycleTyreProduct.slug,
     });
 
     if (existingProduct) {
       console.log('⚠️  Sample motorcycle tyre product already exists. Skipping...');
-      await mongoose.disconnect();
+      await client.close();
       return;
     }
 
     // Insert the product
-    const result = await mongoose.connection.db.collection('products').insertOne(sampleMotorcycleTyreProduct);
+    // Note: brand will use the default brand object from the schema
+    const result = await collection.insertOne(sampleMotorcycleTyreProduct);
     console.log('✅ Sample motorcycle tyre product created successfully!');
     console.log(`   Product ID: ${result.insertedId}`);
     console.log(`   Name: ${sampleMotorcycleTyreProduct.name}`);
+    console.log(`   Category: ${sampleMotorcycleTyreProduct.category.main}`);
     console.log(`   Variants: ${sampleMotorcycleTyreProduct.variants.length} (Front, Rear, Combo)`);
     console.log(`   Price Range: Tk ${sampleMotorcycleTyreProduct.variants[0].discountPrice} - Tk ${sampleMotorcycleTyreProduct.variants[2].price}`);
+    console.log('');
+    console.log('   🛞 Front Tyre: 110/70 R17 - Tk 5,400 (15 stock)');
+    console.log('   🛞 Rear Tyre: 140/60 R17 - Tk 5,900 (12 stock)');
+    console.log('   🛞 Combo Set: Front + Rear - Tk 10,900 (10 stock)');
 
-    await mongoose.disconnect();
+    await client.close();
     console.log('✅ Disconnected from MongoDB');
   } catch (error) {
     console.error('❌ Error adding sample product:', error);
-    await mongoose.disconnect();
+    if (client) {
+      await client.close();
+    }
     process.exit(1);
   }
 }
