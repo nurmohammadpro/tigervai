@@ -48,6 +48,7 @@ import pb from "@/lib/poacktbase";
 import { Spinner } from "../../spinner";
 import VariantSelector from "./VariantSelector";
 import TyreVariantSelector from "./TyreVariantSelector";
+import TyreProductPage from "./TyreProductPage";
 
 interface ProductVariantCardsProps {
   product: Product;
@@ -664,6 +665,18 @@ const VariantCard: React.FC<VariantCardProps> = ({
 };
 
 const ProductPage = ({ params }: { params: Product }) => {
+  // Auto-detect tyre products and use dedicated TyreProductPage
+  // Detection by: productType === "tyre" OR category contains "Tyre" OR variants have tyre-specific fields
+  const isTyreProduct =
+    params.productType === "tyre" ||
+    params.category?.main?.includes("Tyre") ||
+    params.category?.category?.includes("Tyre") ||
+    params.variants?.some((v) => v.variantType && ["front", "rear", "combo"].includes(v.variantType));
+
+  if (isTyreProduct) {
+    return <TyreProductPage product={params} />;
+  }
+
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("Details");
   const [page, setPage] = useState(1);

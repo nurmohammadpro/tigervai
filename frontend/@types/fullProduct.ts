@@ -21,6 +21,8 @@ export interface BrandInfo {
   name: string;
 }
 
+export type TyreVariantType = "front" | "rear" | "combo";
+
 export interface ProductVariant {
   size: string;
   color?: string;
@@ -35,6 +37,8 @@ export interface ProductVariant {
   season?: string;
   loadIndex?: string;
   speedRating?: string;
+  // Variant type for tyres (front, rear, combo)
+  variantType?: TyreVariantType;
 }
 
 export interface CreateProduct {
