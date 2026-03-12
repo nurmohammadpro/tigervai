@@ -168,37 +168,46 @@ export default function TyreProductPage({ product }: TyreProductPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Selected Summary */}
-      {totalItems > 0 && (
-        <div className="bg-amber-50 border-b border-amber-200 py-3 px-4 sticky top-0 z-20">
-          <div className="container mx-auto flex items-center justify-between">
-            <div>
-              <p className="text-sm text-amber-800">
-                {Object.entries(variantQuantities)
-                  .filter(([_, qty]) => qty > 0)
-                  .map(([key, qty]) => {
-                    const index = parseInt(key.split("-").pop() || "0");
-                    const variant = product.variants?.[index];
-                    return `${qty}x ${variant?.size || "Tyre"}`;
-                  })
-                  .join(", ")}
-              </p>
-              <p className="text-lg font-bold text-amber-900">
-                Total: {totalItems} item(s), Tk {totalPrice.toLocaleString()}
-              </p>
-            </div>
-            <Button
-              onClick={handleAddToCart}
-              className="bg-amber-500 hover:bg-amber-600 text-white"
-            >
-              <ShoppingCart size={18} className="mr-2" />
-              Add All to Cart
-            </Button>
-          </div>
-        </div>
-      )}
-
       <main className="container mx-auto px-4 py-8">
+        {/* Selected Summary - Non-fixed, inline with content */}
+        {totalItems > 0 && (
+          <div
+            className="mb-6 p-4 rounded-lg border"
+            style={{
+              backgroundColor: "var(--palette-bg)",
+              borderColor: "var(--palette-accent-3)",
+            }}
+          >
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <p className="text-sm font-semibold mb-1" style={{ color: "var(--palette-accent-1)" }}>
+                  Selected
+                </p>
+                <p className="text-sm" style={{ color: "var(--palette-accent-3)" }}>
+                  {Object.entries(variantQuantities)
+                    .filter(([_, qty]) => qty > 0)
+                    .map(([key, qty]) => {
+                      const index = parseInt(key.split("-").pop() || "0");
+                      const variant = product.variants?.[index];
+                      return `${qty}x ${variant?.size || "Tyre"}`;
+                    })
+                    .join(", ")}
+                </p>
+                <p className="text-lg font-bold" style={{ color: "var(--palette-text)" }}>
+                  Total = {totalItems} item(s), Tk {totalPrice.toLocaleString()}
+                </p>
+              </div>
+              <Button
+                onClick={handleAddToCart}
+                className="text-white"
+                style={{ backgroundColor: "var(--palette-btn)" }}
+              >
+                <ShoppingCart size={18} className="mr-2" />
+                Add All to Cart
+              </Button>
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Product Image Gallery */}
           <div className="lg:col-span-2">
