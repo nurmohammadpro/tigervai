@@ -93,36 +93,13 @@ export default function StepBasicInfo() {
         />
       </div>
 
-      {/* Description */}
+      {/* Short Description */}
       <div>
         <label
           className="block text-sm font-semibold mb-2"
           style={{ color: "var(--palette-accent-1)" }}
         >
-          Description
-        </label>
-        {/*    <Textarea
-          placeholder="Enter product description"
-          value={formData.description || ""}
-          onChange={(e) => updateField("description", e.target.value)}
-          rows={4}
-          style={{
-            backgroundColor: "rgba(255, 255, 255, 0.05)",
-            borderColor: "var(--palette-accent-3)",
-            color: "var(--palette-text)",
-          }}
-        /> */}
-        <RichTextEditor
-          description={formData.description}
-          updateField={updateField}
-        />
-      </div>
-      <div>
-        <label
-          className="block text-sm font-semibold mb-2"
-          style={{ color: "var(--palette-accent-1)" }}
-        >
-          short Description
+          Short Description
         </label>
 
         <Textarea
@@ -133,23 +110,8 @@ export default function StepBasicInfo() {
           style={{}}
         />
       </div>
-      <div>
-        <label
-          className="block text-sm font-semibold mb-2"
-          style={{ color: "var(--palette-accent-1)" }}
-        >
-          company details
-        </label>
 
-        <Textarea
-          placeholder="company details"
-          value={formData.company_details || ""}
-          onChange={(e) => updateField("company_details", e.target.value)}
-          rows={4}
-          style={{}}
-        />
-      </div>
-
+      {/* Special Offer */}
       <div>
         <label
           className="block text-sm font-semibold mb-2"
@@ -162,6 +124,38 @@ export default function StepBasicInfo() {
           placeholder="Enter special offer "
           value={formData.special_offer || ""}
           onChange={(e) => updateField("special_offer", e.target.value)}
+          rows={4}
+          style={{}}
+        />
+      </div>
+
+      {/* Product Details (formerly Description) */}
+      <div>
+        <label
+          className="block text-sm font-semibold mb-2"
+          style={{ color: "var(--palette-accent-1)" }}
+        >
+          Product Details
+        </label>
+        <RichTextEditor
+          description={formData.description}
+          updateField={updateField}
+        />
+      </div>
+
+      {/* Company Details */}
+      <div>
+        <label
+          className="block text-sm font-semibold mb-2"
+          style={{ color: "var(--palette-accent-1)" }}
+        >
+          Company Details
+        </label>
+
+        <Textarea
+          placeholder="Company details"
+          value={formData.company_details || ""}
+          onChange={(e) => updateField("company_details", e.target.value)}
           rows={4}
           style={{}}
         />
