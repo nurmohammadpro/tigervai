@@ -191,43 +191,37 @@ export default function TyreVariantSelector({
                     Stock: {variant.stock || 0}
                   </p>
 
-                  {/* Quantity Selector */}
+                  {/* Quantity Selector - Matching clothing selector styling */}
                   <div
-                    className={`flex items-center gap-0 border-2 rounded-full ${
-                      isSelected
-                        ? "border-yellow-400 bg-yellow-50"
-                        : "border-gray-300 bg-white"
-                    }`}
+                    className="flex items-center gap-0 border-2 border-black rounded-full bg-white"
                     onClick={(e) => e.stopPropagation()}
+                    style={{
+                      opacity: isOutOfStock ? 0.5 : 1,
+                      pointerEvents: isOutOfStock ? "none" : "auto",
+                    }}
                   >
                     <button
                       type="button"
                       disabled={isOutOfStock || currentQty <= 0}
                       onClick={() => handleQuantityChange(variant, currentQty - 1)}
-                      className={`h-8 w-8 flex justify-center items-center font-bold text-sm rounded-l-full transition-colors ${
-                        isOutOfStock || currentQty <= 0
-                          ? "cursor-not-allowed opacity-50 bg-gray-200"
-                          : "hover:bg-gray-100"
-                      }`}
+                      className="h-10 w-12 py-4 flex justify-center items-center font-bold text-gray-600 bg-red-200 hover:bg-red-500 rounded-l-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      −
+                      <span className="text-xl font-semibold">−</span>
                     </button>
-                    <span className="w-10 text-center text-sm font-semibold">
+                    <span className="w-10 px-8 md:px-12 text-center text-foreground text-sm font-semibold">
                       {currentQty}
                     </span>
                     <button
                       type="button"
                       disabled={isOutOfStock || currentQty >= (variant.stock || 0)}
                       onClick={() => handleQuantityChange(variant, currentQty + 1)}
-                      className={`h-8 w-8 flex justify-center items-center font-bold text-sm rounded-r-full transition-colors ${
-                        isOutOfStock || currentQty >= (variant.stock || 0)
-                          ? "cursor-not-allowed opacity-50 bg-gray-200"
-                          : isSelected
-                            ? "bg-yellow-400 text-black hover:bg-yellow-500"
-                            : "bg-gray-200 text-black hover:bg-gray-300"
-                      }`}
+                      className="h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      style={{
+                        backgroundColor:
+                          currentQty > 0 ? "var(--palette-btn)" : "#fca5a5",
+                      }}
                     >
-                      +
+                      <span className="text-xl font-semibold">+</span>
                     </button>
                   </div>
                 </div>
