@@ -185,51 +185,51 @@ export default function TyreVariantSelector({
                   )}
                 </div>
 
-                {/* Stock */}
-                <p className="text-xs text-gray-500">
-                  Stock: {variant.stock || 0}
-                </p>
-              </div>
+                {/* Stock - Moved above quantity selector */}
+                <div className="flex items-center justify-between gap-2 mt-2">
+                  <p className="text-xs text-gray-500">
+                    Stock: {variant.stock || 0}
+                  </p>
 
-              {/* Quantity Selector */}
-              <div className="flex flex-col items-end justify-center">
-                <div
-                  className={`flex items-center gap-0 border-2 rounded-full ${
-                    isSelected
-                      ? "border-yellow-400 bg-yellow-50"
-                      : "border-gray-300 bg-white"
-                  }`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    disabled={isOutOfStock || currentQty <= 0}
-                    onClick={() => handleQuantityChange(variant, currentQty - 1)}
-                    className={`h-8 w-8 flex justify-center items-center font-bold text-sm rounded-l-full transition-colors ${
-                      isOutOfStock || currentQty <= 0
-                        ? "cursor-not-allowed opacity-50 bg-gray-200"
-                        : "hover:bg-gray-100"
+                  {/* Quantity Selector */}
+                  <div
+                    className={`flex items-center gap-0 border-2 rounded-full ${
+                      isSelected
+                        ? "border-yellow-400 bg-yellow-50"
+                        : "border-gray-300 bg-white"
                     }`}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    −
-                  </button>
-                  <span className="w-10 text-center text-sm font-semibold">
-                    {currentQty}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={isOutOfStock || currentQty >= (variant.stock || 0)}
-                    onClick={() => handleQuantityChange(variant, currentQty + 1)}
-                    className={`h-8 w-8 flex justify-center items-center font-bold text-sm rounded-r-full transition-colors ${
-                      isOutOfStock || currentQty >= (variant.stock || 0)
-                        ? "cursor-not-allowed opacity-50 bg-gray-200"
-                        : isSelected
-                          ? "bg-yellow-400 text-black hover:bg-yellow-500"
-                          : "bg-gray-200 text-black hover:bg-gray-300"
-                    }`}
-                  >
-                    +
-                  </button>
+                    <button
+                      type="button"
+                      disabled={isOutOfStock || currentQty <= 0}
+                      onClick={() => handleQuantityChange(variant, currentQty - 1)}
+                      className={`h-8 w-8 flex justify-center items-center font-bold text-sm rounded-l-full transition-colors ${
+                        isOutOfStock || currentQty <= 0
+                          ? "cursor-not-allowed opacity-50 bg-gray-200"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      −
+                    </button>
+                    <span className="w-10 text-center text-sm font-semibold">
+                      {currentQty}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={isOutOfStock || currentQty >= (variant.stock || 0)}
+                      onClick={() => handleQuantityChange(variant, currentQty + 1)}
+                      className={`h-8 w-8 flex justify-center items-center font-bold text-sm rounded-r-full transition-colors ${
+                        isOutOfStock || currentQty >= (variant.stock || 0)
+                          ? "cursor-not-allowed opacity-50 bg-gray-200"
+                          : isSelected
+                            ? "bg-yellow-400 text-black hover:bg-yellow-500"
+                            : "bg-gray-200 text-black hover:bg-gray-300"
+                      }`}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
