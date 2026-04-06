@@ -243,6 +243,25 @@ export default function StepVariantsImproved({
     setSizeRows([...sizeRows, newRow]);
   };
 
+  // Add a new size row with specific type (for tyres)
+  const handleAddSizeRowWithType = (type: "front" | "rear" | "combo") => {
+    const newRow: SizeRow = {
+      id: `size-${Date.now()}`,
+      size: "",
+      regularPrice: 0,
+      offerPrice: 0,
+      stock: 0,
+      colors: "",
+      variantType: type,
+      // Initialize tyre-specific fields
+      season: "",
+      loadIndex: "",
+      speedRating: "",
+      compatibleModels: "",
+    };
+    setSizeRows([...sizeRows, newRow]);
+  };
+
   // Remove a size row
   const handleRemoveSizeRow = (rowId: string) => {
     setSizeRows(sizeRows.filter((row) => row.id !== rowId));
@@ -298,36 +317,19 @@ export default function StepVariantsImproved({
               backgroundColor: "rgba(255, 255, 255, 0.02)",
             }}
           >
-            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-1 md:grid-cols-10" : "grid-cols-1 md:grid-cols-6"}`}>
-              {/* Variant Type (for tyres) */}
-              {productType === "tyre" && (
-                <div>
-                  <label
-                    className="text-xs font-semibold mb-1 block"
-                    style={{ color: "var(--palette-accent-3)" }}
-                  >
-                    Type *
-                  </label>
-                  <select
-                    value={row.variantType || "front"}
-                    onChange={(e) =>
-                      handleUpdateSizeRow(row.id, "variantType", e.target.value as "front" | "rear" | "combo" | "standard")
-                    }
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      borderColor: "var(--palette-accent-3)",
-                      color: "var(--palette-text)",
-                      width: "100%",
-                      padding: "8px",
-                      borderRadius: "6px",
-                    }}
-                  >
-                    <option value="front">Front</option>
-                    <option value="rear">Rear</option>
-                    <option value="combo">Combo</option>
-                  </select>
-                </div>
-              )}
+            {/* Type Header for Tyres */}
+            {productType === "tyre" && (
+              <div className="mb-3 pb-2 border-b" style={{ borderColor: "var(--palette-accent-3)" }}>
+                <h4
+                  className="text-sm font-bold uppercase tracking-wider"
+                  style={{ color: "var(--palette-text)" }}
+                >
+                  {row.variantType === "rear" ? "Rear" : row.variantType === "combo" ? "Combo" : "Front"}
+                </h4>
+              </div>
+            )}
+
+            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-1 md:grid-cols-9" : "grid-cols-1 md:grid-cols-6"}`}>
 
               {/* Size Name */}
               <div>
@@ -623,17 +625,49 @@ export default function StepVariantsImproved({
         ))}
       </div>
 
-      {/* Add New Size Button */}
+      {/* Add New Size Button(s) */}
       <div className="mt-4">
-        <Button
-          type="button"
-          onClick={handleAddSizeRow}
-          className="flex items-center gap-2 text-white w-full"
-          style={{ backgroundColor: "var(--palette-btn)" }}
-        >
-          <Plus size={18} />
-          {productType === "tyre" ? "Add New Tyre Size" : "Add New Size"}
-        </Button>
+        {productType === "tyre" ? (
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              type="button"
+              onClick={() => handleAddSizeRowWithType("front")}
+              className="flex items-center justify-center gap-2 text-white"
+              style={{ backgroundColor: "var(--palette-btn)" }}
+            >
+              <Plus size={18} />
+              Front
+            </Button>
+            <Button
+              type="button"
+              onClick={() => handleAddSizeRowWithType("rear")}
+              className="flex items-center justify-center gap-2 text-white"
+              style={{ backgroundColor: "var(--palette-btn)" }}
+            >
+              <Plus size={18} />
+              Rear
+            </Button>
+            <Button
+              type="button"
+              onClick={() => handleAddSizeRowWithType("combo")}
+              className="flex items-center justify-center gap-2 text-white"
+              style={{ backgroundColor: "var(--palette-btn)" }}
+            >
+              <Plus size={18} />
+              Combo
+            </Button>
+          </div>
+        ) : (
+          <Button
+            type="button"
+            onClick={handleAddSizeRow}
+            className="flex items-center gap-2 text-white w-full"
+            style={{ backgroundColor: "var(--palette-btn)" }}
+          >
+            <Plus size={18} />
+            Add New Size
+          </Button>
+        )}
       </div>
 
       {/* Summary */}
@@ -696,7 +730,7 @@ export default function StepVariantsImproved({
         >
           <p style={{ color: "var(--palette-accent-3)" }}>
             {productType === "tyre"
-              ? 'No tyre sizes added yet. Click "Add New Tyre Size" to get started.'
+              ? 'No tyre sizes added yet. Click "Front", "Rear", or "Combo" to add variants.'
               : 'No variants added yet. Click "Add New Size" to get started.'}
           </p>
         </div>
