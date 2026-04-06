@@ -71,9 +71,28 @@ export default function TyreVariantSelector({
     return variant.recommended || "";
   };
 
-  // Get size specification
+  // Get variant type (Front, Rear, or Combo) from size string
+  const getVariantType = (variant: ProductVariant) => {
+    const size = variant.size || "";
+    const parts = size.split(" - ");
+    const typePart = parts[0]?.toLowerCase();
+    if (typePart === "front" || typePart === "rear" || typePart === "combo") {
+      // Capitalize first letter
+      return typePart.charAt(0).toUpperCase() + typePart.slice(1);
+    }
+    return "Standard";
+  };
+
+  // Get size specification (actual size without type prefix)
   const getSizeSpecification = (variant: ProductVariant) => {
-    return variant.size || "";
+    const size = variant.size || "";
+    const parts = size.split(" - ");
+    const typePart = parts[0]?.toLowerCase();
+    if (typePart === "front" || typePart === "rear" || typePart === "combo") {
+      // Return just the actual size (after the prefix)
+      return parts.slice(1).join(" - ");
+    }
+    return size;
   };
 
   // Handle variant selection
@@ -119,6 +138,7 @@ export default function TyreVariantSelector({
         const isSelected = selectedVariantId === cartItemId;
         const isOutOfStock = (variant.stock || 0) === 0;
         const compatibilityText = getCompatibilityText(variant);
+        const variantType = getVariantType(variant);
         const sizeSpec = getSizeSpecification(variant);
         const variantImage = variant.image?.url || product.thumbnail?.url || product.images?.[0]?.url || "";
 
@@ -137,17 +157,16 @@ export default function TyreVariantSelector({
               <div className="w-20 h-20 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden">
                 <img
                   src={variantImage}
-                  alt={`${variant.size} tyre`}
+                  alt={`${variantType} ${sizeSpec} tyre`}
                   className="w-full h-full object-cover"
                 />
               </div>
 
               {/* Variant Details */}
               <div className="flex-1 min-w-0">
-                {/* Variant Name/Size */}
+                {/* Variant Type (Front, Rear, Combo) */}
                 <h3 className="font-semibold text-gray-900 text-sm mb-1">
-                  {variant.size}
-                  {variant.color && ` - ${variant.color}`}
+                  {variantType}
                 </h3>
 
                 {/* Compatibility Text */}
