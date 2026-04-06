@@ -343,6 +343,11 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
     }
   };
 
+  // Calculate total selected quantity from variantQuantities
+  const getTotalSelectedQuantity = () => {
+    return Object.values(variantQuantities).reduce((total, qty) => total + qty, 0);
+  };
+
   const handleChatWithSeller = async (
     vendorId: string,
     shopName: string | undefined,
@@ -422,7 +427,8 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
 
           <button
             onClick={handleOrderNow}
-            className="w-full py-3 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white"
+            disabled={getTotalSelectedQuantity() === 0}
+            className="w-full py-3 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Order Now <span className="text-sm">(অর্ডার করুন)</span>
           </button>
