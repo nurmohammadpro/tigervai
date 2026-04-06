@@ -132,14 +132,6 @@ export default function TyreVariantSelector({
   return (
     <div className="space-y-3">
       {product.variants?.map((variant, index) => {
-        // Debug logging
-        console.log(`Variant ${index}:`, {
-          size: variant.size,
-          hasImage: !!variant.image,
-          imageUrl: variant.image?.url,
-          image: variant.image,
-        });
-
         const priceInfo = getVariantPrice(variant);
         const cartItemId = `${product._id}|${variant.size}|${variant.color || ""}`;
         const currentQty = variantQuantities[cartItemId] || 0;
@@ -172,22 +164,16 @@ export default function TyreVariantSelector({
 
               {/* Variant Details */}
               <div className="flex-1 min-w-0">
-                {/* Variant Type (Front, Rear, Combo) */}
+                {/* Size with Type - Combined display */}
                 <h3 className="font-semibold text-gray-900 text-sm mb-1">
-                  {variantType}
+                  {sizeSpec && `Size: ${sizeSpec}`}
+                  {variantType !== "Standard" && ` ${variantType} Tyre`}
                 </h3>
 
                 {/* Compatibility Text */}
                 {compatibilityText && (
                   <p className="text-xs text-gray-500 mb-1 line-clamp-1">
                     {compatibilityText}
-                  </p>
-                )}
-
-                {/* Size Specification */}
-                {sizeSpec && (
-                  <p className="text-xs text-gray-600 mb-1">
-                    Size: {sizeSpec}
                   </p>
                 )}
 

@@ -181,14 +181,6 @@ export default function StepVariantsImproved({
       // Flatten sizeRows back to variants array
       const flatVariants: Variant[] = [];
       sizeRows.forEach((row) => {
-        // Debug logging
-        console.log("Creating variant from row:", {
-          rowId: row.id,
-          size: row.size,
-          hasImage: !!row.image,
-          image: row.image,
-        });
-
         // Parse comma-separated colors (only for clothing)
         const colorList = productType === "tyre"
           ? []
@@ -199,7 +191,7 @@ export default function StepVariantsImproved({
 
         // If no colors (or tyre type), create a single variant with just size
         if (colorList.length === 0) {
-          const variant = {
+          flatVariants.push({
             // For tyres, prefix size with variant type for display
             size: productType === "tyre" && row.variantType && row.variantType !== "standard"
               ? `${row.variantType} - ${row.size}`
@@ -217,9 +209,7 @@ export default function StepVariantsImproved({
               speedRating: row.speedRating,
               recommended: row.compatibleModels,
             }),
-          };
-          console.log("Created variant:", variant);
-          flatVariants.push(variant);
+          });
         } else {
           // Create a variant for each color
           colorList.forEach((color) => {
@@ -233,7 +223,6 @@ export default function StepVariantsImproved({
           });
         }
       });
-      console.log("Final variants array:", flatVariants);
       updateField("variants", flatVariants);
     }
   }, [sizeRows, productType]);
@@ -335,13 +324,30 @@ export default function StepVariantsImproved({
           >
             {/* Type Header for Tyres */}
             {productType === "tyre" && (
-              <div className="mb-3 pb-2 border-b" style={{ borderColor: "var(--palette-accent-3)" }}>
+              <div className="mb-3 pb-2 border-b flex items-center justify-between" style={{ borderColor: "var(--palette-accent-3)" }}>
                 <h4
                   className="text-sm font-bold uppercase tracking-wider"
                   style={{ color: "var(--palette-text)" }}
                 >
                   {row.variantType === "rear" ? "Rear" : row.variantType === "combo" ? "Combo" : "Front"}
                 </h4>
+                {/* Variant Type Selector */}
+                <select
+                  value={row.variantType || "front"}
+                  onChange={(e) =>
+                    handleUpdateSizeRow(row.id, "variantType", e.target.value as "front" | "rear" | "combo" | "standard")
+                  }
+                  className="text-xs px-2 py-1 rounded border"
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    borderColor: "var(--palette-accent-3)",
+                    color: "var(--palette-text)",
+                  }}
+                >
+                  <option value="front">Front</option>
+                  <option value="rear">Rear</option>
+                  <option value="combo">Combo</option>
+                </select>
               </div>
             )}
 
