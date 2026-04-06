@@ -936,14 +936,15 @@ const ProductPage = ({ params }: { params: Product }) => {
             {/* Image Section - Responsive Thumbnails */}
             <div className="flex flex-col lg:flex-row gap-3">
               {/* Thumbnails - BOTTOM for mobile, LEFT for desktop */}
-              {(params?.images?.length ?? 0) > 1 && (
+              {((params?.images?.length ?? 0) > 1 || selectedVariant?.image) && (
                 <div className="flex flex-row lg:flex-col gap-2 order-2 lg:order-1 w-full lg:w-16 xl:w-20 shrink-0 overflow-x-auto lg:overflow-x-visible">
+                  {/* Main Product Images */}
                   {params?.images?.map((image, index) => (
                     <button
-                      key={image?.id ?? index}
+                      key={`main-${image?.id ?? index}`}
                       onClick={() => setSelectedImageIndex(index)}
                       className={`w-16 sm:w-20 lg:w-full aspect-square shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-                        selectedImageIndex === index
+                        selectedImageIndex === index && !selectedVariant?.image
                           ? "border-palette-btn ring-2 ring-palette-btn/30"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
@@ -955,6 +956,26 @@ const ProductPage = ({ params }: { params: Product }) => {
                       />
                     </button>
                   ))}
+                  {/* Variant Image - shown when selected */}
+                  {selectedVariant?.image && (
+                    <button
+                      key="variant-image"
+                      className={`w-16 sm:w-20 lg:w-full aspect-square shrink-0 rounded-lg overflow-hidden border-2 transition-all relative ${
+                        true
+                          ? "border-palette-btn ring-2 ring-palette-btn/30"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <img
+                        src={selectedVariant.image.url}
+                        alt="Variant image"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs px-1 py-0.5 text-center">
+                        Variant
+                      </span>
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -962,12 +983,15 @@ const ProductPage = ({ params }: { params: Product }) => {
               <div className="relative flex-1 bg-gray-50 rounded-lg overflow-hidden order-1 lg:order-2">
                 <img
                   src={
-                    params?.images?.[selectedImageIndex]?.url ??
-                    params?.thumbnail?.url ??
+                    // Priority: 1. Variant image (if variant with image is selected), 2. Selected main image, 3. Thumbnail
+                    (selectedVariant?.image?.url) ||
+                    (params?.images?.[selectedImageIndex]?.url) ||
+                    (params?.thumbnail?.url) ||
                     ""
                   }
                   alt={params?.name ?? "Product image"}
                   className="w-full h-auto object-contain"
+                  key={selectedVariant?.image?.url || selectedImageIndex}
                 />
 
                 {priceRange?.hasDiscount && (
