@@ -58,7 +58,7 @@ interface StepVariantsImprovedProps {
 
 export default function StepVariantsImproved({
   mode = "add",
-  productType = "clothing",
+  productType: propProductType = "clothing",
 }: StepVariantsImprovedProps) {
   // Use the appropriate store based on mode
   const addStore = useAddProductStore();
@@ -69,6 +69,11 @@ export default function StepVariantsImproved({
 
   const variants = (formData?.variants as Variant[]) || [];
   const { mutate: uploadVariantImage } = useUploadSingleImage();
+
+  // In edit mode, use productType from formData, otherwise use prop
+  const productType = mode === "edit"
+    ? (formData?.productType as "tyre" | "clothing" | "electronics" | "accessories" | "general") || propProductType
+    : propProductType;
 
   // Handle variant image upload
   const handleVariantImageUpload = (rowId: string, file: File) => {
