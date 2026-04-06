@@ -132,6 +132,14 @@ export default function TyreVariantSelector({
   return (
     <div className="space-y-3">
       {product.variants?.map((variant, index) => {
+        // Debug logging
+        console.log(`Variant ${index}:`, {
+          size: variant.size,
+          hasImage: !!variant.image,
+          imageUrl: variant.image?.url,
+          image: variant.image,
+        });
+
         const priceInfo = getVariantPrice(variant);
         const cartItemId = `${product._id}|${variant.size}|${variant.color || ""}`;
         const currentQty = variantQuantities[cartItemId] || 0;
