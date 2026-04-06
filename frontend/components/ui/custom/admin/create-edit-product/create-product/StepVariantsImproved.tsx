@@ -176,6 +176,14 @@ export default function StepVariantsImproved({
       // Flatten sizeRows back to variants array
       const flatVariants: Variant[] = [];
       sizeRows.forEach((row) => {
+        // Debug logging
+        console.log("Creating variant from row:", {
+          rowId: row.id,
+          size: row.size,
+          hasImage: !!row.image,
+          image: row.image,
+        });
+
         // Parse comma-separated colors (only for clothing)
         const colorList = productType === "tyre"
           ? []
@@ -186,7 +194,7 @@ export default function StepVariantsImproved({
 
         // If no colors (or tyre type), create a single variant with just size
         if (colorList.length === 0) {
-          flatVariants.push({
+          const variant = {
             // For tyres, prefix size with variant type for display
             size: productType === "tyre" && row.variantType && row.variantType !== "standard"
               ? `${row.variantType} - ${row.size}`
@@ -204,7 +212,9 @@ export default function StepVariantsImproved({
               speedRating: row.speedRating,
               recommended: row.compatibleModels,
             }),
-          });
+          };
+          console.log("Created variant:", variant);
+          flatVariants.push(variant);
         } else {
           // Create a variant for each color
           colorList.forEach((color) => {
@@ -218,6 +228,7 @@ export default function StepVariantsImproved({
           });
         }
       });
+      console.log("Final variants array:", flatVariants);
       updateField("variants", flatVariants);
     }
   }, [sizeRows, productType]);
