@@ -114,10 +114,11 @@ export default function StepVariantsImproved({
 
   // State for table-like input
   const [sizeRows, setSizeRows] = useState<SizeRow[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize sizeRows from existing variants on mount
+  // Initialize sizeRows from existing variants on mount (only once)
   React.useEffect(() => {
-    if (variants.length > 0 && sizeRows.length === 0) {
+    if (variants.length > 0 && sizeRows.length === 0 && !isInitialized) {
       // Group variants by size
       const groupedBySize = new Map<string, Variant[]>();
       variants.forEach((v) => {
@@ -139,15 +140,19 @@ export default function StepVariantsImproved({
           .join(", ");
         // Extract variantType from size if it's a tyre (e.g., "front - 110/70 R17")
         let variantType: "front" | "rear" | "combo" | "standard" = "standard";
+        let rawSize = size; // Default to full size string
         if (productType === "tyre") {
-          const sizePart = size.toLowerCase().split(" - ")[0];
-          if (sizePart === "front" || sizePart === "rear" || sizePart === "combo") {
-            variantType = sizePart as "front" | "rear" | "combo";
+          const sizeParts = size.split(" - ");
+          const typePart = sizeParts[0]?.toLowerCase();
+          if (typePart === "front" || typePart === "rear" || typePart === "combo") {
+            variantType = typePart as "front" | "rear" | "combo";
+            // Extract just the actual size part (after the prefix)
+            rawSize = sizeParts.slice(1).join(" - ");
           }
         }
         rows.push({
           id: `size-${size}-${Date.now()}`,
-          size,
+          size: rawSize,
           regularPrice: firstVariant.price,
           offerPrice: firstVariant.discountPrice || 0,
           stock: firstVariant.stock,
@@ -161,8 +166,9 @@ export default function StepVariantsImproved({
         });
       });
       setSizeRows(rows);
+      setIsInitialized(true);
     }
-  }, [variants, productType]);
+  }, [variants, productType, isInitialized]);
 
   // Update formData.variants when sizeRows change
   React.useEffect(() => {
