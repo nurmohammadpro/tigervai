@@ -104,9 +104,17 @@ export default function TyreVariantSelector({
     const cartItemId = `${product._id}|${variant.size}|${variant.color || ""}`;
     setSelectedVariantId(cartItemId);
 
-    // Set quantity for this variant from the shared state
-    const currentQty = variantQuantities[cartItemId] || 1;
-    setQuantity(currentQty);
+    // If quantity is 0, set it to 1 when selecting the variant
+    const currentQty = variantQuantities[cartItemId] || 0;
+    if (currentQty === 0) {
+      setVariantQuantities((prev) => ({
+        ...prev,
+        [cartItemId]: 1,
+      }));
+      setQuantity(1);
+    } else {
+      setQuantity(currentQty);
+    }
   };
 
   // Handle quantity change for a variant
