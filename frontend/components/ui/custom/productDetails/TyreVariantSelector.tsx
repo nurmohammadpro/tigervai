@@ -9,6 +9,8 @@ interface TyreVariantSelectorProps {
   setQuantity: (qty: number) => void;
   selectedVariant: ProductVariant | undefined;
   setSelectedVariant: (variant: ProductVariant) => void;
+  variantQuantities: VariantQuantity;
+  setVariantQuantities: React.Dispatch<React.SetStateAction<VariantQuantity>>;
 }
 
 interface VariantQuantity {
@@ -21,8 +23,9 @@ export default function TyreVariantSelector({
   setQuantity,
   selectedVariant,
   setSelectedVariant,
+  variantQuantities,
+  setVariantQuantities,
 }: TyreVariantSelectorProps) {
-  const [variantQuantities, setVariantQuantities] = useState<VariantQuantity>({});
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   // --- HELPER TO CALCULATE EFFECTIVE PRICE FOR A VARIANT ---
@@ -101,7 +104,7 @@ export default function TyreVariantSelector({
     const cartItemId = `${product._id}|${variant.size}|${variant.color || ""}`;
     setSelectedVariantId(cartItemId);
 
-    // Set quantity for this variant
+    // Set quantity for this variant from the shared state
     const currentQty = variantQuantities[cartItemId] || 1;
     setQuantity(currentQty);
   };
