@@ -19,12 +19,20 @@ import { v4 as uuidv4 } from "uuid";
 import { Spinner } from "@/components/ui/spinner";
 import PathaoChargeTable from "@/components/ui/custom/common/PathaoChargeTable";
 import { TbTruckDelivery } from "react-icons/tb";
+import { useEffect } from "react";
 
 export default function ShipmentPage() {
   const router = useRouter();
 
   // ✅ FIXED: Get subtotal, totalPrice, and totalDiscount from store
   const { items, subtotal, totalPrice, totalDiscount } = useCartStore();
+
+  // Redirect to home if cart is empty
+  useEffect(() => {
+    if (items.length === 0) {
+      router.push("/");
+    }
+  }, [items, router]);
   const { shipment, updateShipmentField } = useCheckoutStore();
   const [errors, setErrors] = useState<Record<string, string>>({});
 

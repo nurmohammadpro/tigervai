@@ -23,6 +23,8 @@ import { getUserInfo } from "@/actions/auth";
 import { initiateCheckoutEvent } from "@/lib/google-tag-manager";
 import { initiateCheckoutServerEvent } from "@/actions/metaEvent";
 import CartIcons from "@/app/assets/cart.png";
+import { CircleX } from "lucide-react";
+import { toast } from "sonner";
 export default function CartSheet() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -40,6 +42,13 @@ export default function CartSheet() {
   const finalTotal = totalPrice - totalDiscount;
 
   const handleCheckout = async () => {
+    // Prevent checkout if cart is empty
+    if (items.length === 0) {
+      toast.error("Your cart is empty. Add items before checkout.", {
+        icon: <CircleX className="text-red-500 size-5" />,
+      });
+      return;
+    }
     setOpen(false);
     router.push("/cart/shipment");
 

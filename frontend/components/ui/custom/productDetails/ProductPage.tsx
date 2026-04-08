@@ -420,14 +420,16 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
         <div className="grid  grid-cols-2 gap-1 md:gap-3 pt-1">
           <button
             onClick={() => handleAddAllToCart(false)}
-            className="w-full py-3 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-gradient-to-r !from-[#ffbd05] !to-[#ffbd05] text-gray-800"
+            disabled={getTotalSelectedQuantity() <= 0}
+            className="w-full py-3 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-gradient-to-r !from-[#ffbd05] !to-[#ffbd05] text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Add To Cart
           </button>
 
           <button
             onClick={handleOrderNow}
-            className="w-full py-3 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white"
+            disabled={getTotalSelectedQuantity() <= 0}
+            className="w-full py-3 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Order Now <span className="text-sm">(অর্ডার করুন)</span>
           </button>
@@ -711,8 +713,8 @@ const ProductPage = ({ params }: { params: Product }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<
     (typeof params.variants)[0] | undefined
-  >(params.variants?.[0]);
-  const [quantity, setQuantity] = useState(1);
+  >(undefined);
+  const [quantity, setQuantity] = useState(0);
   const [isChatPending, setChatPending] = useState(false);
   const { addToCart, updateQuantity, items } = useCartStore();
   const router = useRouter();
@@ -1195,8 +1197,8 @@ const ProductPage = ({ params }: { params: Product }) => {
                         });
                       }
                     }}
-                    disabled={false}
-                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-r from-[#ffbd05] to-[#ffbd05] text-gray-800"
+                    disabled={!selectedVariant || quantity <= 0}
+                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-r from-[#ffbd05] to-[#ffbd05] text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add To Cart
                   </button>
@@ -1250,8 +1252,8 @@ const ProductPage = ({ params }: { params: Product }) => {
                         });
                       }
                     }}
-                    disabled={false}
-                    className="w-full px-1 py-2 rounded-full font-medium text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white"
+                    disabled={!selectedVariant || quantity <= 0}
+                    className="w-full px-1 py-2 rounded-full font-medium text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Order Now <span className="text-sm">(অর্ডার করুন)</span>
                   </button>
