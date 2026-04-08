@@ -265,7 +265,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
       });
       setVariantQuantities({});
     } else {
-      toast.error("আপনার অর্ডার সিলেক্ট করুন", {
+      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
         icon: <CircleX className="text-red-500 size-5" />,
       });
     }
@@ -337,7 +337,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
       setVariantQuantities({});
       router.push("/cart/shipment");
     } else {
-      toast.error("আপনার অর্ডার সিলেক্ট করুন", {
+      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
         icon: <CircleX className="text-red-500 size-5" />,
       });
     }
@@ -427,8 +427,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
 
           <button
             onClick={handleOrderNow}
-            disabled={getTotalSelectedQuantity() === 0}
-            className="w-full py-3 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white"
           >
             Order Now <span className="text-sm">(অর্ডার করুন)</span>
           </button>
@@ -1190,10 +1189,14 @@ const ProductPage = ({ params }: { params: Product }) => {
                           updateQuantity(cartItemId, quantity);
                         }
                         toast.success(`Added ${quantity} item(s) to cart!`);
+                      } else {
+                        toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
+                          icon: <CircleX className="text-red-500 size-5" />,
+                        });
                       }
                     }}
-                    disabled={!selectedVariant || quantity <= 0}
-                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-r from-[#ffbd05] to-[#ffbd05] text-gray-800 disabled:opacity-50"
+                    disabled={false}
+                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-r from-[#ffbd05] to-[#ffbd05] text-gray-800"
                   >
                     Add To Cart
                   </button>
@@ -1241,10 +1244,14 @@ const ProductPage = ({ params }: { params: Product }) => {
                           updateQuantity(cartItemId, quantity);
                         }
                         router.push("/cart/shipment");
+                      } else {
+                        toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
+                          icon: <CircleX className="text-red-500 size-5" />,
+                        });
                       }
                     }}
-                    disabled={!selectedVariant || quantity <= 0}
-                    className="w-full px-1 py-2 rounded-full font-medium text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50"
+                    disabled={false}
+                    className="w-full px-1 py-2 rounded-full font-medium text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white"
                   >
                     Order Now <span className="text-sm">(অর্ডার করুন)</span>
                   </button>
