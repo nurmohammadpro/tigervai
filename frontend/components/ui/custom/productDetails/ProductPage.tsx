@@ -1481,7 +1481,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                 </button>
 
                 {/* Divider with OR */}
-                <div className="relative flex items-center -mt-2 ">
+                <div className="relative flex items-center -mt-2 -mb-1">
                   <div className="grow border-t border-gray-300"></div>
                   <span className="shrink-0 mx-2 text-gray-500 text-xs font-medium">
                     OR
