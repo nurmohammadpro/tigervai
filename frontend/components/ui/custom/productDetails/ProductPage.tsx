@@ -1175,7 +1175,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                     ""
                   }
                   alt={params?.name ?? "Product image"}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                   key={selectedVariant?.image?.url || selectedImageIndex}
                 />
 

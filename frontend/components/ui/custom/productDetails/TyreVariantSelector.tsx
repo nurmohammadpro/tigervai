@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Product, ProductVariant } from "@/@types/fullProduct";
 
 interface TyreVariantSelectorProps {
@@ -26,8 +26,6 @@ export default function TyreVariantSelector({
   variantQuantities,
   setVariantQuantities,
 }: TyreVariantSelectorProps) {
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
-
   // --- HELPER TO CALCULATE EFFECTIVE PRICE FOR A VARIANT ---
   const getVariantPrice = (variant: ProductVariant) => {
     // If variant has its own discountPrice, use it
@@ -70,7 +68,6 @@ export default function TyreVariantSelector({
 
   // Get compatibility text (could be from description or variant data)
   const getCompatibilityText = (variant: ProductVariant) => {
-    // This could be stored in variant.recommended or derived from product data
     return variant.recommended || "";
   };
 
@@ -80,7 +77,6 @@ export default function TyreVariantSelector({
     const parts = size.split(" - ");
     const typePart = parts[0]?.toLowerCase();
     if (typePart === "front" || typePart === "rear" || typePart === "combo") {
-      // Capitalize first letter
       return typePart.charAt(0).toUpperCase() + typePart.slice(1);
     }
     return "Standard";
@@ -92,29 +88,9 @@ export default function TyreVariantSelector({
     const parts = size.split(" - ");
     const typePart = parts[0]?.toLowerCase();
     if (typePart === "front" || typePart === "rear" || typePart === "combo") {
-      // Return just the actual size (after the prefix)
       return parts.slice(1).join(" - ");
     }
     return size;
-  };
-
-  // Handle variant selection
-  const handleVariantSelect = (variant: ProductVariant) => {
-    setSelectedVariant(variant);
-    const cartItemId = `${product._id}|${variant.size}|${variant.color || ""}`;
-    setSelectedVariantId(cartItemId);
-
-    // If quantity is 0, set it to 1 when selecting the variant
-    const currentQty = variantQuantities[cartItemId] || 0;
-    if (currentQty === 0) {
-      setVariantQuantities((prev) => ({
-        ...prev,
-        [cartItemId]: 1,
-      }));
-      setQuantity(1);
-    } else {
-      setQuantity(currentQty);
-    }
   };
 
   // Handle quantity change for a variant
@@ -133,11 +109,6 @@ export default function TyreVariantSelector({
       ...prev,
       [cartItemId]: newQuantity,
     }));
-
-    // Update the main quantity if this is the selected variant
-    if (selectedVariantId === cartItemId) {
-      setQuantity(newQuantity);
-    }
   };
 
   return (
@@ -146,7 +117,6 @@ export default function TyreVariantSelector({
         const priceInfo = getVariantPrice(variant);
         const cartItemId = `${product._id}|${variant.size}|${variant.color || ""}`;
         const currentQty = variantQuantities[cartItemId] || 0;
-        const isSelected = selectedVariantId === cartItemId;
         const isOutOfStock = (variant.stock || 0) === 0;
         const compatibilityText = getCompatibilityText(variant);
         const variantType = getVariantType(variant);
@@ -156,12 +126,9 @@ export default function TyreVariantSelector({
         return (
           <div
             key={`${variant.size}-${variant.color || ""}-${index}`}
-            className={`bg-white rounded-lg border-2 transition-all cursor-pointer ${
-              isSelected
-                ? "border-black shadow-md"
-                : "border-gray-200 hover:border-gray-300"
-            } ${isOutOfStock ? "opacity-60" : ""}`}
-            onClick={() => !isOutOfStock && handleVariantSelect(variant)}
+            className={`bg-white rounded-lg border-2 transition-all ${
+              isOutOfStock ? "opacity-60" : "border-gray-200"
+            }`}
           >
             <div className="flex p-3 gap-3">
               {/* Variant Image */}
@@ -209,16 +176,15 @@ export default function TyreVariantSelector({
                   )}
                 </div>
 
-                {/* Stock - Moved above quantity selector */}
+                {/* Stock and Quantity Selector */}
                 <div className="flex items-center justify-between gap-2 mt-2">
                   <p className="text-xs text-gray-500">
                     Stock: {variant.stock || 0}
                   </p>
 
-                  {/* Quantity Selector - Matching clothing selector styling */}
+                  {/* Quantity Selector */}
                   <div
                     className="flex items-center gap-0 border-2 border-black rounded-full bg-white"
-                    onClick={(e) => e.stopPropagation()}
                     style={{
                       opacity: isOutOfStock ? 0.5 : 1,
                       pointerEvents: isOutOfStock ? "none" : "auto",
