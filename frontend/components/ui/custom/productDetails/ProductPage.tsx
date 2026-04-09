@@ -465,9 +465,9 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
         </button>
 
         {/* Divider with OR */}
-        <div className="relative flex items-center -py-2 -my-1">
+        <div className="relative flex items-center -mt-3 -mb-3">
           <div className="flex-grow border-t border-gray-300"></div>
-          <span className="flex-shrink-0 mx-4 text-gray-500 text-sm font-medium">
+          <span className="flex-shrink-0 mx-2 text-gray-500 text-xs font-medium">
             OR
           </span>
           <div className="flex-grow border-t border-gray-300"></div>
@@ -478,7 +478,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
           href="https://wa.me/8801537290368"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full py-3 px-2 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-1 md:gap-2"
+          className="w-full py-3 px-2 md:px-4 rounded-full font-semibold text-sm md:text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-1 md:gap-2 -mt-2"
         >
           <svg
             className="w-4 h-4 md:w-5 md:h-5 shrink-0"
@@ -1481,9 +1481,9 @@ const ProductPage = ({ params }: { params: Product }) => {
                 </button>
 
                 {/* Divider with OR */}
-                <div className="relative flex items-center py-0.5">
+                <div className="relative flex items-center -mt-3 -mb-3">
                   <div className="flex-grow border-t border-gray-300"></div>
-                  <span className="flex-shrink-0 mx-4 text-gray-500 text-sm font-medium">
+                  <span className="flex-shrink-0 mx-2 text-gray-500 text-xs font-medium">
                     OR
                   </span>
                   <div className="flex-grow border-t border-gray-300"></div>
@@ -1495,7 +1495,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                     href="https://wa.me/8801903961752"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2"
+                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 -mt-2"
                   >
                     <svg
                       className="w-5 h-5 shrink-0"
@@ -1512,7 +1512,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                     href="https://wa.me/8801537290368"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2"
+                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 -mt-2"
                   >
                     <svg
                       className="w-5 h-5 shrink-0"
