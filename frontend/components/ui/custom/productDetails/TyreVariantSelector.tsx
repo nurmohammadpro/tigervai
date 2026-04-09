@@ -35,7 +35,7 @@ export default function TyreVariantSelector({
         currentPrice: variant.discountPrice,
         hasDiscount: true,
         discountPercentage: Math.round(
-          ((variant.price - variant.discountPrice) / variant.price) * 100
+          ((variant.price - variant.discountPrice) / variant.price) * 100,
         ),
       };
     }
@@ -53,7 +53,7 @@ export default function TyreVariantSelector({
         currentPrice: discountedPrice,
         hasDiscount: discountedPrice < variant.price,
         discountPercentage: Math.round(
-          ((variant.price - discountedPrice) / variant.price) * 100
+          ((variant.price - discountedPrice) / variant.price) * 100,
         ),
       };
     }
@@ -96,7 +96,7 @@ export default function TyreVariantSelector({
   // Handle quantity change for a variant
   const handleQuantityChange = (
     variant: ProductVariant,
-    newQuantity: number
+    newQuantity: number,
   ) => {
     const cartItemId = `${product._id}|${variant.size}|${variant.color || ""}`;
 
@@ -121,7 +121,11 @@ export default function TyreVariantSelector({
         const compatibilityText = getCompatibilityText(variant);
         const variantType = getVariantType(variant);
         const sizeSpec = getSizeSpecification(variant);
-        const variantImage = variant.image?.url || product.thumbnail?.url || product.images?.[0]?.url || "";
+        const variantImage =
+          variant.image?.url ||
+          product.thumbnail?.url ||
+          product.images?.[0]?.url ||
+          "";
 
         return (
           <div
@@ -178,7 +182,7 @@ export default function TyreVariantSelector({
 
                 {/* Stock and Quantity Selector */}
                 <div className="flex items-center justify-between gap-2 mt-2">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-red-500">
                     Stock: {variant.stock || 0}
                   </p>
 
@@ -193,7 +197,9 @@ export default function TyreVariantSelector({
                     <button
                       type="button"
                       disabled={isOutOfStock || currentQty <= 0}
-                      onClick={() => handleQuantityChange(variant, currentQty - 1)}
+                      onClick={() =>
+                        handleQuantityChange(variant, currentQty - 1)
+                      }
                       className="h-10 w-12 py-4 flex justify-center items-center font-bold text-gray-600 bg-red-200 hover:bg-red-500 rounded-l-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <span className="text-xl font-semibold">−</span>
@@ -203,10 +209,14 @@ export default function TyreVariantSelector({
                     </span>
                     <button
                       type="button"
-                      disabled={isOutOfStock || currentQty >= (variant.stock || 0)}
-                      onClick={() => handleQuantityChange(variant, currentQty + 1)}
+                      disabled={
+                        isOutOfStock || currentQty >= (variant.stock || 0)
+                      }
+                      onClick={() =>
+                        handleQuantityChange(variant, currentQty + 1)
+                      }
                       className={`h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                        currentQty > 0 ? "bg-green-500" : "bg-emerald-300"
+                        currentQty > 0 ? "bg-emerald-600" : "bg-green-500"
                       }`}
                     >
                       <span className="text-xl font-semibold">+</span>
