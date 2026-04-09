@@ -216,7 +216,7 @@ export default function TyreVariantSelector({
                         handleQuantityChange(variant, currentQty + 1)
                       }
                       className={`h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:cursor-not-allowed transition-colors ${
-                        currentQty > 0 ? "bg-green-500" : "bg-emerald-600"
+                        currentQty > 0 ? "bg-emerald-600" : "bg-green-500"
                       }`}
                     >
                       <span className="text-xl font-semibold">+</span>
