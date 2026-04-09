@@ -828,8 +828,9 @@ const ProductPage = ({ params }: { params: Product }) => {
 
         const { size, color } = parsed;
 
+        // Match variant by size and color (handle empty string vs undefined)
         const variant = params.variants?.find(
-          (v) => v.size === size && v.color === color,
+          (v) => v.size === size && (v.color || "") === color,
         );
 
         if (variant && (variant.stock || 0) >= quantity) {
@@ -889,8 +890,9 @@ const ProductPage = ({ params }: { params: Product }) => {
 
         const { size, color } = parsed;
 
+        // Match variant by size and color (handle empty string vs undefined)
         const variant = params.variants?.find(
-          (v) => v.size === size && v.color === color,
+          (v) => v.size === size && (v.color || "") === color,
         );
 
         if (variant && (variant.stock || 0) >= quantity) {
