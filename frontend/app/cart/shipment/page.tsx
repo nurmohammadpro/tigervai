@@ -36,7 +36,7 @@ export default function ShipmentPage() {
   const { shipment, updateShipmentField } = useCheckoutStore();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const onCompleteOrder = (data) => {
+  const onCompleteOrder = (data: any) => {
     console.log("Order completed-data for passing:", data);
     sessionStorage.setItem("orderData", JSON.stringify(data));
     router.push(`/cart/success`);
@@ -46,7 +46,7 @@ export default function ShipmentPage() {
     postNewSell,
     undefined,
     "sell-product-item",
-    onCompleteOrder
+    onCompleteOrder,
   );
 
   const handlePlaceOrder = async () => {
@@ -272,7 +272,8 @@ export default function ShipmentPage() {
                           {item.name} × {item.quantity}
                         </span>
                         <span className="text-gray-600 text-xs truncate">
-                          {item.variant?.size || 'N/A'}-{item.variant?.color || 'N/A'}
+                          {item.variant?.size || "N/A"}-
+                          {item.variant?.color || "N/A"}
                         </span>
                       </div>
                       <span className="text-palette-text font-medium whitespace-nowrap text-xs sm:text-sm">

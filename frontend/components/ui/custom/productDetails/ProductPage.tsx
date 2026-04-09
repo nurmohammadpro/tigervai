@@ -429,7 +429,7 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
           <button
             onClick={handleOrderNow}
             disabled={getTotalSelectedQuantity() <= 0}
-            className="w-full py-3 md:px-4 rounded-full font-semibold text-xs md:text-base transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 md:px-4 rounded-full font-semibold text-xs md:text-base transition-all bg-gradient-to-r from-green-500 to-emerald-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Order Now <span className="text-xs md:text-sm">(অর্ডার করুন)</span>
           </button>
@@ -1419,7 +1419,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                       }
                     }}
                     disabled={isTyreProduct ? getTotalSelectedQuantity() <= 0 : (!selectedVariant || quantity <= 0)}
-                    className="w-full px-1 py-2 rounded-full font-medium text-xs md:text-sm transition-all bg-gradient-to-b from-[#fe3200] to-[#ff5507] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-1 py-2 rounded-full font-medium text-xs md:text-sm transition-all bg-gradient-to-r from-green-500 to-emerald-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Order Now <span className="text-xs">(অর্ডার করুন)</span>
                   </button>
