@@ -215,7 +215,7 @@ export default function TyreVariantSelector({
                       onClick={() =>
                         handleQuantityChange(variant, currentQty + 1)
                       }
-                      className={`h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                      className={`h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:cursor-not-allowed transition-colors ${
                         currentQty > 0 ? "bg-green-500" : "bg-emerald-600"
                       }`}
                     >
