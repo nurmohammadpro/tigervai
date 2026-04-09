@@ -348,165 +348,6 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
     return Object.values(variantQuantities).reduce((total, qty) => total + qty, 0);
   };
 
-  // Helper to parse cart item ID for tyre products
-  const parseCartItemId = (id: string) => {
-    const parts = id.split("|");
-    if (parts.length < 3) return null;
-    return {
-      productId: parts[0],
-      size: parts[1],
-      color: parts[2],
-    };
-  };
-
-  // Helper to calculate variant price for tyre products
-  const getVariantPriceTyre = (variant: ProductVariant) => {
-    if (variant.discountPrice && variant.discountPrice > 0) {
-      return {
-        originalPrice: variant.price,
-        currentPrice: variant.discountPrice,
-        hasDiscount: true,
-      };
-    }
-    if (
-      params.hasOffer &&
-      params.offerPrice &&
-      params.offerPrice > 0 &&
-      params.price
-    ) {
-      const discountRatio = params.offerPrice / params.price;
-      const discountedPrice = Math.round(variant.price * discountRatio);
-      return {
-        originalPrice: variant.price,
-        currentPrice: discountedPrice,
-        hasDiscount: discountedPrice < variant.price,
-      };
-    }
-    return {
-      originalPrice: variant.price,
-      currentPrice: variant.price,
-      hasDiscount: false,
-    };
-  };
-
-  // Handle Add to Cart for tyre products (multiple variants with quantities)
-  const handleAddAllToCartTyre = () => {
-    let addedCount = 0;
-
-    Object.entries(variantQuantities).forEach(([cartItemId, quantity]) => {
-      if (quantity > 0) {
-        const parsed = parseCartItemId(cartItemId);
-        if (!parsed) return;
-
-        const { size, color } = parsed;
-
-        const variant = params.variants?.find(
-          (v) => v.size === size && v.color === color,
-        );
-
-        if (variant && (variant.stock || 0) >= quantity) {
-          const priceInfo = getVariantPriceTyre(variant);
-
-          const cartItem: Omit<CartItem, "quantity"> = {
-            _id: cartItemId,
-            productId: params._id,
-            name: params.name ?? "Product",
-            thumbnail: params.thumbnail?.url ?? "",
-            brandName: params.brand?.name ?? "Unknown Brand",
-            slug: params.slug ?? "",
-            variant: {
-              size: size,
-              color: color,
-              price: variant.price,
-              discountPrice: variant.discountPrice,
-            },
-            unitPrice: priceInfo.currentPrice,
-            variantStock: variant.stock ?? 0,
-          };
-
-          const existingItem = items.find((item) => item._id === cartItemId);
-
-          if (existingItem) {
-            updateQuantity(cartItemId, existingItem.quantity + quantity);
-          } else {
-            addToCart(cartItem);
-            updateQuantity(cartItemId, quantity);
-          }
-
-          addedCount++;
-        }
-      }
-    });
-
-    if (addedCount > 0) {
-      toast.success(`${addedCount} item(s) added to cart!`, {
-        position: "bottom-right",
-      });
-    } else {
-      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
-        icon: <CircleX className="text-red-500 size-5" />,
-      });
-    }
-  };
-
-  // Handle Order Now for tyre products
-  const handleOrderNowTyre = () => {
-    let addedCount = 0;
-
-    Object.entries(variantQuantities).forEach(([cartItemId, quantity]) => {
-      if (quantity > 0) {
-        const parsed = parseCartItemId(cartItemId);
-        if (!parsed) return;
-
-        const { size, color } = parsed;
-
-        const variant = params.variants?.find(
-          (v) => v.size === size && v.color === color,
-        );
-
-        if (variant && (variant.stock || 0) >= quantity) {
-          const priceInfo = getVariantPriceTyre(variant);
-
-          const cartItem: Omit<CartItem, "quantity"> = {
-            _id: cartItemId,
-            productId: params._id,
-            name: params.name ?? "Product",
-            thumbnail: params.thumbnail?.url ?? "",
-            brandName: params.brand?.name ?? "Unknown Brand",
-            slug: params.slug ?? "",
-            variant: {
-              size: size,
-              color: color,
-              price: variant.price,
-              discountPrice: variant.discountPrice,
-            },
-            unitPrice: priceInfo.currentPrice,
-            variantStock: variant.stock ?? 0,
-          };
-
-          const existingItem = items.find((item) => item._id === cartItemId);
-          if (existingItem) {
-            updateQuantity(cartItemId, existingItem.quantity + quantity);
-          } else {
-            addToCart(cartItem);
-            updateQuantity(cartItemId, quantity);
-          }
-
-          addedCount++;
-        }
-      }
-    });
-
-    if (addedCount > 0) {
-      toast.success(`Processing Order...`);
-      router.push("/cart/shipment");
-    } else {
-      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
-        icon: <CircleX className="text-red-500 size-5" />,
-      });
-    }
-  };
-
   const handleChatWithSeller = async (
     vendorId: string,
     shopName: string | undefined,
@@ -928,6 +769,172 @@ const ProductPage = ({ params }: { params: Product }) => {
       currentPrice: variant.price,
       hasDiscount: false,
     };
+  };
+
+  // Helper to parse cart item ID for tyre products
+  const parseCartItemIdTyre = (id: string) => {
+    const parts = id.split("|");
+    if (parts.length < 3) return null;
+    return {
+      productId: parts[0],
+      size: parts[1],
+      color: parts[2],
+    };
+  };
+
+  // Helper to calculate variant price for tyre products
+  const getVariantPriceTyre = (variant: (typeof params.variants)[0]) => {
+    if (variant.discountPrice && variant.discountPrice > 0) {
+      return {
+        originalPrice: variant.price,
+        currentPrice: variant.discountPrice,
+        hasDiscount: true,
+      };
+    }
+    if (
+      params.hasOffer &&
+      params.offerPrice &&
+      params.offerPrice > 0 &&
+      params.price
+    ) {
+      const discountRatio = params.offerPrice / params.price;
+      const discountedPrice = Math.round(variant.price * discountRatio);
+      return {
+        originalPrice: variant.price,
+        currentPrice: discountedPrice,
+        hasDiscount: discountedPrice < variant.price,
+      };
+    }
+    return {
+      originalPrice: variant.price,
+      currentPrice: variant.price,
+      hasDiscount: false,
+    };
+  };
+
+  // Calculate total selected quantity from variantQuantities
+  const getTotalSelectedQuantity = () => {
+    return Object.values(variantQuantities).reduce((total, qty) => total + qty, 0);
+  };
+
+  // Handle Add to Cart for tyre products (multiple variants with quantities)
+  const handleAddAllToCartTyre = () => {
+    let addedCount = 0;
+
+    Object.entries(variantQuantities).forEach(([cartItemId, quantity]) => {
+      if (quantity > 0) {
+        const parsed = parseCartItemIdTyre(cartItemId);
+        if (!parsed) return;
+
+        const { size, color } = parsed;
+
+        const variant = params.variants?.find(
+          (v) => v.size === size && v.color === color,
+        );
+
+        if (variant && (variant.stock || 0) >= quantity) {
+          const priceInfo = getVariantPriceTyre(variant);
+
+          const cartItem: Omit<CartItem, "quantity"> = {
+            _id: cartItemId,
+            productId: params._id,
+            name: params.name ?? "Product",
+            thumbnail: params.thumbnail?.url ?? "",
+            brandName: params.brand?.name ?? "Unknown Brand",
+            slug: params.slug ?? "",
+            variant: {
+              size: size,
+              color: color,
+              price: variant.price,
+              discountPrice: variant.discountPrice,
+            },
+            unitPrice: priceInfo.currentPrice,
+            variantStock: variant.stock ?? 0,
+          };
+
+          const existingItem = items.find((item) => item._id === cartItemId);
+
+          if (existingItem) {
+            updateQuantity(cartItemId, existingItem.quantity + quantity);
+          } else {
+            addToCart(cartItem);
+            updateQuantity(cartItemId, quantity);
+          }
+
+          addedCount++;
+        }
+      }
+    });
+
+    if (addedCount > 0) {
+      toast.success(`${addedCount} item(s) added to cart!`, {
+        position: "bottom-right",
+      });
+      setVariantQuantities({});
+    } else {
+      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
+        icon: <CircleX className="text-red-500 size-5" />,
+      });
+    }
+  };
+
+  // Handle Order Now for tyre products
+  const handleOrderNowTyre = () => {
+    let addedCount = 0;
+
+    Object.entries(variantQuantities).forEach(([cartItemId, quantity]) => {
+      if (quantity > 0) {
+        const parsed = parseCartItemIdTyre(cartItemId);
+        if (!parsed) return;
+
+        const { size, color } = parsed;
+
+        const variant = params.variants?.find(
+          (v) => v.size === size && v.color === color,
+        );
+
+        if (variant && (variant.stock || 0) >= quantity) {
+          const priceInfo = getVariantPriceTyre(variant);
+
+          const cartItem: Omit<CartItem, "quantity"> = {
+            _id: cartItemId,
+            productId: params._id,
+            name: params.name ?? "Product",
+            thumbnail: params.thumbnail?.url ?? "",
+            brandName: params.brand?.name ?? "Unknown Brand",
+            slug: params.slug ?? "",
+            variant: {
+              size: size,
+              color: color,
+              price: variant.price,
+              discountPrice: variant.discountPrice,
+            },
+            unitPrice: priceInfo.currentPrice,
+            variantStock: variant.stock ?? 0,
+          };
+
+          const existingItem = items.find((item) => item._id === cartItemId);
+          if (existingItem) {
+            updateQuantity(cartItemId, existingItem.quantity + quantity);
+          } else {
+            addToCart(cartItem);
+            updateQuantity(cartItemId, quantity);
+          }
+
+          addedCount++;
+        }
+      }
+    });
+
+    if (addedCount > 0) {
+      toast.success(`Processing Order...`);
+      setVariantQuantities({});
+      router.push("/cart/shipment");
+    } else {
+      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
+        icon: <CircleX className="text-red-500 size-5" />,
+      });
+    }
   };
 
   const handleChatWithSeller = async (
