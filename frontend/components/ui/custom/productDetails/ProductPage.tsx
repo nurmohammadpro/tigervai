@@ -1481,12 +1481,12 @@ const ProductPage = ({ params }: { params: Product }) => {
                 </button>
 
                 {/* Divider with OR */}
-                <div className="relative flex items-center -mt-3 -mb-3">
-                  <div className="flex-grow border-t border-gray-300"></div>
-                  <span className="flex-shrink-0 mx-2 text-gray-500 text-xs font-medium">
+                <div className="relative flex items-center -mt-1 -mb-1">
+                  <div className="grow border-t border-gray-300"></div>
+                  <span className="shrink-0 mx-2 text-gray-500 text-xs font-medium">
                     OR
                   </span>
-                  <div className="flex-grow border-t border-gray-300"></div>
+                  <div className="grow border-t border-gray-300"></div>
                 </div>
 
                 {/* WhatsApp Chat Button */}
@@ -1495,7 +1495,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                     href="https://wa.me/8801903961752"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 -mt-2"
+                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 "
                   >
                     <svg
                       className="w-5 h-5 shrink-0"
@@ -1512,7 +1512,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                     href="https://wa.me/8801537290368"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 -mt-2"
+                    className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 "
                   >
                     <svg
                       className="w-5 h-5 shrink-0"
