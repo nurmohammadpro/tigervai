@@ -265,9 +265,12 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
       });
       setVariantQuantities({});
     } else {
-      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
-        icon: <CircleX className="text-red-500 size-5" />,
-      });
+      toast.error(
+        "You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি",
+        {
+          icon: <CircleX className="text-red-500 size-5" />,
+        },
+      );
     }
   };
 
@@ -337,15 +340,21 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
       setVariantQuantities({});
       router.push("/cart/shipment");
     } else {
-      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
-        icon: <CircleX className="text-red-500 size-5" />,
-      });
+      toast.error(
+        "You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি",
+        {
+          icon: <CircleX className="text-red-500 size-5" />,
+        },
+      );
     }
   };
 
   // Calculate total selected quantity from variantQuantities
   const getTotalSelectedQuantity = () => {
-    return Object.values(variantQuantities).reduce((total, qty) => total + qty, 0);
+    return Object.values(variantQuantities).reduce(
+      (total, qty) => total + qty,
+      0,
+    );
   };
 
   const handleChatWithSeller = async (
@@ -456,9 +465,11 @@ const ProductVariantCards: React.FC<ProductVariantCardsProps> = ({
         </button>
 
         {/* Divider with OR */}
-        <div className="relative flex items-center py-0.5">
+        <div className="relative flex items-center -py-2 -my-1">
           <div className="flex-grow border-t border-gray-300"></div>
-          <span className="flex-shrink-0 mx-4 text-gray-500 text-sm font-medium">OR</span>
+          <span className="flex-shrink-0 mx-4 text-gray-500 text-sm font-medium">
+            OR
+          </span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
@@ -814,7 +825,10 @@ const ProductPage = ({ params }: { params: Product }) => {
 
   // Calculate total selected quantity from variantQuantities
   const getTotalSelectedQuantity = () => {
-    return Object.values(variantQuantities).reduce((total, qty) => total + qty, 0);
+    return Object.values(variantQuantities).reduce(
+      (total, qty) => total + qty,
+      0,
+    );
   };
 
   // Handle Add to Cart for tyre products (multiple variants with quantities)
@@ -873,9 +887,12 @@ const ProductPage = ({ params }: { params: Product }) => {
       });
       setVariantQuantities({});
     } else {
-      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
-        icon: <CircleX className="text-red-500 size-5" />,
-      });
+      toast.error(
+        "You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি",
+        {
+          icon: <CircleX className="text-red-500 size-5" />,
+        },
+      );
     }
   };
 
@@ -933,9 +950,12 @@ const ProductPage = ({ params }: { params: Product }) => {
       setVariantQuantities({});
       router.push("/cart/shipment");
     } else {
-      toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
-        icon: <CircleX className="text-red-500 size-5" />,
-      });
+      toast.error(
+        "You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি",
+        {
+          icon: <CircleX className="text-red-500 size-5" />,
+        },
+      );
     }
   };
 
@@ -1130,7 +1150,8 @@ const ProductPage = ({ params }: { params: Product }) => {
             {/* Image Section - Responsive Thumbnails */}
             <div className="flex flex-col lg:flex-row gap-3">
               {/* Thumbnails - BOTTOM for mobile, LEFT for desktop */}
-              {((params?.images?.length ?? 0) > 1 || selectedVariant?.image) && (
+              {((params?.images?.length ?? 0) > 1 ||
+                selectedVariant?.image) && (
                 <div className="flex flex-row lg:flex-col gap-2 order-2 lg:order-1 w-full lg:w-16 xl:w-20 shrink-0 overflow-x-auto lg:overflow-x-visible">
                   {/* Main Product Images */}
                   {params?.images?.map((image, index) => (
@@ -1178,9 +1199,9 @@ const ProductPage = ({ params }: { params: Product }) => {
                 <img
                   src={
                     // Priority: 1. Variant image (if variant with image is selected), 2. Selected main image, 3. Thumbnail
-                    (selectedVariant?.image?.url) ||
-                    (params?.images?.[selectedImageIndex]?.url) ||
-                    (params?.thumbnail?.url) ||
+                    selectedVariant?.image?.url ||
+                    params?.images?.[selectedImageIndex]?.url ||
+                    params?.thumbnail?.url ||
                     ""
                   }
                   alt={params?.name ?? "Product image"}
@@ -1359,13 +1380,20 @@ const ProductPage = ({ params }: { params: Product }) => {
                           }
                           toast.success(`Added ${quantity} item(s) to cart!`);
                         } else {
-                          toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
-                            icon: <CircleX className="text-red-500 size-5" />,
-                          });
+                          toast.error(
+                            "You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি",
+                            {
+                              icon: <CircleX className="text-red-500 size-5" />,
+                            },
+                          );
                         }
                       }
                     }}
-                    disabled={isTyreProduct ? getTotalSelectedQuantity() <= 0 : (!selectedVariant || quantity <= 0)}
+                    disabled={
+                      isTyreProduct
+                        ? getTotalSelectedQuantity() <= 0
+                        : !selectedVariant || quantity <= 0
+                    }
                     className="w-full py-3 px-4 rounded-full font-semibold text-base transition-all bg-gradient-to-r from-[#ffbd05] to-[#ffbd05] text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add To Cart
@@ -1412,13 +1440,20 @@ const ProductPage = ({ params }: { params: Product }) => {
                           }
                           router.push("/cart/shipment");
                         } else {
-                          toast.error("You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি", {
-                            icon: <CircleX className="text-red-500 size-5" />,
-                          });
+                          toast.error(
+                            "You haven't selected a product / আপনি কোনো পণ্য নির্বাচন করেননি",
+                            {
+                              icon: <CircleX className="text-red-500 size-5" />,
+                            },
+                          );
                         }
                       }
                     }}
-                    disabled={isTyreProduct ? getTotalSelectedQuantity() <= 0 : (!selectedVariant || quantity <= 0)}
+                    disabled={
+                      isTyreProduct
+                        ? getTotalSelectedQuantity() <= 0
+                        : !selectedVariant || quantity <= 0
+                    }
                     className="w-full px-1 py-2 rounded-full font-medium text-xs md:text-sm transition-all bg-gradient-to-r from-green-500 to-emerald-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Order Now <span className="text-xs">(অর্ডার করুন)</span>
@@ -1448,7 +1483,9 @@ const ProductPage = ({ params }: { params: Product }) => {
                 {/* Divider with OR */}
                 <div className="relative flex items-center py-0.5">
                   <div className="flex-grow border-t border-gray-300"></div>
-                  <span className="flex-shrink-0 mx-4 text-gray-500 text-sm font-medium">OR</span>
+                  <span className="flex-shrink-0 mx-4 text-gray-500 text-sm font-medium">
+                    OR
+                  </span>
                   <div className="flex-grow border-t border-gray-300"></div>
                 </div>
 
