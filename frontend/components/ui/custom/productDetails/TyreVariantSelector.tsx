@@ -205,11 +205,9 @@ export default function TyreVariantSelector({
                       type="button"
                       disabled={isOutOfStock || currentQty >= (variant.stock || 0)}
                       onClick={() => handleQuantityChange(variant, currentQty + 1)}
-                      className="h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      style={{
-                        backgroundColor:
-                          currentQty > 0 ? "var(--palette-btn)" : "#fca5a5",
-                      }}
+                      className={`h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                        currentQty > 0 ? "bg-green-500" : "bg-emerald-300"
+                      }`}
                     >
                       <span className="text-xl font-semibold">+</span>
                     </button>
