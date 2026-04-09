@@ -33,9 +33,9 @@ export class SellProductItemService {
    */
   private findVariant(variants: any[], variantSize: string, variantColor: string) {
     return variants?.find(
-      (v: any) => 
-        v.size.toLowerCase().trim() === variantSize.toLowerCase().trim() && 
-        v.color.toLowerCase().trim() === variantColor.toLowerCase().trim()
+      (v: any) =>
+        v.size?.toLowerCase().trim() === variantSize?.toLowerCase().trim() &&
+        (v.color?.toLowerCase().trim() || '') === (variantColor?.toLowerCase().trim() || '')
     );
   }
 
