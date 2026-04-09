@@ -299,12 +299,12 @@ export default function StepVariantsImproved({
       {/* Header */}
       <div>
         <h3
-          className="font-semibold mb-1"
+          className="font-semibold mb-1 text-sm sm:text-base"
           style={{ color: "var(--palette-accent-1)" }}
         >
           {productType === "tyre" ? "Tyre Variants" : "Product Variants"}
         </h3>
-        <p className="text-sm" style={{ color: "var(--palette-accent-3)" }}>
+        <p className="text-xs sm:text-sm" style={{ color: "var(--palette-accent-3)" }}>
           {productType === "tyre"
             ? "Add tyre sizes with pricing, stock, and specifications."
             : "Add sizes with pricing, stock, and optional colors for your product variants."}
@@ -312,11 +312,11 @@ export default function StepVariantsImproved({
       </div>
 
       {/* Size Rows */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {sizeRows.map((row) => (
           <div
             key={row.id}
-            className="rounded-lg border p-4"
+            className="rounded-lg border p-3 sm:p-4"
             style={{
               borderColor: "var(--palette-accent-3)",
               backgroundColor: "rgba(255, 255, 255, 0.02)",
@@ -324,9 +324,9 @@ export default function StepVariantsImproved({
           >
             {/* Type Header for Tyres */}
             {productType === "tyre" && (
-              <div className="mb-3 pb-2 border-b flex items-center justify-between" style={{ borderColor: "var(--palette-accent-3)" }}>
+              <div className="mb-2 sm:mb-3 pb-2 border-b flex items-center justify-between gap-2" style={{ borderColor: "var(--palette-accent-3)" }}>
                 <h4
-                  className="text-sm font-bold uppercase tracking-wider"
+                  className="text-xs sm:text-sm font-bold uppercase tracking-wider"
                   style={{ color: "var(--palette-text)" }}
                 >
                   {row.variantType === "rear" ? "Rear" : row.variantType === "combo" ? "Combo" : "Front"}
@@ -351,7 +351,7 @@ export default function StepVariantsImproved({
               </div>
             )}
 
-            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-1 md:grid-cols-9" : "grid-cols-1 md:grid-cols-6"}`}>
+            <div className={`grid gap-3 items-end ${productType === "tyre" ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-9" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"}`}>
 
               {/* Size Name */}
               <div>
@@ -648,45 +648,49 @@ export default function StepVariantsImproved({
       </div>
 
       {/* Add New Size Button(s) */}
-      <div className="mt-4">
+      <div className="mt-3 sm:mt-4">
         {productType === "tyre" ? (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <Button
               type="button"
               onClick={() => handleAddSizeRowWithType("front")}
-              className="flex items-center justify-center gap-2 text-white"
+              className="flex items-center justify-center gap-1 sm:gap-2 text-white text-xs sm:text-sm py-2 sm:py-3"
               style={{ backgroundColor: "var(--palette-btn)" }}
             >
-              <Plus size={18} />
-              Front
+              <Plus size={14} className="sm:hidden" />
+              <Plus size={18} className="hidden sm:block" />
+              <span className="text-xs sm:text-sm">Front</span>
             </Button>
             <Button
               type="button"
               onClick={() => handleAddSizeRowWithType("rear")}
-              className="flex items-center justify-center gap-2 text-white"
+              className="flex items-center justify-center gap-1 sm:gap-2 text-white text-xs sm:text-sm py-2 sm:py-3"
               style={{ backgroundColor: "var(--palette-btn)" }}
             >
-              <Plus size={18} />
-              Rear
+              <Plus size={14} className="sm:hidden" />
+              <Plus size={18} className="hidden sm:block" />
+              <span className="text-xs sm:text-sm">Rear</span>
             </Button>
             <Button
               type="button"
               onClick={() => handleAddSizeRowWithType("combo")}
-              className="flex items-center justify-center gap-2 text-white"
+              className="flex items-center justify-center gap-1 sm:gap-2 text-white text-xs sm:text-sm py-2 sm:py-3"
               style={{ backgroundColor: "var(--palette-btn)" }}
             >
-              <Plus size={18} />
-              Combo
+              <Plus size={14} className="sm:hidden" />
+              <Plus size={18} className="hidden sm:block" />
+              <span className="text-xs sm:text-sm">Combo</span>
             </Button>
           </div>
         ) : (
           <Button
             type="button"
             onClick={handleAddSizeRow}
-            className="flex items-center gap-2 text-white w-full"
+            className="flex items-center gap-2 text-white w-full text-sm sm:text-base"
             style={{ backgroundColor: "var(--palette-btn)" }}
           >
-            <Plus size={18} />
+            <Plus size={16} className="sm:hidden" />
+            <Plus size={18} className="hidden sm:block" />
             Add New Size
           </Button>
         )}

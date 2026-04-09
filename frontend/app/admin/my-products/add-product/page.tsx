@@ -197,13 +197,13 @@ export default function AddProductPage() {
   if (!selectedProductType) {
     return (
       <div
-        className="min-h-screen p-6"
+        className="min-h-screen p-3 sm:p-6"
         style={{
           backgroundColor: "var(--palette-bg)",
         }}
       >
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <Link href="/admin/my-products">
               <button
                 className="p-2 hover:opacity-70 rounded transition inline-flex items-center gap-2 mb-4"
@@ -214,27 +214,27 @@ export default function AddProductPage() {
               </button>
             </Link>
             <h1
-              className="text-4xl font-bold mb-3"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3"
               style={{ color: "var(--palette-text)" }}
             >
               Add New Product
             </h1>
             <p
-              className="text-lg"
+              className="text-sm sm:text-lg"
               style={{ color: "var(--palette-accent-3)" }}
             >
               What type of product are you adding?
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {PRODUCT_TYPES.map((type) => {
               const Icon = type.icon;
               return (
                 <button
                   key={type.id}
                   onClick={() => setSelectedProductType(type.id)}
-                  className="p-6 rounded-xl border-2 hover:shadow-xl transition-all text-left group"
+                  className="p-4 sm:p-6 rounded-xl border-2 hover:shadow-xl transition-all text-left group"
                   style={{
                     backgroundColor: "var(--palette-bg)",
                     borderColor: "var(--palette-accent-3)",
@@ -246,22 +246,22 @@ export default function AddProductPage() {
                     (e.currentTarget.style.borderColor = "var(--palette-accent-3)")
                   }
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
                     <div
-                      className="p-4 rounded-xl group-hover:scale-110 transition-transform"
+                      className="p-3 sm:p-4 rounded-xl group-hover:scale-110 transition-transform"
                       style={{ backgroundColor: type.iconBg }}
                     >
-                      <Icon className="h-8 w-8 text-white" />
+                      <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                     </div>
                     <div className="flex-1">
                       <h3
-                        className="font-bold text-xl mb-2"
+                        className="font-bold text-base sm:text-xl mb-1 sm:mb-2"
                         style={{ color: "var(--palette-text)" }}
                       >
                         {type.name}
                       </h3>
                       <p
-                        className="text-sm"
+                        className="text-xs sm:text-sm"
                         style={{ color: "var(--palette-accent-3)" }}
                       >
                         {type.description}
@@ -284,7 +284,7 @@ export default function AddProductPage() {
   // Step 2: Smart Form
   return (
     <div
-      className="min-h-screen p-6"
+      className="min-h-screen p-3 sm:p-6"
       style={{
         backgroundColor: "var(--palette-bg)",
         color: "var(--palette-text)",
@@ -293,36 +293,37 @@ export default function AddProductPage() {
       <div className="max-w-5xl mx-auto">
         {/* Sticky Header */}
         <div
-          className="sticky top-0 z-10 rounded-xl border p-4 mb-6"
+          className="sticky top-0 z-10 rounded-xl border p-3 sm:p-4 mb-4 sm:mb-6"
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.95)",
             borderColor: "var(--palette-accent-3)",
           }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedProductType(null)}
+                className="shrink-0"
               >
                 <ArrowLeft size={18} />
               </Button>
               <div
-                className="p-2 rounded-lg"
+                className="p-2 rounded-lg shrink-0"
                 style={{ backgroundColor: selectedType?.iconBg || "#86929c" }}
               >
-                <TypeIcon className="h-5 w-5 text-white" />
+                <TypeIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h1
-                  className="text-xl font-bold"
+                  className="text-base sm:text-xl font-bold truncate"
                   style={{ color: "var(--palette-text)" }}
                 >
                   Add {selectedType?.name}
                 </h1>
                 <p
-                  className="text-xs"
+                  className="text-[10px] sm:text-xs hidden sm:block"
                   style={{ color: "var(--palette-accent-3)" }}
                 >
                   Fill in the required fields *
@@ -330,32 +331,34 @@ export default function AddProductPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <Button
                 variant="outline"
                 onClick={() => router.back()}
+                className="text-xs sm:text-sm px-2 sm:px-4"
                 style={{
                   borderColor: "var(--palette-accent-3)",
                   color: "var(--palette-text)",
                 }}
               >
-                Cancel
+                <span className="hidden sm:inline">Cancel</span>
+                <span className="sm:hidden">✕</span>
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting || isPending}
+                className="text-xs sm:text-sm px-2 sm:px-4"
                 style={{
                   backgroundColor: "var(--palette-btn)",
                   color: "white",
                 }}
-                className="hover:opacity-90"
               >
                 {isSubmitting || isPending ? (
-                  "Creating..."
+                  <span className="hidden sm:inline">Creating...</span>
                 ) : (
                   <>
-                    <Check size={18} className="mr-2" />
-                    Create Product
+                    <Check size={16} className="sm:mr-2" />
+                    <span className="hidden sm:inline">Create Product</span>
                   </>
                 )}
               </Button>
@@ -363,11 +366,11 @@ export default function AddProductPage() {
           </div>
 
           {/* Progress indicator */}
-          <div className="mt-4 flex items-center gap-2 text-sm">
+          <div className="mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm overflow-x-auto pb-1">
             {sections.map((section, index) => (
               <React.Fragment key={section.id}>
                 <div
-                  className={`flex items-center gap-1 ${
+                  className={`flex items-center gap-1 shrink-0 ${
                     expandedSections.has(section.id)
                       ? "opacity-100"
                       : "opacity-50"
@@ -379,7 +382,7 @@ export default function AddProductPage() {
                   }}
                 >
                   <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0"
                     style={{
                       backgroundColor: expandedSections.has(section.id)
                         ? "var(--palette-btn)"
@@ -388,16 +391,16 @@ export default function AddProductPage() {
                     }}
                   >
                     {expandedSections.has(section.id) ? (
-                      <Check size={12} />
+                      <Check size={10} />
                     ) : (
                       index + 1
                     )}
                   </div>
-                  <span className="hidden sm:inline">{section.title}</span>
+                  <span className="hidden md:inline">{section.title}</span>
                 </div>
                 {index < sections.length - 1 && (
                   <div
-                    className="flex-1 h-0.5 mx-1"
+                    className="flex-1 h-0.5 min-w-4"
                     style={{
                       backgroundColor: expandedSections.has(section.id)
                         ? "var(--palette-btn)"
@@ -411,7 +414,7 @@ export default function AddProductPage() {
         </div>
 
         {/* Collapsible Form Sections */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {sections.map((section) => {
             const isExpanded = expandedSections.has(section.id);
 
@@ -426,7 +429,7 @@ export default function AddProductPage() {
               >
                 <button
                   onClick={() => toggleSection(section.id)}
-                  className="w-full p-5 flex items-center justify-between transition-colors"
+                  className="w-full p-3 sm:p-5 flex items-center justify-between transition-colors"
                   style={{ backgroundColor: "transparent" }}
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.backgroundColor = "rgba(238, 74, 35, 0.05)")
@@ -435,11 +438,11 @@ export default function AddProductPage() {
                     (e.currentTarget.style.backgroundColor = "transparent")
                   }
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">{section.icon}</div>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="text-xl sm:text-2xl">{section.icon}</div>
                     <div className="text-left">
                       <h3
-                        className="font-bold text-lg"
+                        className="font-bold text-sm sm:text-lg"
                         style={{ color: "var(--palette-text)" }}
                       >
                         {section.title}
@@ -451,12 +454,12 @@ export default function AddProductPage() {
                       </h3>
                     </div>
                   </div>
-                  {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                 </button>
 
                 {isExpanded && (
                   <div
-                    className="p-5 pt-0 border-t"
+                    className="p-3 sm:p-5 pt-0 border-t"
                     style={{ borderColor: "var(--palette-accent-3)" }}
                   >
                     {section.id === "basic" && <StepBasicInfo />}
@@ -472,25 +475,25 @@ export default function AddProductPage() {
 
         {/* Review Section */}
         <div
-          className="mt-8 p-6 rounded-xl border"
+          className="mt-6 sm:mt-8 p-4 sm:p-6 rounded-xl border"
           style={{
             backgroundColor: "rgba(238, 74, 35, 0.08)",
             borderColor: "var(--palette-btn)",
           }}
         >
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2 sm:gap-3">
             <Info
-              className="shrink-0 mt-0.5"
+              className="shrink-0 mt-0.5 w-4 h-4 sm:w-5 sm:h-5"
               style={{ color: "var(--palette-btn)" }}
             />
             <div
-              className="text-sm"
+              className="text-xs sm:text-sm"
               style={{ color: "var(--palette-text)" }}
             >
-              <p className="font-semibold mb-1">
+              <p className="font-semibold mb-1 sm:mb-2 text-xs sm:text-sm">
                 {selectedType?.name} Product Tips:
               </p>
-              <ul className="list-disc list-inside space-y-1 text-xs">
+              <ul className="list-disc list-inside space-y-1 text-[10px] sm:text-xs">
                 {selectedProductType === "clothing" && (
                   <>
                     <li>Enter sizes like: S, M, L, XL or 28, 30, 32</li>
