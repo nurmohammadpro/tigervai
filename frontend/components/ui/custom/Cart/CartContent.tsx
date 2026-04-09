@@ -110,18 +110,18 @@ export default function CartPage() {
                         {/* Variant Info */}
                         <div className="flex gap-2 mb-2">
                           <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-700">
-                            {item.variant.color}
+                            {item.variant?.color || 'N/A'}
                           </span>
                           <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-700">
-                            {item.variant.size}
+                            {item.variant?.size || 'N/A'}
                           </span>
                         </div>
 
                         {/* Price */}
                         <div className="flex items-center gap-2">
-                          {item.unitPrice < item.variant.price && (
+                          {item.unitPrice < (item.variant?.price || 0) && (
                             <span className="text-xs text-gray-500 line-through">
-                              ৳{item.variant.price.toLocaleString()}
+                              ৳{(item.variant?.price || 0).toLocaleString()}
                             </span>
                           )}
                           <span className="text-palette-btn font-bold text-sm">
@@ -130,9 +130,9 @@ export default function CartPage() {
                         </div>
 
                         {/* Stock warning */}
-                        {item.quantity >= item.variantStock && (
+                        {item.quantity >= (item.variantStock || 0) && (
                           <p className="text-xs text-amber-600 mt-1">
-                            Only {item.variantStock} in stock
+                            Only {item.variantStock || 0} in stock
                           </p>
                         )}
                       </div>
@@ -207,7 +207,7 @@ export default function CartPage() {
                           {item.name} × {item.quantity}
                         </span>
                         <span className="text-gray-600 text-xs truncate">
-                          {item.variant.size}-{item.variant.color}
+                          {item.variant?.size || 'N/A'}-{item.variant?.color || 'N/A'}
                         </span>
                       </div>
                       <span className="text-palette-text font-medium whitespace-nowrap text-xs">

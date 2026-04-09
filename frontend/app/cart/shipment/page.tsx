@@ -272,7 +272,7 @@ export default function ShipmentPage() {
                           {item.name} × {item.quantity}
                         </span>
                         <span className="text-gray-600 text-xs truncate">
-                          {item.variant.size}-{item.variant.color}
+                          {item.variant?.size || 'N/A'}-{item.variant?.color || 'N/A'}
                         </span>
                       </div>
                       <span className="text-palette-text font-medium whitespace-nowrap text-xs sm:text-sm">
