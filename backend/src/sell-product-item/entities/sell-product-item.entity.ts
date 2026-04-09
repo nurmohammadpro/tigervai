@@ -24,8 +24,8 @@ class OrderProductVariant {
   @Prop({ required: true })
   size: string;
 
-  @Prop({ required: true })
-  color: string;
+  @Prop()
+  color?: string;
 
   @Prop()
   sku?: string;
