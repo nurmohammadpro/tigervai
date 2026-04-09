@@ -10,6 +10,7 @@ export class MeilisearchService implements OnModuleInit{
     private readonly logger = new Logger(MeilisearchService.name);
   private client: MeiliSearch;
   private index:Index<CreateMeilisearchDto>;
+  private isConnected = false;
 
   constructor(private tenant: TenantConnectionService) {}
 
@@ -19,7 +20,7 @@ export class MeilisearchService implements OnModuleInit{
       host: process.env.MELISEACH_URL as string,
       apiKey: process.env.MELISEACH_TOKEN as string,
     });
-    this.client.createIndex('short_products',{
+    await this.client.createIndex('short_products',{
       primaryKey: 'id',
     });
      this.index = this.client.index<CreateMeilisearchDto>('short_products');
@@ -27,10 +28,11 @@ export class MeilisearchService implements OnModuleInit{
 
     await this.setupIndex();
      this.logger.log('✅ MeiliSearch connected successfully',h.status);
+     this.isConnected = true;
 
     }catch(error){
-      this.logger.error('❌ Could not connect to MeiliSearch', error);
-
+      this.logger.error('❌ Could not connect to MeiliSearch, continuing without it', error?.message || error);
+      this.isConnected = false;
     }
 
   }
@@ -44,56 +46,76 @@ export class MeilisearchService implements OnModuleInit{
   }
 
   private async setupIndex() {
-    await this.index.updateFilterableAttributes([
-      'category',
-      'subMain',
-      'brandName',
-      'main',
-      'hasOffer',
-      'price',
-      'stock',
-      'rating',
-    ]);
+    try {
+      await this.index.updateFilterableAttributes([
+        'category',
+        'subMain',
+        'brandName',
+        'main',
+        'hasOffer',
+        'price',
+        'stock',
+        'rating',
+      ]);
 
-    await this.index.updateSortableAttributes([
-      'createdAt',
-      'price',
-      'stock',
-      'rating',
-    ]);
+      await this.index.updateSortableAttributes([
+        'createdAt',
+        'price',
+        'stock',
+        'rating',
+      ]);
+    } catch (error) {
+      this.logger.error('Failed to setup MeiliSearch index', error?.message || error);
+    }
   }
 
   /** 🟢 Create document */
   async create(doc: CreateMeilisearchDto) {
+    if (!this.isConnected) {
+      this.logger.warn('MeiliSearch not connected, skipping create');
+      return null;
+    }
     this.logger.log('🟢 Creating document', doc);
       if (!doc.id) {
     throw new Error('Document must have an id field');
   }
    const task = await this.index.addDocuments([doc],{primaryKey:"id"});
    this.logger.log('🟢 Document created', task);
-  
+
   return task;
   }
 
   /** 🟡 Update document */
   async update(id: string, updatedData: UpdateMeilisearchDto) {
+    if (!this.isConnected) {
+      this.logger.warn('MeiliSearch not connected, skipping update');
+      return null;
+    }
     return await this.index.updateDocuments([{ id, ...updatedData }]);
   }
   async updateProduct(updatedData: UpdateMeilisearchDto) {
+    if (!this.isConnected) {
+      this.logger.warn('MeiliSearch not connected, skipping updateProduct');
+      return null;
+    }
   // updatedData MUST include the 'id' field
   if (!updatedData.id) {
     throw new Error('Document must have an id field for update');
   }
-  
+
   this.logger.log('🟡 Updating document', updatedData.id);
   const task = await this.index.updateDocuments([updatedData]);
   this.logger.log('🟡 Document updated', task);
-  
+
   return task;
 }
 
   /** 🔴 Delete document */
   async delete(id: string) {
+    if (!this.isConnected) {
+      this.logger.warn('MeiliSearch not connected, skipping delete');
+      return null;
+    }
     return this.index.deleteDocument(id);
   }
 
@@ -237,6 +259,10 @@ export class MeilisearchService implements OnModuleInit{
 }
 
   async findAll() {
+    if (!this.isConnected) {
+      this.logger.warn('MeiliSearch not connected, returning empty');
+      return { results: [] };
+    }
     return this.index.getDocuments();
   }
 }

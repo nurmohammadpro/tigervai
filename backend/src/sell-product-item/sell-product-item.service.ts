@@ -31,7 +31,7 @@ export class SellProductItemService {
   /**
    * ✅ UPDATED: Case-insensitive variant matching
    */
-  private findVariant(variants: any[], variantSize: string, variantColor: string) {
+  private findVariant(variants: any[], variantSize: string, variantColor?: string) {
     return variants?.find(
       (v: any) =>
         v.size?.toLowerCase().trim() === variantSize?.toLowerCase().trim() &&

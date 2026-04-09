@@ -22,10 +22,12 @@ export class UploadServiceService implements OnModuleInit {
   private logger = new Logger(UploadServiceService.name);
 
   private s3: S3Client;
+  private isConnected = false;
 
   constructor(private configService: ConfigService) {}
 
   async onModuleInit() {
+    try {
     const minioUrl = this.configService.get<string>("MINIO_URL") as string;
     const accessKeyId = this.configService.get<string>("MINIO_ACCESS_KEY")  as string;
     const secretAccessKey = this.configService.get<string>("MINIO_SECRET_KEY")  as string;
@@ -39,6 +41,12 @@ export class UploadServiceService implements OnModuleInit {
 
     await this.createBucketIfNotExists("my-tiger-vai-bucket");
     await this.makeBucketPublic("my-tiger-vai-bucket");
+    this.isConnected = true;
+    this.logger.log("✅ MinIO connected successfully");
+    } catch (err) {
+      this.logger.error("❌ Could not connect to MinIO, continuing without it", err?.message || err);
+      this.isConnected = false;
+    }
   }
 
   async createBucketIfNotExists(bucketName: string) {
@@ -80,6 +88,9 @@ export class UploadServiceService implements OnModuleInit {
 
   // ✅ Upload single file with UUID as key
 async uploadSingleFile(file: Express.Multer.File) {
+  if (!this.isConnected) {
+    throw new HttpException("File storage service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+  }
   this.logger.debug(`Uploading file ${file.originalname}`);
 
   try {
@@ -124,6 +135,9 @@ async uploadSingleFile(file: Express.Multer.File) {
 
   // ✅ Delete using key (UUID)
   async deleteFile(key: string) {
+    if (!this.isConnected) {
+      throw new HttpException("File storage service unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+    }
     try {
       await this.s3.send(
         new DeleteObjectCommand({
