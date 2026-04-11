@@ -724,7 +724,7 @@ const ProductPage = ({ params }: { params: Product }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<
     (typeof params.variants)[0] | undefined
-  >(undefined);
+  >(params.variants?.[0] ?? undefined);
   const [quantity, setQuantity] = useState(0);
   const [isChatPending, setChatPending] = useState(false);
   const { addToCart, updateQuantity, items } = useCartStore();
