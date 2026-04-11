@@ -1091,14 +1091,37 @@ const ProductPage = ({ params }: { params: Product }) => {
     }
   };
 
-  // Get all images combined: product images + variant image
+  // Get all images combined: product images + all variant images + thumbnail
   const getAllImages = () => {
-    const productImages = params?.images || [];
-    const variantImg = selectedVariant?.image;
-    const allImages = [...productImages];
-    if (variantImg) {
-      allImages.push({ ...variantImg, isVariant: true });
+    const allImages: Array<any> = [];
+    const seenUrls = new Set<string>();
+
+    // Add product images first
+    (params?.images || []).forEach((img: any) => {
+      if (img?.url && !seenUrls.has(img.url)) {
+        allImages.push({ ...img, isVariant: false });
+        seenUrls.add(img.url);
+      }
+    });
+
+    // Add thumbnail if not already included
+    if (params?.thumbnail?.url && !seenUrls.has(params.thumbnail.url)) {
+      allImages.unshift({ ...params.thumbnail, isVariant: false });
+      seenUrls.add(params.thumbnail.url);
     }
+
+    // Add all variant images
+    (params?.variants || []).forEach((variant: any) => {
+      if (variant?.image?.url && !seenUrls.has(variant.image.url)) {
+        allImages.push({
+          ...variant.image,
+          isVariant: true,
+          variantLabel: `${variant.size}${variant.color ? ` / ${variant.color}` : ""}`,
+        });
+        seenUrls.add(variant.image.url);
+      }
+    });
+
     return allImages;
   };
 
@@ -1176,12 +1199,12 @@ const ProductPage = ({ params }: { params: Product }) => {
                     >
                       <img
                         src={image?.url ?? ""}
-                        alt={image?.isVariant ? "Variant image" : `Thumbnail ${index + 1}`}
+                        alt={image?.isVariant ? `Variant: ${image?.variantLabel || ""}` : `Thumbnail ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                       {image?.isVariant && (
                         <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs px-1 py-0.5 text-center">
-                          Variant
+                          {image?.variantLabel || "Variant"}
                         </span>
                       )}
                     </button>
