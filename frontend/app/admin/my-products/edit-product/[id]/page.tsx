@@ -106,7 +106,7 @@ export default function EditProductPage() {
     shipping: false,
     additional: false,
   });
-  const { data: productDetails, isPending } = useQueryWrapper<Product>(
+  const { data: productDetails, isPending, refetch: refetchProduct } = useQueryWrapper<Product>(
     [productId],
     `/product/get-product?slug=${productId}`
   );
@@ -132,7 +132,11 @@ export default function EditProductPage() {
   const { mutate, isPending: isSubmitting } = useApiMutation(
     updateProductAdmin,
     undefined,
-    "update-product"
+    "update-product",
+    () => {
+      // Refetch product data after successful update
+      refetchProduct();
+    }
   );
 
   // Delete image mutation
