@@ -206,7 +206,7 @@ export class ProductService {
       dto.name,
       dto.price,
       dto?.category?.main,
-      dto?.category?.category,
+      dto?.category?.category ?? '',
       globalProducts
     );
     const slug = slugify(rawSlug);
