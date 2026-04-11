@@ -1191,7 +1191,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                     <button
                       key={image?.isVariant ? "variant-image" : `main-${image?.id ?? index}`}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`w-16 sm:w-20 lg:w-full aspect-square shrink-0 rounded-lg overflow-hidden border-2 transition-all relative ${
+                      className={`w-16 sm:w-20 lg:w-full aspect-square shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
                         selectedImageIndex === index
                           ? "border-palette-btn ring-2 ring-palette-btn/30"
                           : "border-gray-200 hover:border-gray-300"
@@ -1202,11 +1202,6 @@ const ProductPage = ({ params }: { params: Product }) => {
                         alt={image?.isVariant ? `Variant: ${image?.variantLabel || ""}` : `Thumbnail ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
-                      {image?.isVariant && (
-                        <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs px-1 py-0.5 text-center">
-                          {image?.variantLabel || "Variant"}
-                        </span>
-                      )}
                     </button>
                   ))}
                 </div>
