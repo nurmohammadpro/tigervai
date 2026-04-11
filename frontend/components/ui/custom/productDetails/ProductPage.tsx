@@ -1082,12 +1082,24 @@ const ProductPage = ({ params }: { params: Product }) => {
   const priceRange = getPriceRange();
 
   const handleImageNavigation = (direction: "prev" | "next") => {
-    const imagesLength = params?.images?.length ?? 0;
+    const imagesLength = getAllImages().length;
+    if (imagesLength === 0) return;
     if (direction === "next") {
       setSelectedImageIndex((prev) => (prev + 1) % imagesLength);
     } else {
       setSelectedImageIndex((prev) => (prev - 1 + imagesLength) % imagesLength);
     }
+  };
+
+  // Get all images combined: product images + variant image
+  const getAllImages = () => {
+    const productImages = params?.images || [];
+    const variantImg = selectedVariant?.image;
+    const allImages = [...productImages];
+    if (variantImg) {
+      allImages.push({ ...variantImg, isVariant: true });
+    }
+    return allImages;
   };
 
   const renderRating = (rating = 4.5, totalReviews: number) => {
@@ -1150,47 +1162,30 @@ const ProductPage = ({ params }: { params: Product }) => {
             {/* Image Section - Responsive Thumbnails */}
             <div className="flex flex-col lg:flex-row gap-3">
               {/* Thumbnails - BOTTOM for mobile, LEFT for desktop */}
-              {((params?.images?.length ?? 0) > 1 ||
-                selectedVariant?.image) && (
+              {getAllImages().length > 1 && (
                 <div className="flex flex-row lg:flex-col gap-2 order-2 lg:order-1 w-full lg:w-16 xl:w-20 shrink-0 overflow-x-auto lg:overflow-x-visible">
-                  {/* Main Product Images */}
-                  {params?.images?.map((image, index) => (
+                  {getAllImages().map((image, index) => (
                     <button
-                      key={`main-${image?.id ?? index}`}
+                      key={image?.isVariant ? "variant-image" : `main-${image?.id ?? index}`}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`w-16 sm:w-20 lg:w-full aspect-square shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-                        selectedImageIndex === index && !selectedVariant?.image
+                      className={`w-16 sm:w-20 lg:w-full aspect-square shrink-0 rounded-lg overflow-hidden border-2 transition-all relative ${
+                        selectedImageIndex === index
                           ? "border-palette-btn ring-2 ring-palette-btn/30"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
                       <img
                         src={image?.url ?? ""}
-                        alt={`Thumbnail ${index + 1}`}
+                        alt={image?.isVariant ? "Variant image" : `Thumbnail ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
+                      {image?.isVariant && (
+                        <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs px-1 py-0.5 text-center">
+                          Variant
+                        </span>
+                      )}
                     </button>
                   ))}
-                  {/* Variant Image - shown when selected */}
-                  {selectedVariant?.image && (
-                    <button
-                      key="variant-image"
-                      className={`w-16 sm:w-20 lg:w-full aspect-square shrink-0 rounded-lg overflow-hidden border-2 transition-all relative ${
-                        true
-                          ? "border-palette-btn ring-2 ring-palette-btn/30"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <img
-                        src={selectedVariant.image.url}
-                        alt="Variant image"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs px-1 py-0.5 text-center">
-                        Variant
-                      </span>
-                    </button>
-                  )}
                 </div>
               )}
 
@@ -1198,15 +1193,13 @@ const ProductPage = ({ params }: { params: Product }) => {
               <div className="relative flex-1 bg-gray-50 rounded-lg overflow-hidden order-1 lg:order-2 aspect-square">
                 <img
                   src={
-                    // Priority: 1. Variant image (if variant with image is selected), 2. Selected main image, 3. Thumbnail
-                    selectedVariant?.image?.url ||
-                    params?.images?.[selectedImageIndex]?.url ||
+                    getAllImages()[selectedImageIndex]?.url ||
                     params?.thumbnail?.url ||
                     ""
                   }
                   alt={params?.name ?? "Product image"}
                   className="w-full h-full object-cover"
-                  key={selectedVariant?.image?.url || selectedImageIndex}
+                  key={selectedImageIndex}
                 />
 
                 {priceRange?.hasDiscount && (
@@ -1216,7 +1209,7 @@ const ProductPage = ({ params }: { params: Product }) => {
                 )}
 
                 {/* Navigation Arrows for Main Image */}
-                {(params?.images?.length ?? 0) > 1 && (
+                {getAllImages().length > 1 && (
                   <>
                     <button
                       onClick={() => handleImageNavigation("prev")}
