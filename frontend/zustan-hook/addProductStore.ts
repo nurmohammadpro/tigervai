@@ -187,6 +187,11 @@ export const useAddProductStore = create<AddProductState>((set, get) => ({
       if (cleanedData.category.semiSub === "") {
         delete cleanedData.category.semiSub;
       }
+      
+      // Ensure category.category has a value - fallback to main if not set
+      if (!cleanedData.category.category || cleanedData.category.category === "") {
+        cleanedData.category.category = cleanedData.category.main || "";
+      }
     }
 
     return cleanedData;

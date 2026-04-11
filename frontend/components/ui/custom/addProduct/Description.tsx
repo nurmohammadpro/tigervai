@@ -5,8 +5,6 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import ImageResize from "tiptap-extension-resize-image";
 import TextAlign from "@tiptap/extension-text-align";
-import BulletList from "@tiptap/extension-bullet-list";
-import ListItem from "@tiptap/extension-list-item";
 import { TextStyleKit } from "@tiptap/extension-text-style";
 import CharacterCount from "@tiptap/extension-character-count";
 
@@ -50,8 +48,6 @@ export default function RichTextEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit,
-      BulletList,
-      ListItem,
       ImageResize,
       TextStyleKit,
       TextAlign.configure({ types: ["heading", "paragraph", "image"] }),

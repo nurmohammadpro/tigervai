@@ -22,10 +22,10 @@ class ProductCategory {
   @Prop({ required: true })
   main: string;
 
-  @Prop({ required: true })
+  @Prop()
   category: string;
 
-  @Prop({ required: true })
+  @Prop()
   subMain: string;
 }
 

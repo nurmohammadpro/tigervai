@@ -13,7 +13,8 @@
       "Bash(ps *)",
       "Bash(timeout *)",
       "Bash(head *)",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(git push *)"
     ]
   },
   "$version": 3

@@ -40,9 +40,10 @@ class ProductCategoryDto {
   @IsString()
   semiSub?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  category: string;
+  category?: string;
 }
 
 class FeatureDto {
