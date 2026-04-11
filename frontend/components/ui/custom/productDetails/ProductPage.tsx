@@ -1298,11 +1298,11 @@ const ProductPage = ({ params }: { params: Product }) => {
 
               <Separator />
               {params?.special_offer && (
-                <div className="flex bg-green-50/20 rounded-lg p-0 py-1">
+                <div className="flex items-center gap-2 bg-green-50/20 rounded-lg p-0 py-1">
                   <span className=" text-[#ff5507] font-bold">
                     Special Offer:
                   </span>
-                  <p className="text-sm text-gray-800 font-semibold">
+                  <p className="text-sm text-gray-700 font-semibold">
                     {params?.special_offer}
                   </p>
                 </div>
