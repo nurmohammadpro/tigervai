@@ -697,22 +697,8 @@ export default function VariantSelector({
         {/* Inline Stock Display - Between Color and Size */}
         {selectedVariant && (
           <div className="mb-3">
-            <span
-              className="text-xs font-semibold"
-              style={{
-                color:
-                  (selectedVariant.stock || 0) === 0
-                    ? "#ef4444"
-                    : (selectedVariant.stock || 0) <= 3
-                      ? "#ef4444"
-                      : (selectedVariant.stock || 0) <= 5
-                        ? "#f97316"
-                        : "#22c55e",
-              }}
-            >
-              {(selectedVariant.stock || 0) === 0
-                ? "Out of Stock"
-                : `Stock: ${selectedVariant.stock} ${selectedVariant.stock === 1 ? "item" : "items"}`}
+            <span className="text-xs text-red-500 font-semibold">
+              Stock: {selectedVariant.stock || 0}
             </span>
           </div>
         )}
@@ -848,11 +834,9 @@ export default function VariantSelector({
                     Math.min(selectedVariant?.stock || 0, quantity + 1),
                   )
                 }
-                className="h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                style={{
-                  backgroundColor:
-                    quantity > 0 ? "var(--palette-btn)" : "#fca5a5",
-                }}
+                className={`h-10 w-12 py-4 flex justify-center items-center font-bold text-white rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                  quantity > 0 ? "bg-emerald-600" : "bg-green-500"
+                }`}
               >
                 <span className="text-xl font-semibold">+</span>
               </button>
