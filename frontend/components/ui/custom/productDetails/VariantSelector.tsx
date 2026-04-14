@@ -540,12 +540,16 @@ export default function VariantSelector({
     };
   };
   // Extract unique sizes and colors (only include non-undefined colors)
+  // Normalize colors to lowercase and trim to avoid duplicates from casing/whitespace differences
   const sizes = Array.from(new Set(variants.map((v) => v.size)));
   const colors = useMemo(
     () =>
       Array.from(
         new Set(
-          variants.map((v) => v.color).filter((c): c is string => Boolean(c)),
+          variants
+            .map((v) => v.color)
+            .filter((c): c is string => Boolean(c))
+            .map((c) => c.toLowerCase().trim()),
         ),
       ),
     [variants],
@@ -558,7 +562,7 @@ export default function VariantSelector({
     selectedVariant?.size || "",
   );
   const [selectedColor, setSelectedColor] = useState<string>(
-    selectedVariant?.color || "",
+    selectedVariant?.color?.toLowerCase().trim() || "",
   );
 
   // Filter available colors based on selected size
@@ -569,7 +573,7 @@ export default function VariantSelector({
       new Set(
         variants
           .filter((v) => v.size === selectedSize && v.color)
-          .map((v) => v.color),
+          .map((v) => v.color!.toLowerCase().trim()),
       ),
     );
   }, [selectedSize, variants, colors, hasColorVariants]);
@@ -580,7 +584,9 @@ export default function VariantSelector({
 
     return Array.from(
       new Set(
-        variants.filter((v) => v.color === selectedColor).map((v) => v.size),
+        variants
+          .filter((v) => v.color?.toLowerCase().trim() === selectedColor)
+          .map((v) => v.size),
       ),
     );
   }, [selectedColor, variants, sizes, hasColorVariants]);
@@ -591,9 +597,9 @@ export default function VariantSelector({
     // Find the appropriate variant based on whether colors are used
     let variant;
     if (hasColorVariants && selectedColor) {
-      // Try to match both size and color first
+      // Try to match both size and color first (normalize color comparison)
       variant = variants.find(
-        (v) => v.size === size && v.color === selectedColor,
+        (v) => v.size === size && v.color?.toLowerCase().trim() === selectedColor,
       );
       // Fall back to first variant with this size
       if (!variant) {
@@ -612,9 +618,9 @@ export default function VariantSelector({
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
 
-    // Find variant with both size and color
+    // Find variant with both size and color (normalize color comparison)
     const variant = variants.find(
-      (v) => v.color === color && v.size === selectedSize,
+      (v) => v.color?.toLowerCase().trim() === color && v.size === selectedSize,
     );
     if (variant) {
       onVariantSelect(variant);
@@ -623,13 +629,17 @@ export default function VariantSelector({
 
   const isColorAvailable = (color: string) => {
     if (!selectedSize) return true;
-    return variants.some((v) => v.size === selectedSize && v.color === color);
+    return variants.some(
+      (v) => v.size === selectedSize && v.color?.toLowerCase().trim() === color,
+    );
   };
 
   const isSizeAvailable = (size: string) => {
     // If no colors, all sizes are available
     if (!hasColorVariants || !selectedColor) return true;
-    return variants.some((v) => v.color === selectedColor && v.size === size);
+    return variants.some(
+      (v) => v.color?.toLowerCase().trim() === selectedColor && v.size === size,
+    );
   };
 
   return (
@@ -655,10 +665,24 @@ export default function VariantSelector({
                 {colors.map((color) => {
                   const isAvailable = isColorAvailable(color);
                   const isSelected = selectedColor === color;
-                  const colorVariant = variants.find(
-                    (v) => v.color === color && v.size === selectedSize,
-                  );
-                  const isOutOfStock = colorVariant?.stock === 0;
+                  // Check stock for the specific size+color combination if size is selected,
+                  // otherwise check if ANY variant with this color has stock
+                  let colorVariant;
+                  if (selectedSize) {
+                    colorVariant = variants.find(
+                      (v) =>
+                        v.color?.toLowerCase().trim() === color &&
+                        v.size === selectedSize,
+                    );
+                  } else {
+                    // No size selected - check if any variant with this color has stock
+                    colorVariant = variants.find(
+                      (v) =>
+                        v.color?.toLowerCase().trim() === color &&
+                        (v.stock || 0) > 0,
+                    );
+                  }
+                  const isOutOfStock = (colorVariant?.stock || 0) === 0;
 
                   return (
                     <button
@@ -716,8 +740,22 @@ export default function VariantSelector({
               {sizes.map((size) => {
                 const isAvailable = isSizeAvailable(size);
                 const isSelected = selectedSize === size;
-                const sizeVariant = variants.find((v) => v.size === size);
-                const isOutOfStock = sizeVariant?.stock === 0;
+                // Check stock for the specific color+size combination if color is selected,
+                // otherwise check if ANY variant with this size has stock
+                let sizeVariant;
+                if (hasColorVariants && selectedColor) {
+                  sizeVariant = variants.find(
+                    (v) =>
+                      v.size === size &&
+                      v.color?.toLowerCase().trim() === selectedColor,
+                  );
+                } else {
+                  // No color selected - check if any variant with this size has stock
+                  sizeVariant = variants.find(
+                    (v) => v.size === size && (v.stock || 0) > 0,
+                  );
+                }
+                const isOutOfStock = (sizeVariant?.stock || 0) === 0;
 
                 return (
                   <button
