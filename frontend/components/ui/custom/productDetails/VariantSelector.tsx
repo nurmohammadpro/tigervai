@@ -731,16 +731,31 @@ export default function VariantSelector({
                 const isSelected = selectedSize === size;
                 const isOutOfStock = !isAvailable;
 
+                // Get stock for this specific size (with selected color if any)
+                let currentStock = 0;
+                if (hasColorVariants && selectedColor) {
+                  const matchedVariant = variants.find(
+                    (v) =>
+                      v.size === size && normalizeColor(v.color) === selectedColor,
+                  );
+                  currentStock = matchedVariant?.stock || 0;
+                } else {
+                  // No color selected - sum stock across all colors for this size
+                  currentStock = variants
+                    .filter((v) => v.size === size)
+                    .reduce((sum, v) => sum + (v.stock || 0), 0);
+                }
+
                 return (
                   <button
                     key={size}
                     onClick={() => isAvailable && handleSizeSelect(size)}
-                    disabled={!isAvailable || isOutOfStock}
+                    disabled={!isAvailable}
                     className={`
-                        relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200
+                        relative h-9 px-3 rounded-lg border-2 font-bold text-sm transition-all duration-200 flex items-center gap-1.5
                         ${
-                          !isAvailable || isOutOfStock
-                            ? "opacity-20 cursor-not-allowed grayscale"
+                          !isAvailable
+                            ? "opacity-40 cursor-not-allowed grayscale"
                             : "cursor-pointer hover:scale-105 active:scale-95"
                         }
                       `}
@@ -753,7 +768,17 @@ export default function VariantSelector({
                       minWidth: "45px",
                     }}
                   >
-                    {size}
+                    <span>{size}</span>
+                    {isAvailable && (
+                      <span
+                        className="text-[10px] font-medium px-1 rounded"
+                        style={{
+                          color: currentStock <= 3 ? "#ef4444" : currentStock <= 10 ? "#f59e0b" : "#22c55e",
+                        }}
+                      >
+                        ({currentStock})
+                      </span>
+                    )}
                   </button>
                 );
               })}
