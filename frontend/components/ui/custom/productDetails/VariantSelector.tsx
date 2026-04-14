@@ -549,7 +549,14 @@ export default function VariantSelector({
           variants
             .map((v) => v.color)
             .filter((c): c is string => Boolean(c) && typeof c === "string")
-            .map((c) => c.normalize("NFC").toLowerCase().trim().replace(/\s+/g, " "))
+            .map((c) =>
+              c
+                .normalize("NFKC") // Use NFKC instead of NFC to handle full-width characters
+                .toLowerCase()
+                .trim()
+                .replace(/[\u200B-\u200D\uFEFF]/g, "") // Remove zero-width characters
+                .replace(/\s+/g, " ")
+            )
             .filter((c) => c.length > 0),
         ),
       ),
@@ -563,40 +570,25 @@ export default function VariantSelector({
     selectedVariant?.size || "",
   );
   const [selectedColor, setSelectedColor] = useState<string>(
-    selectedVariant?.color?.normalize("NFC").toLowerCase().trim().replace(/\s+/g, " ") || "",
+    selectedVariant?.color
+      ?.normalize("NFKC") // Use NFKC instead of NFC to handle full-width characters
+      .toLowerCase()
+      .trim()
+      .replace(/[\u200B-\u200D\uFEFF]/g, "") // Remove zero-width characters
+      .replace(/\s+/g, " ") || "",
   );
 
   // Helper to normalize color strings consistently
   const normalizeColor = (color: string | undefined): string => {
     if (!color) return "";
-    return color.normalize("NFC").toLowerCase().trim().replace(/\s+/g, " ");
+    // Normalize Unicode, convert to lowercase, trim, replace multiple spaces, and remove non-printable characters
+    return color
+      .normalize("NFKC") // Use NFKC instead of NFC to handle full-width characters
+      .toLowerCase()
+      .trim()
+      .replace(/[\u200B-\u200D\uFEFF]/g, "") // Remove zero-width characters
+      .replace(/\s+/g, " ");
   };
-
-  // Filter available colors based on selected size
-  const availableColors = useMemo(() => {
-    if (!selectedSize || !hasColorVariants) return colors;
-
-    return Array.from(
-      new Set(
-        variants
-          .filter((v) => v.size === selectedSize && v.color)
-          .map((v) => normalizeColor(v.color)),
-      ),
-    );
-  }, [selectedSize, variants, colors, hasColorVariants]);
-
-  // Filter available sizes based on selected color (only if product has colors)
-  const availableSizes = useMemo(() => {
-    if (!hasColorVariants || !selectedColor) return sizes;
-
-    return Array.from(
-      new Set(
-        variants
-          .filter((v) => normalizeColor(v.color) === selectedColor)
-          .map((v) => v.size),
-      ),
-    );
-  }, [selectedColor, variants, sizes, hasColorVariants]);
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
@@ -729,22 +721,6 @@ export default function VariantSelector({
               {sizes.map((size) => {
                 const isAvailable = isSizeAvailable(size);
                 const isSelected = selectedSize === size;
-                const isOutOfStock = !isAvailable;
-
-                // Get stock for this specific size (with selected color if any)
-                let currentStock = 0;
-                if (hasColorVariants && selectedColor) {
-                  const matchedVariant = variants.find(
-                    (v) =>
-                      v.size === size && normalizeColor(v.color) === selectedColor,
-                  );
-                  currentStock = matchedVariant?.stock || 0;
-                } else {
-                  // No color selected - sum stock across all colors for this size
-                  currentStock = variants
-                    .filter((v) => v.size === size)
-                    .reduce((sum, v) => sum + (v.stock || 0), 0);
-                }
 
                 return (
                   <button
@@ -768,17 +744,7 @@ export default function VariantSelector({
                       minWidth: "45px",
                     }}
                   >
-                    <span>{size}</span>
-                    {isAvailable && (
-                      <span
-                        className="text-[10px] font-medium px-1 rounded"
-                        style={{
-                          color: currentStock <= 3 ? "#ef4444" : currentStock <= 10 ? "#f59e0b" : "#22c55e",
-                        }}
-                      >
-                        ({currentStock})
-                      </span>
-                    )}
+                    {size}
                   </button>
                 );
               })}
